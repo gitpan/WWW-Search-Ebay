@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.150 2004/10/14 03:21:47 Daddy Exp Daddy $
+# $Id: Ebay.pm,v 2.151 2004/10/21 11:15:48 Daddy Exp $
 
 =head1 NAME
 
@@ -87,6 +87,8 @@ C<WWW::Search::Ebay> was written by Martin Thurn
 C<WWW::Search::Ebay> is maintained by Martin Thurn
 (mthurn@cpan.org).
 
+Some fixes along the way contributed by Troy Davis.
+
 =head1 LEGALESE
 
 THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
@@ -108,7 +110,7 @@ use WWW::Search qw( generic_option strip_tags );
 use WWW::SearchResult 2.063;
 use WWW::Search::Result;
 
-$VERSION = do { my @r = (q$Revision: 2.150 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.151 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search

@@ -3,7 +3,7 @@ use inc::Module::Install;
 name('WWW-Search-Ebay');
 author('Martin Thurn <mthurn@cpan.org>');
 license('perl');
-version(2.197);
+version(2.198);
 
 requires(perl => 5.005);
 requires('Date::Manip');

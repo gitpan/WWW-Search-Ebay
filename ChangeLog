@@ -1,3 +1,10 @@
+2004-10-21  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): handle new HTML page format
+
+	* lib/WWW/Search/Ebay/Stores.pm (native_setup_search): new CGI parameters
+	parsing now handled by parent class
+
 2004-09-25  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): now sets bid_count and bid_amount in the Result objects
