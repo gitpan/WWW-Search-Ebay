@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.2 2001/04/02 17:36:29 mthurn Exp $
+# $Id: Ebay.pm,v 1.2 2001/04/02 17:36:29 mthurn Exp mthurn $
 
 =head1 NAME
 
@@ -78,7 +78,7 @@ use HTML::TreeBuilder;
 use WWW::Search qw( generic_option strip_tags );
 require WWW::SearchResult;
 
-$VERSION = '2.01';
+$VERSION = '2.02';
 $MAINTAINER = 'Martin Thurn <MartinThurn@iname.com>';
 
 # private
@@ -96,7 +96,7 @@ sub native_setup_search
   $self->{'_hits_per_page'} = $DEFAULT_HITS_PER_PAGE;
 
   $self->{agent_e_mail} = 'MartinThurn@iname.com';
-  $self->user_agent(0);
+  $self->user_agent('non-robot');
 
   $self->{'_next_to_retrieve'} = 0;
   $self->{'_num_hits'} = 0;

@@ -1,3 +1,11 @@
+2001-04-14  Kingpin  <mthurn@tasc.com>
+
+	* VERSION 2.02 RELEASED
+
+2001-04-13  Kingpin  <mthurn@tasc.com>
+
+	* Ebay.pm (native_setup_search): make the user_agent non-robot
+
 2001-04-02  Kingpin  <mthurn@tasc.com>
 
 	* VERSION 2.01 RELEASED
