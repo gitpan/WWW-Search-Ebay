@@ -20,9 +20,9 @@ $iDebug = 0;
 &my_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 TEST_NOW:
 $iDebug = 0;
-$iDump = 0;
+$iDump = 1;
 # This query usually returns 1 page of results:
-&my_test('normal', 'star wars chip* -figure -comm* -lay*', 1, 49, $iDebug, $iDump);
+&my_test('normal', 'star wars chip* -figure -comm* -lay* -moc', 1, 49, $iDebug, $iDump);
 # goto ALL_DONE;  # for debugging
 
 CONTENTS:
@@ -35,7 +35,7 @@ if (0)
   {
   my $o = new WWW::Search('Ebay::ByEndDate');
   ok(ref $o);
-  $o->native_query('Tobago flag',
+  $o->native_query('tivo sony -directv',
                      {
                       search_debug => $iDebug,
                      },
@@ -79,6 +79,7 @@ sub my_new_engine
   my $sEngine = shift;
   $WWW::Search::Test::oSearch = new WWW::Search($sEngine);
   ok(ref($WWW::Search::Test::oSearch), "instantiate WWW::Search::$sEngine object");
+  $WWW::Search::Test::oSearch->env_proxy('yes');
   } # my_new_engine
 
 sub my_test

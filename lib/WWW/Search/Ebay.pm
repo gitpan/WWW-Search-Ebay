@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.21 2003-10-27 09:55:25-05 kingpin Exp kingpin $
+# $Id: Ebay.pm,v 1.22 2003-11-13 06:51:40-05 kingpin Exp kingpin $
 
 =head1 NAME
 
@@ -254,6 +254,8 @@ sub parse_tree
       my $s = $oTDdate->as_HTML;
       print STDERR " +   TDdate ===$s===\n" if 1 < $self->{_debug};
       $sDate = $oTDdate->as_text;
+      # Convert nbsp to regular space:
+      $sDate =~ s!\240!\040!g;
       } # if
     my $hit = new WWW::Search::Result;
     $hit->add_url($sURL);

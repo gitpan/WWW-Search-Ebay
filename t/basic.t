@@ -15,8 +15,9 @@ $iDebug = 0;
 &my_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 # goto MULTI_RESULT;
 $iDebug = 0;
+$iDump = 1;
 # This query usually returns 1 page of results:
-&my_test('normal', 'star wars chip* -figure -comm* -lay*', 1, 49, $iDebug);
+&my_test('normal', 'star wars chip* -figure -com* -tech -lay*', 1, 49, $iDebug, $iDump);
 
 MULTI_RESULT:
 $iDebug = 0;
@@ -46,6 +47,7 @@ sub my_new_engine
   my $sEngine = shift;
   $WWW::Search::Test::oSearch = new WWW::Search($sEngine);
   ok(ref($WWW::Search::Test::oSearch), "instantiate WWW::Search::$sEngine object");
+  $WWW::Search::Test::oSearch->env_proxy('yes');
   } # my_new_engine
 
 sub my_test

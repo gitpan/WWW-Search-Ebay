@@ -1,3 +1,11 @@
+2003-12-06  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay/ByEndDate.pm: fixed so that "featured" auctions are put into the properly sorted order
+
+2003-11-13  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): in change_date, convert nbsp to regular space
+
 2003-10-27  Kingpin  <mthurn@verizon.net>
 
 	* t/enddate.t: beefed-up tests

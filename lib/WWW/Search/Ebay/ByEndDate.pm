@@ -1,6 +1,6 @@
 # Ebay/ByEndDate.pm
 # by Martin Thurn
-# $Id: ByEndDate.pm,v 1.1 2003-02-06 23:35:18-05 kingpin Exp kingpin $
+# $Id: ByEndDate.pm,v 1.2 2003-12-06 20:12:42-05 kingpin Exp kingpin $
 
 =head1 NAME
 
@@ -102,6 +102,30 @@ sub native_setup_search
   $rhOptsArg->{'SortProperty'} = 'MetaEndSort';
   return $self->SUPER::native_setup_search($native_query, $rhOptsArg);
   } # native_setup_search
+
+# Enforce sorting by end date, even if Ebay is returning it in a
+# different order.  Calls parse_tree() of the base class, and then
+# reshuffles its 'cache' results.  Code contributed by Mike Schilli.
+
+sub parse_tree
+  {
+  my ($self, @args) = @_;
+  my $hits = $self->SUPER::parse_tree(@args);
+  $self->{cache} = [sort { minutes($a->change_date()) <=>
+                           minutes($b->change_date()) }
+                    @{$self->{cache}}];
+  return $hits;
+  } # parse_tree
+
+sub minutes
+  {
+  my ($s) = @_;
+  my $min = 0;
+  $min += 60*24*$1 if $s =~ /(\d+)[dT]/;
+  $min += 60*$1 if $s =~ /(\d+)[hS]/;
+  $min += $1 if $s =~ /(\d+)[mM]/;
+  return $min;
+  } # minutes
 
 1;
 
