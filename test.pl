@@ -31,15 +31,15 @@ my $debug = 0;
 # goto MULTI_RESULT;
 $debug = 0;
 # This query usually returns 1 page of results:
-&run_test('bib fortuna', 1, 49, $debug);
+&run_test('star wars adult', 1, 49, $debug);
 # goto MULTI_RESULT;
 $debug = 0;
 # This query usually returns 2 pages of results:
-&run_test('thurn und taxis', 51, 99, $debug);
+&run_test('bib fortuna', 51, 99, $debug);
 
 MULTI_RESULT:
 $debug = 0;
 # This query returns hundreds of pages of results:
-&run_test('Star Wars', 101, undef, $debug);
+&run_test('LEGO', 101, undef, $debug);
 
 &new_engine('Ebay::ByEndDate');

@@ -1,6 +1,11 @@
+2002-07-24  Kingpin  <mthurn@copper.dulles.tasc.com>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): fix parsing around new images in table
+
 2001-12-20  Kingpin  <mthurn@copper.dulles.tasc.com>
 
 	* lib/WWW/Search/Ebay.pm (native_retrieve_some): handle new ebay.com output format
+	(parse_tree): rewrite using this new method
 
 2001-07-30  Kingpin  <mthurn@tasc.com>
 
