@@ -1,4 +1,4 @@
-#line 1 "inc/Module/Install/Base.pm - c:/Perl/site/lib/Module/Install/Base.pm"
+#line 1 "inc/Module/Install/Base.pm - C:/Perl/site/lib/Module/Install/Base.pm"
 # $File: //depot/cpan/Module-Install/lib/Module/Install/Base.pm $ $Author: autrijus $
 # $Revision: #10 $ $Change: 1847 $ $DateTime: 2003/12/31 23:14:54 $ vim: expandtab shiftwidth=4
 

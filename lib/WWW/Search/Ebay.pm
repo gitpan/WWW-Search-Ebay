@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.144 2004/06/06 02:55:44 Daddy Exp $
+# $Id: Ebay.pm,v 2.144 2004/06/06 02:55:44 Daddy Exp Daddy $
 
 =head1 NAME
 
@@ -182,7 +182,7 @@ sub parse_tree
   my $hits_found = 0;
   # The hit count is in a FONT tag:
   my @aoFONT = $tree->look_down('_tag' => 'td',
-                                width => '99%',);
+                                width => '75%',);
  FONT:
   foreach my $oFONT (@aoFONT)
     {

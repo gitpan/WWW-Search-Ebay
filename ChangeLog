@@ -1,4 +1,12 @@
+2004-07-23  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): fix for parsing result count
+
 2004-06-05  Kingpin  <mthurn@verizon.net>
+
+	* t/stores.t: new file
+
+	* lib/WWW/Search/Ebay/Stores.pm: new file
 
 	* lib/WWW/Search/Ebay.pm (currency_pattern): new function
 

@@ -1,4 +1,4 @@
-#line 1 "inc/Date/Manip.pm - c:/Perl/site/lib/Date/Manip.pm"
+#line 1 "inc/Date/Manip.pm - C:/Perl/site/lib/Date/Manip.pm"
 package Date::Manip;
 # Copyright (c) 1995-2003 Sullivan Beck.  All rights reserved.
 # This program is free software; you can redistribute it and/or modify it

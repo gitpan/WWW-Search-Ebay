@@ -3,7 +3,7 @@ use inc::Module::Install;
 name('WWW-Search-Ebay');
 author('Martin Thurn <mthurn@cpan.org>');
 license('perl');
-version(2.193);
+version(2.194);
 
 requires(perl => 5.005);
 # Date::Manip is needed for `make test`:
