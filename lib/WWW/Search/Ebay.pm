@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.145 2004/07/24 18:50:34 Daddy Exp Daddy $
+# $Id: Ebay.pm,v 2.149 2004/09/25 21:42:48 Daddy Exp $
 
 =head1 NAME
 
@@ -40,23 +40,39 @@ consists of a human-readable combination (joined with semicolon-space)
 of the Item Number; number of bids; and high bid amount (or starting
 bid amount).
 
+In the resulting WWW::Search::Result objects, the bid_count field
+contains the number of bids as an integer.
+
+In the resulting WWW::Search::Result objects, the bid_amount field is
+a string containing the high bid or starting bid as a human-readable
+monetary value in seller-native units, e.g. "$14.95" or "GBP 6.00".
+
 =head1 OPTIONS
 
 =over
 
 =item Search descriptions
 
-To search titles and descriptions, add 'srchdesc' => 'y' to the query options:
+To search titles and descriptions, add 'srchdesc'=>'y' to the query options:
 
   $oSearch->native_query($sQuery, { srchdesc => 'y' } );
+
+=item Search one category
+
+To restrict your search to a particular eBay category,
+find out eBay's ID number for the category and
+add 'sacategory'=>123 to the query options:
+
+  $oSearch->native_query($sQuery, { sacategory => 48995 } );
+
+If you send a single asterisk or a single space as the query string,
+the results will be ALL the auctions in that category.
 
 =back
 
 =head1 SEE ALSO
 
 To make new back-ends, see L<WWW::Search>.
-
-=head1 CAVEATS
 
 =head1 BUGS
 
@@ -85,11 +101,13 @@ package WWW::Search::Ebay;
 @ISA = qw( WWW::Search );
 
 use Carp ();
-use Data::Dumper;  # for debugging only
+# use Data::Dumper;  # for debugging only
 use WWW::Search qw( generic_option strip_tags );
+# We need the version that has bid_amount() and bid_count() methods:
+use WWW::SearchResult 2.063;
 use WWW::Search::Result;
 
-$VERSION = do { my @r = (q$Revision: 2.145 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.149 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -216,7 +234,7 @@ sub parse_tree
     my $sURL = $oA->attr('href');
     next TD unless $sURL =~ m!ViewItem!;
     my $sTitle = $oA->as_text;
-    my ($iPrice, $iBids, $sDate) = ('$unknown', 'no', 'unknown');
+    my ($iPrice, $iBids, $iBidInt, $sDate) = ('$unknown', 'no', 'unknown');
     # The rest of the info about this item is in sister TD elements to
     # the right:
     my @aoSibs = $oTD->right;
@@ -241,12 +259,19 @@ sub parse_tree
         my $s = $oTDbids->as_HTML;
         print STDERR " +   TDbids ===$s===\n";
         } # if
-      $iBids = $oTDbids->as_text;
+      $iBidInt = $iBids = $oTDbids->as_text;
       } # if
-    # Bid listed as hyphen means no bids:
-    $iBids = 'no' if $iBids =~ m!\A$W*-$W*\Z!;
-    # Bid listed as whitespace means no bids:
-    $iBids = 'no' if $iBids =~ m!\A$W*\Z!;
+    if (
+        # Bid listed as hyphen means no bids:
+        ($iBids =~ m!\A$W*-$W*\Z!)
+        ||
+        # Bid listed as whitespace means no bids:
+        ($iBids =~ m!\A$W*\Z!)
+       )
+      {
+      $iBids = 'no';
+      $iBidInt = 0;
+      } # if
     my $sDesc = "Item \043$iItemNum; $iBids bid";
     $sDesc .= 's' if $iBids ne '1';
     $sDesc .= '; ';
@@ -270,10 +295,12 @@ sub parse_tree
     $hit->title($sTitle);
     $hit->description($sDesc);
     $hit->change_date($sDate);
+    $hit->bid_count($iBidInt);
+    $hit->bid_amount($iPrice);
     push(@{$self->{cache}}, $hit);
     $self->{'_num_hits'}++;
     $hits_found++;
-    # Delete this HTML element so that future searches go faster!
+    # Delete this HTML element so that future searches go faster?
     $oTD->detach;
     $oTD->delete;
     } # foreach

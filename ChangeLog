@@ -1,3 +1,13 @@
+2004-09-25  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): now sets bid_count and bid_amount in the Result objects
+
+	* lib/WWW/Search/Ebay/Motors.pm (native_setup_search): new backend!
+
+	* t/motors.t: new test
+
+	* lib/WWW/Search/Ebay.pm: added pod for how to search one category
+
 2004-09-16  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay/ByEndDate.pm (date_to_rel): new function;

@@ -3,12 +3,12 @@ use Test::More no_plan;
 
 BEGIN { use_ok('WWW::Search') };
 BEGIN { use_ok('WWW::Search::Test', qw( count_results )) };
-BEGIN { use_ok('WWW::Search::Ebay') };
+BEGIN { use_ok('WWW::Search::Ebay::Motors') };
 
 my $iDebug;
 my $iDump = 0;
 
-&my_new_engine('Ebay');
+&my_new_engine('Ebay::Motors');
 # goto DEBUG_NOW;
 # goto CONTENTS;
 
@@ -24,27 +24,26 @@ diag("Sending multi-page query...");
 $iDebug = 0;
 $iDump = 0;
 # This query returns hundreds of pages of results:
-&my_test('normal', 'LEGO', 101, undef, $iDebug);
+&my_test('normal', 'Chevrolet', 101, undef, $iDebug);
 
 CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
-&my_test('normal', 'Trinidad Tobago flag', 1, 99, $iDebug, $iDump);
+&my_test('normal', 'Star Wars', 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
 foreach my $oResult (@ao)
   {
-  like($oResult->url, qr{\Ahttp://cgi\d*\.ebay\.com},
-       'result URL is really from ebay.com');
+  like($oResult->url, qr{\Ahttp://cgi\d*\.ebay\.com/ebaymotors},
+       'result URL is really from ebaymotors');
   cmp_ok($oResult->title, 'ne', '',
          'result Title is not empty');
   cmp_ok($oResult->change_date, 'ne', '',
          'result date is not empty');
   like($oResult->description, qr{([0-9]+|no)\s+bids?},
        'result bidcount is ok');
-  like($oResult->bid_count, qr{\A\d+\Z}, 'bid_count is a number');
   } # foreach
 
 sub my_new_engine
