@@ -1,3 +1,9 @@
+2003-12-21  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay/Completed.pm: removed because searching completed auctions now requires registered user login
+	
+	* t/completed.t: removed because searching completed auctions now requires registered user login
+
 2003-12-06  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay/ByEndDate.pm: fixed so that "featured" auctions are put into the properly sorted order

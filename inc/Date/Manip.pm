@@ -1,4 +1,4 @@
-#line 1 "inc/Date/Manip.pm - C:/Perl580/site/lib/Date/Manip.pm"
+#line 1 "inc/Date/Manip.pm - c:/Perl/site/lib/Date/Manip.pm"
 package Date::Manip;
 # Copyright (c) 1995-2003 Sullivan Beck.  All rights reserved.
 # This program is free software; you can redistribute it and/or modify it
@@ -770,10 +770,6 @@ sub Date_Init {
 
 sub ParseDateString {
   print "DEBUG: ParseDateString\n"  if ($Curr{"Debug"} =~ /trace/);
-
-# local $" = ',';  # Martin Thurn
-# print STDERR " + ParseDateString(@_)\n";  # Martin Thurn
-
   local($_)=@_;
   return ""  if (! $_);
 
@@ -800,7 +796,6 @@ sub ParseDateString {
   } elsif (! exists $Curr{"Mode"}) {
     $Curr{"Mode"}=0;
   }
-# print STDERR " +   ParseDateString() Mode is now $Curr{Mode}\n";  # Martin Thurn
 
   # Unfortunately, some deltas can be parsed as dates.  An example is
   #    1 second  ==  1 2nd  ==  1 2
@@ -832,7 +827,6 @@ sub ParseDateString {
       ($y,$m,$d,$h,$mn,$s)=@tmp;
       last PARSE;
     }
-# print STDERR " +   ParseDateString() after parse, y=$y, m=$m, d=$d, h=$h, mn=$mn, s=$s\n";  # Martin Thurn
 
     # Fundamental regular expressions
 
@@ -900,7 +894,6 @@ sub ParseDateString {
 
     # Remove some punctuation
     s/[,]/ /g;
-# print STDERR " +   ParseDateString() after remove some punctuation '$_'\n";  # Martin Thurn
 
     # Make sure that ...7EST works (i.e. a timezone immediately following
     # a digit.
@@ -959,7 +952,6 @@ sub ParseDateString {
     $time=0  if ($time ne "1");
     s/\s+$//;
     s/^\s+//;
-# print STDERR " +   ParseDateString() after remove the time '$_'\n";  # Martin Thurn
 
     # dateTtime ISO 8601 formats
     my($orig)=$_;
@@ -977,7 +969,6 @@ sub ParseDateString {
       s,-, ,g;            # Change all ISO8601 seps to spaces
       s/^\s+//;
       s/\s+$//;
-# print STDERR " +   ParseDateString() after change seps to spaces '$_'\n";  # Martin Thurn
 
       if (/^$D4\s*$DD\s*$DD\s*t?$DD(?:$DD(?:$DD(\d*))?)?$/i ||
           /^$DD\s+$DD\s*$DD\s*t?$DD(?:$DD(?:$DD(\d*))?)?$/i ||
@@ -993,7 +984,6 @@ sub ParseDateString {
         #    YY MMDDHHMN
         #    YY MMDDHH
         ($y,$m,$d,$h,$mn,$s,$tmp)=($1,$2,$3,$4,$5,$6,$7);
-# print STDERR " +   ParseDateString() found ISO8601 with time, y=$y, m=$m, d=$d, h=$h, mn=$mn, s=$s\n";  # Martin Thurn
         if ($h==24 && (! defined $mn || $mn==0) && (! defined $s || $s==0)) {
           $h=0;
           $midnight=1;
@@ -1012,13 +1002,11 @@ sub ParseDateString {
         #    YY MM
         #    YY
         ($y,$m,$d)=($1,$2,$3);
-# print STDERR " +   ParseDateString() found ISO8601 without time, y=$y, m=$m, d=$d, h=$h, mn=$mn, s=$s\n";  # Martin Thurn
         last PARSE;
 
       } elsif (/^$YY\s+$D\s+$D/) {
         # YY-M-D
         ($y,$m,$d)=($1,$2,$3);
-# print STDERR " +   ParseDateString() found y m d, y=$y, m=$m, d=$d, h=$h, mn=$mn, s=$s\n";  # Martin Thurn
         last PARSE;
 
       } elsif (/^$YY\s*W$DD\s*(\d)?$/i) {
@@ -1038,14 +1026,11 @@ sub ParseDateString {
         # We confused something like 1999/August12:00:00
         # with a dateTtime format
         $_=$orig;
-# print STDERR " +   ParseDateString() found confusion\n";  # Martin Thurn
 
       } else {
-# print STDERR " +   ParseDateString() found nothing\n";  # Martin Thurn
         return "";
       }
-    } # if
-# print STDERR " +   ParseDateString() after big if-else '$_'\n";  # Martin Thurn
+    }
 
     # All deltas that are not ISO-8601 dates are NOT dates.
     return ""  if ($Curr{"InCalc"}  &&  $delta);
@@ -1053,7 +1038,6 @@ sub ParseDateString {
       &Date_Init()  if (! $Cnf{"UpdateCurrTZ"});
       return &DateCalc_DateDelta($Curr{"Now"},$delta);
     }
-# print STDERR " +   ParseDateString() after delta check '$_'\n";  # Martin Thurn
 
     # Check for some special types of dates (next, prev)
     foreach $from (keys %{ $Lang{$L}{"Repl"} }) {
@@ -1256,7 +1240,6 @@ sub ParseDateString {
         last PARSE;
       }
     }
-# print STDERR " +   ParseDateString() after special check '$_'\n";  # Martin Thurn
 
     # Change (2nd, second) to 2
     $tmp=0;
@@ -1303,7 +1286,6 @@ sub ParseDateString {
       s/^\s+//;
       s/\s+$//;
     }
-# print STDERR " +   ParseDateString() after get rid of dow '$_'\n";  # Martin Thurn
 
     {
       # So that we can handle negative epoch times, let's convert
@@ -1315,19 +1297,16 @@ sub ParseDateString {
       s,\s*$sep\s*, ,g;     # change all non-ISO8601 seps to spaces
       s,^\s*,,;             # remove leading/trailing space
       s,\s*$,,;
-# print STDERR " +   ParseDateString() before if-else '$_'\n";  # Martin Thurn
 
       if (/^$D\s+$D(?:\s+$YY)?$/) {
         # MM DD YY (DD MM YY non-US)
         ($m,$d,$y)=($1,$2,$3);
         ($m,$d)=($d,$m)  if ($type ne "US");
-# print STDERR " +   ParseDateString() found m d y, y=$y, m=$m, d=$d, h=$h, mn=$mn, s=$s\n";  # Martin Thurn
         last PARSE;
 
       } elsif (/^$D4\s*$D\s*$D$/) {
         # YYYY MM DD
         ($y,$m,$d)=($1,$2,$3);
-# print STDERR " +   ParseDateString() found y m d, y=$y, m=$m, d=$d, h=$h, mn=$mn, s=$s\n";  # Martin Thurn
         last PARSE;
 
       } elsif (s/(^|[^a-z])$month($|[^a-z])/$1 $3/i) {
@@ -1338,7 +1317,6 @@ sub ParseDateString {
           # DD mmm YY
           # DD YY mmm
           ($d,$y)=($1,$2);
-# print STDERR " +   ParseDateString() found month yy, y=$y, m=$m, d=$d, h=$h, mn=$mn, s=$s\n";  # Martin Thurn
           last PARSE;
 
         } elsif (/^\s*$D$D4\s*$/) {
@@ -1346,7 +1324,6 @@ sub ParseDateString {
           # DD mmm YYYY
           # DD YYYY mmm
           ($d,$y)=($1,$2);
-# print STDERR " +   ParseDateString() found month yyyy, y=$y, m=$m, d=$d, h=$h, mn=$mn, s=$s\n";  # Martin Thurn
           last PARSE;
 
         } elsif (/^\s*$D4\s*$D\s*$/) {
@@ -1354,18 +1331,15 @@ sub ParseDateString {
           # YYYY mmm DD
           # YYYY DD mmm
           ($y,$d)=($1,$2);
-# print STDERR " +   ParseDateString() found yyyy month, y=$y, m=$m, d=$d, h=$h, mn=$mn, s=$s\n";  # Martin Thurn
           last PARSE;
 
         } elsif (/^\s*$D4\s*$/) {
           # mmm YYYY
           # YYYY mmm
           ($y,$d)=($1,1);
-# print STDERR " +   ParseDateString() found month yyyy no day, y=$y, m=$m, d=$d, h=$h, mn=$mn, s=$s\n";  # Martin Thurn
           last PARSE;
 
         } else {
-# print STDERR " +   ParseDateString() found nothing, y=$y, m=$m, d=$d, h=$h, mn=$mn, s=$s\n";  # Martin Thurn
           return "";
         }
 
@@ -1404,8 +1378,7 @@ sub ParseDateString {
         return "";
       }
     }
-  } # end of PARSE block
-# print STDERR " +   ParseDateString() after PARSE block '$_', date=$date\n";  # Martin Thurn
+  }
 
   if (! $date) {
     return ""  if (&Date_DateCheck(\$y,\$m,\$d,\$h,\$mn,\$s,\$ampm,\$wk));
@@ -1420,10 +1393,6 @@ sub ParseDateString {
 
 sub ParseDate {
   print "DEBUG: ParseDate\n"  if ($Curr{"Debug"} =~ /trace/);
-
-# local $" = ',';  # Martin Thurn
-# print STDERR " + ParseDate(@_)\n";  # Martin Thurn
-
   &Date_Init()  if (! $Curr{"InitDone"});
   my($args,@args,@a,$ref,$date)=();
   @a=@_;
@@ -1441,14 +1410,11 @@ sub ParseDate {
   if (! $ref) {
     return $args  if (&Date_Split($args));
     @args=($args);
-# print STDERR " +   ParseDate() got a scalar arg\n";  # Martin Thurn
   } elsif ($ref eq "ARRAY") {
     @args=@$args;
-# print STDERR " +   ParseDate() got an array-ref arg\n";  # Martin Thurn
   } elsif ($ref eq "SCALAR") {
     return $$args  if (&Date_Split($$args));
     @args=($$args);
-# print STDERR " +   ParseDate() got a scalar-ref arg\n";  # Martin Thurn
   } else {
     print "ERROR:  Invalid arguments to ParseDate.\n";
     return "";
@@ -1462,10 +1428,8 @@ sub ParseDate {
   # $args : the scalar or refererence passed in
 
  PARSE: while($#a>=0) {
-    my $trydate=join(" ",@a);
-# print STDERR " +   ParseDate() sending '$trydate' to ParseDateString()\n";  # Martin Thurn
-    $date=&ParseDateString($trydate);
-# print STDERR " +   ParseDate() got '$date' from ParseDateString()\n";  # Martin Thurn
+    $date=join(" ",@a);
+    $date=&ParseDateString($date);
     last  if ($date);
     pop(@a);
   } # PARSE
@@ -3193,11 +3157,8 @@ sub Date_SecsSince1970GMT {
   return $sec   if ($Cnf{"ConvTZ"} eq "IGNORE");
 
   my($tz)=$Cnf{"ConvTZ"};
-# print STDERR " + tz starts as =$tz=\n"; # Martin Thurn
   $tz=$Cnf{"TZ"}  if (! $tz);
-# print STDERR " + tz at 2 is   =$tz=\n"; # Martin Thurn
   $tz=$Zone{"n2o"}{lc($tz)}  if ($tz !~ /^[+-]\d{4}$/);
-# print STDERR " + tz at 3 is   =$tz=\n"; # Martin Thurn
 
   my($tzs)=1;
   $tzs=-1 if ($tz<0);
