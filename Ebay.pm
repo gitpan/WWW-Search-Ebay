@@ -1,10 +1,10 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.2 2001/04/02 17:36:29 mthurn Exp mthurn $
+# $Id: Ebay.pm,v 1.5 2001/04/20 16:40:56 mthurn Exp $
 
 =head1 NAME
 
-WWW::Search::Ebay - backend for searching www.excite.com
+WWW::Search::Ebay - backend for searching www.ebay.com
 
 =head1 SYNOPSIS
 
@@ -78,7 +78,7 @@ use HTML::TreeBuilder;
 use WWW::Search qw( generic_option strip_tags );
 require WWW::SearchResult;
 
-$VERSION = '2.02';
+$VERSION = '2.03';
 $MAINTAINER = 'Martin Thurn <MartinThurn@iname.com>';
 
 # private
@@ -107,6 +107,7 @@ sub native_setup_search
                          'search_url' => 'http://search.ebay.com/search/search.dll',
                          'MfcISAPICommand' => 'GetResult',
                          'ht' => 1,
+                         # Default sort order is reverse-order of listing date:
                          'SortProperty' => 'MetaNewSort',
                          'query' => $native_query,
                         };
@@ -186,21 +187,35 @@ sub native_retrieve_some
                              );
   foreach my $oTD (@aoTD)
     {
-    my $iItemNum = $1;
-    # The rest of the info about this item is in sister TD elements:
+    my ($iItemNum) = ($oTD->as_text =~ m!(\d+)!);
+    # The rest of the info about this item is in sister TD elements to
+    # the right:
     my @aoSibs = $oTD->right;
-    # The immediate sister has the auction title and link:
+    # The immediate sister of the <TD> has the auction title and link:
     my $oTDtitle = shift @aoSibs;
     my $oFONT = $oTDtitle->look_down('_tag', 'font');
     my $oA = $oFONT->look_down('_tag', 'a');
     my $sTitle = $oA->as_text;
     my $sURL = $oA->attr('href');
+    # The next sister has the current bid amount (or starting bid):
+    my $oTDprice = shift @aoSibs;
+    my $iPrice = $oTDprice->as_text;
+    # The next sister has the number of bids:
+    my $oTDbids = shift @aoSibs;
+    my $iBids = $oTDbids->as_text;
+    $iBids = 'no' if $iBids eq '-';
+    my $sDesc = "Item \043$iItemNum; $iBids bid";
+    $sDesc .= 's' if $iBids ne '1';
+    $sDesc .= '; ';
+    $sDesc .= 'no' ne $iBids ? 'current' : 'starting';
+    $sDesc .= " bid $iPrice";
     # The last sister has the auction start date:
     my $oTDdate = pop @aoSibs;
     my $sDate = $oTDdate->as_text;
     my $hit = new WWW::SearchResult;
     $hit->add_url($sURL);
     $hit->title($sTitle);
+    $hit->description($sDesc);
     $hit->change_date($sDate);
     push(@{$self->{cache}}, $hit);
     $self->{'_num_hits'}++;
