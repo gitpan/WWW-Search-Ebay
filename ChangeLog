@@ -1,3 +1,7 @@
+2004-06-05  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (currency_pattern): new function
+
 2004-04-17  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay.pm (native_setup_search): new URL / CGI options
