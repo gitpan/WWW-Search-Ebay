@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.20 2003-10-22 21:31:02-04 kingpin Exp kingpin $
+# $Id: Ebay.pm,v 1.21 2003-10-27 09:55:25-05 kingpin Exp kingpin $
 
 =head1 NAME
 
@@ -63,42 +63,16 @@ Please tell the author if you find any!
 =head1 AUTHOR
 
 C<WWW::Search::Ebay> was written by Martin Thurn
-(mthurn@megapipe.net).
+(mthurn@cpan.org).
 
 C<WWW::Search::Ebay> is maintained by Martin Thurn
-(mthurn@megapipe.net).
+(mthurn@cpan.org).
 
 =head1 LEGALESE
 
 THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-
-=head1 VERSION HISTORY
-
-=head2 2.13, 2003-02-06
-
-Fixed parsing for slightly-changed ebay.com pages
-
-=head2 2.11, 2002-10-21
-
-Fixed parsing for Buy-It-Now prices, and foreign currencies
-
-=head2 2.08, 2002-07-24
-
-Fixed parsing for new images in the results table
-
-=head2 2.07, 2001-12-20
-
-Restructured using parse_tree()
-
-=head2 2.06, 2001-12-20
-
-Handle new ebay.com output format
-
-=head2 2.01
-
-First publicly-released version.
 
 =cut
 
@@ -113,8 +87,8 @@ use Data::Dumper;  # for debugging only
 use WWW::Search qw( generic_option strip_tags );
 use WWW::Search::Result;
 
-$VERSION = '2.13';
-$MAINTAINER = 'Martin Thurn <mthurn@megapipe.net>';
+$VERSION = '2.14';
+$MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 # private
 sub native_setup_search
@@ -138,8 +112,8 @@ sub native_setup_search
   if (!defined($self->{_options}))
     {
     $self->{_options} = {
-                         'search_host' => 'http://search.ebay.com',
-                         'search_path' => '/search/search.dll',
+                         'ebay_host' => 'http://search.ebay.com',
+                         'ebay_path' => '/search/search.dll',
                          'MfcISAPICommand' => 'GetResult',
                          'ht' => 1,
                          # Default sort order is reverse-order of listing date:
@@ -168,7 +142,7 @@ sub native_setup_search
     } # if
 
   # Finally, figure out the url.
-  $self->{_next_url} = $self->{_options}->{'search_host'} . $self->{_options}->{'search_path'} .'?'. $self->hash_to_cgi_string($self->{_options});
+  $self->{_next_url} = $self->{_options}->{'ebay_host'} . $self->{_options}->{'ebay_path'} .'?'. $self->hash_to_cgi_string($self->{_options});
   } # native_setup_search
 
 

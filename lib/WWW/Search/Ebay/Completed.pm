@@ -1,6 +1,6 @@
 # Ebay/Completed.pm
 # by Martin Thurn
-# $Id: Completed.pm,v 1.1 2003-07-13 18:42:01-04 kingpin Exp kingpin $
+# $Id: Completed.pm,v 1.2 2003-10-27 09:56:21-05 kingpin Exp kingpin $
 
 =head1 NAME
 
@@ -67,7 +67,7 @@ use WWW::Search::Ebay;
 
 use vars qw( $MAINTAINER $VERSION );
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
-$VERSION = sprintf("%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/o);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/o);
 
 # private
 sub native_setup_search
@@ -79,7 +79,7 @@ sub native_setup_search
     carp " --- second argument to native_setup_search should be hashref, not arrayref";
     return undef;
     } # unless
-  $rhOptsArg->{'search_host'} = 'search-completed.ebay.com';
+  $rhOptsArg->{'ebay_host'} = 'http://search-completed.ebay.com';
   return $self->SUPER::native_setup_search($native_query, $rhOptsArg);
   } # native_setup_search
 

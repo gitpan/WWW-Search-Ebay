@@ -1,6 +1,16 @@
+2003-10-27  Kingpin  <mthurn@verizon.net>
+
+	* t/enddate.t: beefed-up tests
+
+	* t/basic.t: separated test files
+
+	* t/completed.t: beefed-up tests
+
+	* lib/WWW/Search/Ebay.pm (native_setup_search): let the host and path be NON-generic args (thanks to Mike Schilli)
+
 2003-07-13  Kingpin  <mthurn@megapipe.net>
 
-	* lib/WWW/Search/Ebay/Completed.pm: new backend, thanks to Troy Arnold
+	* lib/WWW/Search/Ebay/Completed.pm: new backend (thanks to Troy Arnold)
 
 2003-02-06  Kingpin  <mthurn@megapipe.net>
 
