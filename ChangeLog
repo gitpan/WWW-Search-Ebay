@@ -1,3 +1,15 @@
+2004-09-16  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay/ByEndDate.pm (date_to_rel): new function;
+	(parse_tree): fix date sort;
+	different date format in change_date;
+
+2004-08-20  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay/BuyItNow.pm: new file
+
+	* t/buyitnow.t (my_test): new file
+
 2004-07-23  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): fix for parsing result count

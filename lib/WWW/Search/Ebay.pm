@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.144 2004/06/06 02:55:44 Daddy Exp Daddy $
+# $Id: Ebay.pm,v 2.145 2004/07/24 18:50:34 Daddy Exp Daddy $
 
 =head1 NAME
 
@@ -89,7 +89,7 @@ use Data::Dumper;  # for debugging only
 use WWW::Search qw( generic_option strip_tags );
 use WWW::Search::Result;
 
-$VERSION = do { my @r = (q$Revision: 2.144 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.145 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -105,6 +105,7 @@ sub native_setup_search
   $self->{'_hits_per_page'} = $DEFAULT_HITS_PER_PAGE;
 
   $self->user_agent('non-robot');
+  # $self->agent_name('Mozilla/5.0 (compatible; Mozilla/4.0; MSIE 6.0; Windows NT 5.1; Q312461)');
 
   $self->{'_next_to_retrieve'} = 0;
   $self->{'_num_hits'} = 0;
@@ -151,7 +152,7 @@ sub native_setup_search
   } # native_setup_search
 
 
-sub preprocess_results_page_OFF
+sub _preprocess_results_page
   {
   my $self = shift;
   my $sPage = shift;
@@ -201,7 +202,7 @@ sub parse_tree
                               sub { ($_[0]->as_text =~ m!\A\d{9,}\Z! ) }
                              );
  TD:
-  foreach my $oTD (@aoTD)
+  foreach my $oTD (0, @aoTD)
     {
     # Sanity check:
     next TD unless ref $oTD;
@@ -280,7 +281,7 @@ sub parse_tree
   # Look for a NEXT link:
   my @aoA = $tree->look_down('_tag', 'a');
  TRY_NEXT:
-  foreach my $oA (reverse @aoA)
+  foreach my $oA (0, reverse @aoA)
     {
     next TRY_NEXT unless ref $oA;
     print STDERR " +   try NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
@@ -288,7 +289,7 @@ sub parse_tree
     next TRY_NEXT unless $href;
     # If we get all the way to the item list, there must be no next
     # button:
-    last TRY_NEXT if $href =~ m!ViewItem!;
+    last TRY_NEXT if ($href =~ m!ViewItem!);
     if ($oA->as_text eq 'Next')
       {
       print STDERR " +   got NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
