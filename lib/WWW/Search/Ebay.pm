@@ -138,7 +138,8 @@ sub native_setup_search
   if (!defined($self->{_options}))
     {
     $self->{_options} = {
-                         'search_url' => 'http://search.ebay.com/search/search.dll',
+                         'search_host' => 'http://search.ebay.com',
+                         'search_path' => '/search/search.dll',
                          'MfcISAPICommand' => 'GetResult',
                          'ht' => 1,
                          # Default sort order is reverse-order of listing date:
@@ -167,7 +168,7 @@ sub native_setup_search
     } # if
 
   # Finally, figure out the url.
-  $self->{_next_url} = $self->{_options}->{'search_url'} .'?'. $self->hash_to_cgi_string($self->{_options});
+  $self->{_next_url} = $self->{_options}->{'search_host'} . $self->{_options}->{'search_path'} .'?'. $self->hash_to_cgi_string($self->{_options});
   } # native_setup_search
 
 

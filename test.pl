@@ -35,6 +35,17 @@ $iDebug = 0;
 # This query usually returns 1 page of results:
 &my_test('normal', 'starballz', 1, 49, $debug);
 
+COMPLETED:
+&my_new_engine('Ebay::Completed');
+# goto TEST_NOW_SUB;
+$iDebug = 0;
+# This test returns no results (but we should not get an HTTP error):
+&my_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
+TEST_NOW_SUB:
+$iDebug = 0;
+# This query usually returns many results:
+&my_test('normal', 'yak', 1, undef, $debug);
+
 CONTENTS:
 $iDebug = 0;
 # Now get some results and inspect them:
@@ -59,6 +70,28 @@ $iDebug = 0;
 my $o = new WWW::Search('Ebay::ByEndDate');
 ok(ref $o);
 $o->native_query('Tobago flag',
+                   {
+                    search_debug => $iDebug,
+                   },
+                );
+my @ao = $o->results();
+foreach my $oResult (@ao)
+  {
+  like($oResult->url, qr{\Ahttp://cgi\d*\.ebay\.com},
+       'result URL is really from ebay.com');
+  cmp_ok($oResult->title, 'ne', '',
+         'result Title is not empty');
+  cmp_ok($oResult->change_date, 'ne', '',
+         'result date is not empty');
+  like($oResult->description, qr{([0-9]+|no)\s+bids?},
+       'result bidcount is ok');
+  } # foreach
+CONTENTS_COMPLETED:
+$iDebug = 0;
+# Now get some Completed results and inspect them:
+my $o = new WWW::Search('Ebay::Completed');
+ok(ref $o);
+$o->native_query('yakface',
                    {
                     search_debug => $iDebug,
                    },
