@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.158 2004/11/28 02:43:09 Daddy Exp Daddy $
+# $Id: Ebay.pm,v 2.160 2004/11/30 03:09:42 Daddy Exp $
 
 =head1 NAME
 
@@ -126,7 +126,7 @@ use WWW::Search::Result;
 
 use strict;
 my
-$VERSION = do { my @r = (q$Revision: 2.158 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.160 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -326,13 +326,14 @@ sub parse_tree
     my $sURL = $oA->attr('href');
     next TD unless $sURL =~ m!ViewItem!;
     my $sTitle = $oA->as_text;
+    print STDERR " +   sTitle ===$sTitle===\n" if (1 < $self->{_debug});
     my ($iPrice, $iBids, $iBidInt) = ('$unknown', 'no', 'unknown');
     # The rest of the info about this item is in sister TD elements to
     # the right:
     my @aoSibs = $oTDtitle->right;
     my $oTDprice;
     # The first sister is the paypal logo:
-    $oTDprice = shift @aoSibs unless (ref($self) eq 'WWW::Search::Ebay::Motors');
+    $oTDprice = shift @aoSibs unless (ref($self) =~ m!WWW::Search::Ebay::(Motors|UK)!);
     # The next sister has the current bid amount (or starting bid):
     $oTDprice = shift @aoSibs;
     if (ref $oTDprice)
@@ -343,6 +344,7 @@ sub parse_tree
         print STDERR " +   TDprice ===$s===\n";
         } # if
       $iPrice = $oTDprice->as_text;
+      print STDERR " +   raw iPrice ===$iPrice===\n" if (1 < $self->{_debug});
       $iPrice =~ s!(\d)$W*($currency$W*[\d.,]+)!$1 (Buy-It-Now for $2)!;
       } # if
     # The next sister has the number of bids:
@@ -371,8 +373,9 @@ sub parse_tree
     # The next sister has the auction end date...
     my $oTDdate = shift @aoSibs;
     # ...unless this is a Stores search, in which case the next sister
-    # is the store name:
-    $oTDdate = shift @aoSibs if (ref($self) eq 'WWW::Search::Ebay::Stores');
+    # is the store name; or if this is Ebay::UK, in which case it is
+    # the PayPal logo:
+    $oTDdate = shift @aoSibs if (ref($self) =~ m!WWW::Search::Ebay::(Stores|UK)!);
     my $sDate = 'unknown';
     if (ref $oTDdate)
       {
@@ -394,6 +397,7 @@ sub parse_tree
     my $hit = new WWW::Search::Result;
     # Make sure we don't return two different URLs for the same item:
     $sURL =~ s!&rd=\d+!!;
+    $sURL =~ s!&category=\d+!!;
     $sURL =~ s!&ssPageName=[A-Z0-9]+!!;
     $hit->add_url($sURL);
     $hit->title($sTitle);

@@ -1,3 +1,11 @@
+2004-11-29  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay/UK.pm: new file
+
+	* t/uk.t: new file
+
+	* lib/WWW/Search/Ebay.pm (native_setup_search): fix column order parsing for Ebay::UK
+
 2004-11-27  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay.pm (_format_date): new function
