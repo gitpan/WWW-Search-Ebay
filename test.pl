@@ -9,7 +9,7 @@ use ExtUtils::testlib;
 # (It may become useful if the test is moved to ./t subdirectory.)
 
 # 6 tests without "goto MULTI_RESULT"
-BEGIN { $| = 1; print "1..5\n"; }
+BEGIN { $| = 1; print "1..6\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use WWW::Search::Ebay;
 $loaded = 1;
@@ -22,6 +22,7 @@ print "ok 1\n";
 # of the test code):
 
 my $iTest = 2;
+my $debug = 0;
 
 my $sEngine = 'Ebay';
 my $oSearch = new WWW::Search($sEngine);
@@ -40,10 +41,11 @@ print STDOUT (0 < $iResults) ? 'not ' : '';
 print "ok $iTest\n";
 
 # goto MULTI_RESULT;
+$debug = 0;
 
 # This query usually returns 1 page of results:
 $iTest++;
-my $sQuery = 'thurn';
+my $sQuery = 'thurn und taxis';
 $oSearch->native_query(WWW::Search::escape_query($sQuery),
                          { 'search_debug' => $debug, },
                       );
@@ -56,7 +58,8 @@ if (($iResults < 1) || (49 < $iResults))
   }
 print "ok $iTest\n";
 
-goto MULTI_RESULT;
+# goto MULTI_RESULT;
+$debug = 0;
 
 # This query usually returns 2 pages of results:
 $iTest++;
@@ -74,7 +77,7 @@ if (($iResults < 51) || (99 < $iResults))
 print "ok $iTest\n";
 
 MULTI_RESULT:
-# $debug = 2;
+$debug = 0;
 
 # This query returns hundreds of pages of results:
 $iTest++;

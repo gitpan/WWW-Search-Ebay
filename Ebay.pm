@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.5 2001/04/20 16:40:56 mthurn Exp mthurn $
+# $Id: Ebay.pm,v 1.6 2001/05/07 15:22:45 mthurn Exp mthurn $
 
 =head1 NAME
 
@@ -78,7 +78,7 @@ use HTML::TreeBuilder;
 use WWW::Search qw( generic_option strip_tags );
 require WWW::SearchResult;
 
-$VERSION = '2.04';
+$VERSION = '2.05';
 $MAINTAINER = 'Martin Thurn <MartinThurn@iname.com>';
 
 # private
@@ -186,28 +186,44 @@ sub native_retrieve_some
                               sub { (
                                      ($_[0]->as_HTML =~ m!ViewItem! )
                                      &&
+                                     # Ignore thumbnails:
                                      ($_[0]->as_HTML !~ m!\#DESC! )
                                     )
-                                    }
+                                  }
                              );
+ TD:
   foreach my $oTD (@aoTD)
     {
     my $sTD = $oTD->as_HTML;
-    print STDERR " + TD ===$sTD===\n" if 1 < $self->{_debug};
     my $oFONT = $oTD->look_down('_tag', 'font');
+    next TD unless ref $oFONT;
     my $oA = $oFONT->look_down('_tag', 'a');
-    my $sTitle = $oA->as_text;
+    next TD unless ref $oA;
     my $sURL = $oA->attr('href');
+    next TD unless $sURL =~ m!ViewItem!;
+    my $sTitle = $oA->as_text;
+    print STDERR " + TD ===$sTD===\n" if 1 < $self->{_debug};
     my ($iItemNum) = ($sURL =~ m!item=(\d+)!);
+    my ($iPrice, $iBids, $sDate) = ('$unknown', 'unknown', 'unknown');
     # The rest of the info about this item is in sister TD elements to
     # the right:
     my @aoSibs = $oTD->right;
     # The next sister has the current bid amount (or starting bid):
     my $oTDprice = shift @aoSibs;
-    my $iPrice = $oTDprice->as_text;
+    if (ref $oTDprice)
+      {
+      my $s = $oTDprice->as_HTML;
+      print STDERR " +   TDprice ===$s===\n" if 1 < $self->{_debug};
+      $iPrice = $oTDprice->as_text;
+      } # if
     # The next sister has the number of bids:
     my $oTDbids = shift @aoSibs;
-    my $iBids = $oTDbids->as_text;
+    if (ref $oTDbids)
+      {
+      my $s = $oTDbids->as_HTML;
+      print STDERR " +   TDbids ===$s===\n" if 1 < $self->{_debug};
+      $iBids = $oTDbids->as_text;
+      } # if
     $iBids = 'no' if $iBids eq '-';
     my $sDesc = "Item \043$iItemNum; $iBids bid";
     $sDesc .= 's' if $iBids ne '1';
@@ -216,7 +232,12 @@ sub native_retrieve_some
     $sDesc .= " bid $iPrice";
     # The last sister has the auction start date:
     my $oTDdate = pop @aoSibs;
-    my $sDate = $oTDdate->as_text;
+    if (ref $oTDdate)
+      {
+      my $s = $oTDdate->as_HTML;
+      print STDERR " +   TDdate ===$s===\n" if 1 < $self->{_debug};
+      $sDate = $oTDdate->as_text;
+      } # if
     my $hit = new WWW::SearchResult;
     $hit->add_url($sURL);
     $hit->title($sTitle);
