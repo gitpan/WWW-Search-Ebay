@@ -5,6 +5,8 @@ WriteMakefile(
               'PREREQ_PM' => {
                               'HTML::Form' => 0,
                               'HTML::TreeBuilder' => 3,
-                              'WWW::Search' => 2.09,
+                              # The module's version, not the
+                              # distribution's version:
+                              'WWW::Search' => 2.18,
                              },
              );

@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.5 2001/04/20 16:40:56 mthurn Exp $
+# $Id: Ebay.pm,v 1.5 2001/04/20 16:40:56 mthurn Exp mthurn $
 
 =head1 NAME
 
@@ -78,7 +78,7 @@ use HTML::TreeBuilder;
 use WWW::Search qw( generic_option strip_tags );
 require WWW::SearchResult;
 
-$VERSION = '2.03';
+$VERSION = '2.04';
 $MAINTAINER = 'Martin Thurn <MartinThurn@iname.com>';
 
 # private
@@ -180,23 +180,28 @@ sub native_retrieve_some
       } # if
     } # foreach
 
-  # The list of matching items is in a table.
+  # The list of matching items is in a table.  The first column of the
+  # table is nothing but icons; the second column is the good stuff.
   my @aoTD = $tree->look_down('_tag', 'td',
-                              # The item# is at least 9 digits:
-                              sub { $_[0]->as_text =~ m!\A(\d{8}\d+)\Z! }
+                              sub { (
+                                     ($_[0]->as_HTML =~ m!ViewItem! )
+                                     &&
+                                     ($_[0]->as_HTML !~ m!\#DESC! )
+                                    )
+                                    }
                              );
   foreach my $oTD (@aoTD)
     {
-    my ($iItemNum) = ($oTD->as_text =~ m!(\d+)!);
-    # The rest of the info about this item is in sister TD elements to
-    # the right:
-    my @aoSibs = $oTD->right;
-    # The immediate sister of the <TD> has the auction title and link:
-    my $oTDtitle = shift @aoSibs;
-    my $oFONT = $oTDtitle->look_down('_tag', 'font');
+    my $sTD = $oTD->as_HTML;
+    print STDERR " + TD ===$sTD===\n" if 1 < $self->{_debug};
+    my $oFONT = $oTD->look_down('_tag', 'font');
     my $oA = $oFONT->look_down('_tag', 'a');
     my $sTitle = $oA->as_text;
     my $sURL = $oA->attr('href');
+    my ($iItemNum) = ($sURL =~ m!item=(\d+)!);
+    # The rest of the info about this item is in sister TD elements to
+    # the right:
+    my @aoSibs = $oTD->right;
     # The next sister has the current bid amount (or starting bid):
     my $oTDprice = shift @aoSibs;
     my $iPrice = $oTDprice->as_text;
