@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.16 2002-10-21 23:49:41-04 kingpin Exp kingpin $
+# $Id: Ebay.pm,v 1.19 2003-02-06 23:35:09-05 kingpin Exp kingpin $
 
 =head1 NAME
 
@@ -33,6 +33,23 @@ The query is applied to TITLES only.
 The results are ordered youngest auctions first (reverse order of
 auction listing date).
 
+In the resulting WWW::Search::Result objects, the description field
+consists of a human-readable combination (joined with semicolon-space)
+of the Item Number; number of bids; and high bid amount (or starting
+bid amount).
+
+=head1 OPTIONS
+
+=over
+
+=item Search descriptions
+
+To search titles and descriptions, add 'srchdesc' => 'y' to the query options:
+
+  $oSearch->native_query($sQuery, { srchdesc => 'y' } );
+
+=back
+
 =head1 SEE ALSO
 
 To make new back-ends, see L<WWW::Search>.
@@ -46,10 +63,10 @@ Please tell the author if you find any!
 =head1 AUTHOR
 
 C<WWW::Search::Ebay> was written by Martin Thurn
-(mthurn@cpan.org).
+(mthurn@megapipe.net).
 
 C<WWW::Search::Ebay> is maintained by Martin Thurn
-(mthurn@cpan.org).
+(mthurn@megapipe.net).
 
 =head1 LEGALESE
 
@@ -58,6 +75,10 @@ WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 =head1 VERSION HISTORY
+
+=head2 2.13, 2003-02-06
+
+Fixed parsing for slightly-changed ebay.com pages
 
 =head2 2.11, 2002-10-21
 
@@ -90,10 +111,10 @@ package WWW::Search::Ebay;
 use Carp ();
 use Data::Dumper;  # for debugging only
 use WWW::Search qw( generic_option strip_tags );
-require WWW::SearchResult;
+use WWW::Search::Result;
 
-$VERSION = '2.11';
-$MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
+$VERSION = '2.13';
+$MAINTAINER = 'Martin Thurn <mthurn@megapipe.net>';
 
 # private
 sub native_setup_search
@@ -109,7 +130,6 @@ sub native_setup_search
   # $DEFAULT_HITS_PER_PAGE = 30 if $self->{_debug};
   $self->{'_hits_per_page'} = $DEFAULT_HITS_PER_PAGE;
 
-  # $self->{agent_e_mail} = 'mthurn@cpan.org';
   $self->user_agent('non-robot');
 
   $self->{'_next_to_retrieve'} = 0;
@@ -195,7 +215,7 @@ sub parse_tree
                                      ($_[0]->as_HTML !~ m!thumbs\.ebay\.com! )
                                      &&
                                      # Ignore other images:
-                                     ($_[0]->as_HTML !~ m!alt="Pic"!i )
+                                     ($_[0]->as_HTML !~ m/alt="\[Picture!\]"/i )
                                      &&
                                      ($_[0]->as_HTML !~ m!alt="BuyItNow"!i )
                                     )
@@ -243,7 +263,10 @@ sub parse_tree
         } # if
       $iBids = $oTDbids->as_text;
       } # if
+    # Bid listed as hyphen means no bids:
     $iBids = 'no' if $iBids =~ m!\A$W*-$W*\Z!;
+    # Bid listed as whitespace means no bids:
+    $iBids = 'no' if $iBids =~ m!\A$W*\Z!;
     my $sDesc = "Item \043$iItemNum; $iBids bid";
     $sDesc .= 's' if $iBids ne '1';
     $sDesc .= '; ';
@@ -257,7 +280,7 @@ sub parse_tree
       print STDERR " +   TDdate ===$s===\n" if 1 < $self->{_debug};
       $sDate = $oTDdate->as_text;
       } # if
-    my $hit = new WWW::SearchResult;
+    my $hit = new WWW::Search::Result;
     $hit->add_url($sURL);
     $hit->title($sTitle);
     $hit->description($sDesc);
@@ -279,7 +302,8 @@ sub parse_tree
     print STDERR " +   try NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
     my $href = $oA->attr('href');
     next TRY_NEXT unless $href;
-    # If we get all the to the item list, there must be no next button:
+    # If we get all the way to the item list, there must be no next
+    # button:
     last TRY_NEXT if $href =~ m!ViewItem!;
     if ($oA->as_text =~ m!Next$W+(>|&gt;)!i)
       {

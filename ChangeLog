@@ -1,3 +1,13 @@
+2003-02-06  Kingpin  <mthurn@megapipe.net>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): Fixed parsing for slightly-changed ebay.com pages
+
+	* test.pl: added some tests to actually look at the results
+
+2002-10-22  Kingpin  <mthurn@megapipe.net>
+
+	* lib/WWW/Search/Ebay/ByEndDate.pm (native_setup_search): Fixed hash vs. array bug?
+
 2002-10-21  Kingpin  <mthurn@megapipe.net>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): Fixed parsing for Buy-It-Now prices, and foreign currencies

@@ -4,5 +4,4 @@ Makefile.PL
 README
 lib/WWW/Search/Ebay.pm
 lib/WWW/Search/Ebay/ByEndDate.pm
-lib/WWW/Search/Ebay/Mature.pm
 test.pl

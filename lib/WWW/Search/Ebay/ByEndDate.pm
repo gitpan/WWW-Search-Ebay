@@ -1,6 +1,6 @@
 # Ebay/ByEndDate.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.7 2001/07/30 18:05:35 mthurn Exp $
+# $Id: ByEndDate.pm,v 1.1 2003-02-06 23:35:18-05 kingpin Exp kingpin $
 
 =head1 NAME
 
@@ -31,9 +31,16 @@ The search is done against CURRENT running auctions only.
 The query is applied to TITLES only.
 
 The results are ordered auctions ending soon first (order of
-increasing auction ending date).  In the WWW::SearchResult objects,
-the change_date field contains the auction ending date & time exactly
-as returned by ebay.com; this can have values like "in 12 mins".
+increasing auction ending date).
+
+In the resulting WWW::Search::Result objects, the description field
+consists of a human-readable combination (joined with semicolon-space)
+of the Item Number; number of bids; and high bid amount (or starting
+bid amount).
+
+In the WWW::Search::Result objects, the change_date field contains the
+auction ending date & time exactly as returned by ebay.com; this can
+have values like "in 12 mins" or "5d 3h 15m".
 
 =head1 SEE ALSO
 
@@ -48,10 +55,10 @@ Please tell the author if you find any!
 =head1 AUTHOR
 
 C<WWW::Search::Ebay::ByEndDate> was written by Martin Thurn
-(mthurn@tasc.com).
+(mthurn@cpan.org).
 
 C<WWW::Search::Ebay::ByEndDate> is maintained by Martin Thurn
-(mthurn@tasc.com).
+(mthurn@cpan.org).
 
 =head1 LEGALESE
 
@@ -60,6 +67,10 @@ WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 =head1 VERSION HISTORY
+
+=head2 2.02
+
+Fixed hash vs. array bug?
 
 =head2 2.01
 
@@ -71,18 +82,23 @@ First publicly-released version.
 
 package WWW::Search::Ebay::ByEndDate;
 
+use Carp;
 use WWW::Search::Ebay;
 @ISA = qw( WWW::Search::Ebay );
 
-$VERSION = '2.01';
-$MAINTAINER = 'Martin Thurn <mthurn@tasc.com>';
+$VERSION = '2.02';
+$MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 # private
 sub native_setup_search
   {
   my ($self, $native_query, $rhOptsArg) = @_;
-
-  $rhOptsArg ||= [];
+  $rhOptsArg ||= {};
+  unless (ref($rhOptsArg) eq 'HASH')
+    {
+    carp " --- second argument to native_setup_search should be hashref, not arrayref";
+    return undef;
+    } # unless
   $rhOptsArg->{'SortProperty'} = 'MetaEndSort';
   return $self->SUPER::native_setup_search($native_query, $rhOptsArg);
   } # native_setup_search
