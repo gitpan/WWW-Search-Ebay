@@ -29,13 +29,7 @@ The search is done against eBay Stores items only.
 
 The query is applied to TITLES only.
 
-The results are ordered youngest auctions first (reverse order of
-auction listing date).
-
-In the resulting WWW::Search::Result objects, the description field
-consists of a human-readable combination (joined with semicolon-space)
-of the Item Number; number of bids; and high bid amount (or starting
-bid amount).
+See L<WWW::Search::Ebay> for a description of the search results.
 
 =head1 SEE ALSO
 
@@ -65,22 +59,41 @@ sub native_setup_search
   # http://search.stores.ebay.com/ws/search/StoreItemSearch?from=R10&sasaleclass=2&satitle=star+wars+lego&sbrexp=WD1S&sbrhrlink=str&sif=1&socolumnlayout=3&sofp=4&sosortorder=1&sosortproperty=1
   # http://search.stores.ebay.com/search/search.dll?GetResult&satitle=star+wars+lego&sosortorder=2&sosortproperty=2
   # http://search.stores.ebay.com/ws/search/StoreItemSearch?sasaleclass=2&satitle=dupondius
+  # As of 2004-10-20:
+  # http://search.stores.ebay.com/search/search.dll?sofocus=bs&sbrftog=1&catref=C6&socurrencydisplay=1&from=R10&sasaleclass=1&sorecordsperpage=100&sotimedisplay=1&socolumnlayout=2&satitle=star+wars+lego&sacategory=-6%26catref%3DC6&bs=Search&sofp=4&sotr=2&sapricelo=&sapricehi=&searchfilters=&sosortproperty=1&sosortorder=1
+  # simplest = http://search.stores.ebay.com/search/search.dll?socurrencydisplay=1&sasaleclass=1&sorecordsperpage=100&sotimedisplay=1&socolumnlayout=2&satitle=star+wars+lego
   $self->{'_options'} = {
-                         'GetResult' => 1,
                          'satitle' => $sQuery,
+                         'sucurrencydisplay' => 1,
+                         'sarecordsperpage' => 100,
+                         'sasaleclass' => 1,
                          'sosortproperty' => 2,
                          'sosortorder' => 2,
-                         'sasaleclass' => 2,
+                         'sotimedisplay' => 1,
                          # Display item number explicitly:
                          'socolumnlayout' => 2,
                         };
   $rh->{'search_host'} = 'http://search.stores.ebay.com';
-  $rh->{'search_path'} = '/ws/search/StoreItemSearch';
+  $rh->{'search_path'} = '/search/search.dll';
   return $self->SUPER::native_setup_search($sQuery, $rh);
   } # native_setup_search
 
 
-sub parse_tree
+sub preprocess_results_page_OFF
+  {
+  my $self = shift;
+  my $sPage = shift;
+  # Ebay used to send malformed HTML:
+  # my $iSubs = 0 + ($sPage =~ s!</FONT></TD></FONT></TD>!</FONT></TD>!gi);
+  # print STDERR " +   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
+  # For debugging:
+  print STDERR $sPage;
+  exit 88;
+  return $sPage;
+  } # preprocess_results_page
+
+
+sub parse_tree_OFF
   {
   my $self = shift;
   my $tree = shift;
@@ -90,7 +103,7 @@ sub parse_tree
   my $hits_found = 0;
   # The hit count is in a TD tag:
   my @aoFONT = $tree->look_down('_tag' => 'td',
-                                valign => 'top',);
+                                width => '75%',);
  FONT:
   foreach my $oFONT (@aoFONT)
     {

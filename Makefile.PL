@@ -3,7 +3,7 @@ use inc::Module::Install;
 name('WWW-Search-Ebay');
 author('Martin Thurn <mthurn@cpan.org>');
 license('perl');
-version(2.196);
+version(2.197);
 
 requires(perl => 5.005);
 requires('Date::Manip');
@@ -14,6 +14,9 @@ build_requires('Test::More');
 requires('WWW::Search' => 2.529);
 # We need the version that has method bid_count():
 requires('WWW::SearchResult' => 2.063);
+# We need the version of WWW::Search::Test that exports its tm_
+# functions:
+build_requires('WWW::Search::Test' => 2.265);
 
 check_nmake();      # check and download nmake.exe for Win32
 &Makefile->write;

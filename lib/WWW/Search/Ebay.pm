@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.149 2004/09/25 21:42:48 Daddy Exp $
+# $Id: Ebay.pm,v 2.150 2004/10/14 03:21:47 Daddy Exp Daddy $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ WWW::Search::Ebay - backend for searching www.ebay.com
 
 =head1 DESCRIPTION
 
-This class is a Ebay specialization of WWW::Search.
+This class is a Ebay specialization of L<WWW::Search>.
 It handles making and interpreting Ebay searches
 F<http://www.ebay.com>.
 
@@ -27,23 +27,24 @@ be done through L<WWW::Search> objects.
 =head1 NOTES
 
 The search is done against CURRENT running AUCTIONS only.
-(NOT complete auctions, NOT eBay Stores items, NOT Buy-It-Now only items.)
-(If you want to search eBay Stores, use the WWW::Search::Ebay::Stores module.)
+(NOT completed auctions, NOT eBay Stores items, NOT Buy-It-Now only items.)
+(If you want to search completed auctions, use the L<WWW::Search::Ebay::Completed> module.)
+(If you want to search eBay Stores, use the L<WWW::Search::Ebay::Stores> module.)
 
 The query is applied to TITLES only.
 
 The results are ordered youngest auctions first (reverse order of
 auction listing date).
 
-In the resulting WWW::Search::Result objects, the description field
+In the resulting L<WWW::Search::Result> objects, the description field
 consists of a human-readable combination (joined with semicolon-space)
 of the Item Number; number of bids; and high bid amount (or starting
 bid amount).
 
-In the resulting WWW::Search::Result objects, the bid_count field
+In the resulting L<WWW::Search::Result> objects, the bid_count field
 contains the number of bids as an integer.
 
-In the resulting WWW::Search::Result objects, the bid_amount field is
+In the resulting L<WWW::Search::Result> objects, the bid_amount field is
 a string containing the high bid or starting bid as a human-readable
 monetary value in seller-native units, e.g. "$14.95" or "GBP 6.00".
 
@@ -107,7 +108,7 @@ use WWW::Search qw( generic_option strip_tags );
 use WWW::SearchResult 2.063;
 use WWW::Search::Result;
 
-$VERSION = do { my @r = (q$Revision: 2.149 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.150 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -170,7 +171,7 @@ sub native_setup_search
   } # native_setup_search
 
 
-sub _preprocess_results_page
+sub preprocess_results_page_OFF
   {
   my $self = shift;
   my $sPage = shift;
@@ -216,7 +217,7 @@ sub parse_tree
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
   my @aoTD = $tree->look_down('_tag', 'td',
-                              'width' => '12%',
+                              'width' => '8%',
                               sub { ($_[0]->as_text =~ m!\A\d{9,}\Z! ) }
                              );
  TD:
@@ -227,9 +228,9 @@ sub parse_tree
     my $iItemNum = $oTD->as_text;
     my $sTD = $oTD->as_HTML;
     print STDERR " + try TD ===$sTD===\n" if 1 < $self->{_debug};
-    $oTD = $oTD->right;
+    my $oTDtitle = $oTD->left;
     # First A tag contains the url & title:
-    my $oA = $oTD->look_down('_tag', 'a');
+    my $oA = $oTDtitle->look_down('_tag', 'a');
     next TD unless ref $oA;
     my $sURL = $oA->attr('href');
     next TD unless $sURL =~ m!ViewItem!;
@@ -240,6 +241,7 @@ sub parse_tree
     my @aoSibs = $oTD->right;
     # The next sister has the current bid amount (or starting bid):
     my $oTDprice = shift @aoSibs;
+    $oTDprice = shift @aoSibs;
     if (ref $oTDprice)
       {
       if (1 < $self->{_debug})
@@ -277,8 +279,11 @@ sub parse_tree
     $sDesc .= '; ';
     $sDesc .= 'no' ne $iBids ? 'current' : 'starting';
     $sDesc .= " bid $iPrice";
-    # The last sister has the auction start date:
-    my $oTDdate = pop @aoSibs;
+    # The next sister has the auction start date...
+    my $oTDdate = shift @aoSibs;
+    # ...unless this is a Stores search, in which case the next sister
+    # is the store name:
+    $oTDdate = shift @aoSibs if (ref($self) eq 'WWW::Search::Ebay::Stores');
     if (ref $oTDdate)
       {
       my $s = $oTDdate->as_HTML;
