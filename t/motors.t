@@ -1,3 +1,6 @@
+
+# $Id: motors.t,v 1.5 2004/10/26 02:52:19 Daddy Exp $
+
 use ExtUtils::testlib;
 use Test::More no_plan;
 
@@ -26,6 +29,8 @@ $iDump = 0;
 # This query returns hundreds of pages of results:
 &tm_run_test('normal', 'Chevrolet', 101, undef, $iDebug);
 
+DEBUG_NOW:
+;
 CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;

@@ -1,3 +1,6 @@
+
+# $Id: buyitnow.t,v 1.3 2004/10/21 11:35:24 Daddy Exp $
+
 use ExtUtils::testlib;
 use Test::More no_plan;
 

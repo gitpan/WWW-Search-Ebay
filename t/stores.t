@@ -1,3 +1,6 @@
+
+# $Id: stores.t,v 1.5 2004/10/26 02:51:46 Daddy Exp $
+
 use ExtUtils::testlib;
 use Test::More no_plan;
 

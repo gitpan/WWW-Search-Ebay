@@ -1,5 +1,5 @@
 
-# $Id: Stores.pm,v 1.2 2004/10/21 11:15:03 Daddy Exp $
+# $Id: Stores.pm,v 1.3 2004/10/26 02:50:56 Daddy Exp $
 
 =head1 NAME
 
@@ -53,7 +53,7 @@ package WWW::Search::Ebay::Stores;
 use WWW::Search::Ebay;
 use vars qw( @ISA $VERSION );
 @ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 1.2 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.3 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -61,36 +61,12 @@ sub native_setup_search
   # As of 2004-10-20:
   # http://search.stores.ebay.com/search/search.dll?sofocus=bs&sbrftog=1&catref=C6&socurrencydisplay=1&from=R10&sasaleclass=1&sorecordsperpage=100&sotimedisplay=1&socolumnlayout=2&satitle=star+wars+lego&sacategory=-6%26catref%3DC6&bs=Search&sofp=4&sotr=2&sapricelo=&sapricehi=&searchfilters=&sosortproperty=1&sosortorder=1
   # simplest = http://search.stores.ebay.com/search/search.dll?socurrencydisplay=1&sasaleclass=1&sorecordsperpage=100&sotimedisplay=1&socolumnlayout=2&satitle=star+wars+lego
-  $self->{'_options'} = {
-                         'satitle' => $sQuery,
-                         'sucurrencydisplay' => 1,
-                         'sarecordsperpage' => 100,
-                         'sasaleclass' => 1,
-                         'sosortproperty' => 2,
-                         'sosortorder' => 2,
-                         'sotimedisplay' => 1,
-                         # Display item number explicitly:
-                         'socolumnlayout' => 2,
-                        };
   $rh->{'search_host'} = 'http://search.stores.ebay.com';
   $rh->{'search_path'} = '/search/search.dll';
+  # This is how we get Stores items only:
+  $rh->{'sasaleclass'} = 1;
   return $self->SUPER::native_setup_search($sQuery, $rh);
   } # native_setup_search
-
-
-sub preprocess_results_page_OFF
-  {
-  my $self = shift;
-  my $sPage = shift;
-  # Ebay used to send malformed HTML:
-  # my $iSubs = 0 + ($sPage =~ s!</FONT></TD></FONT></TD>!</FONT></TD>!gi);
-  # print STDERR " +   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
-  # For debugging:
-  print STDERR $sPage;
-  exit 88;
-  return $sPage;
-  } # preprocess_results_page
-
 
 1;
 

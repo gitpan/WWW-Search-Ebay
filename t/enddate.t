@@ -1,3 +1,7 @@
+
+# $Id: enddate.t,v 1.6 2004/10/26 03:17:17 Daddy Exp $
+
+use Data::Dumper;
 use ExtUtils::testlib;
 use Test::More no_plan;
 
@@ -50,7 +54,7 @@ foreach my $oResult (@ao)
        'result bidcount is ok');
   my $sDate = $oResult->change_date || '';
   DEBUG_DATE && diag(qq{raw result date is '$sDate'});
-  isnt($sDate, '');
+  diag(Dumper($oResult)) unless isnt($sDate, '');
   my $iCmp = &Date_Cmp($sDatePrev, $sDate);
   cmp_ok($iCmp, '<=', 0, 'result is in order by end date');
   $sDatePrev = $sDate;

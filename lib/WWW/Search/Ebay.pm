@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.151 2004/10/21 11:15:48 Daddy Exp $
+# $Id: Ebay.pm,v 2.152 2004/10/26 03:18:04 Daddy Exp $
 
 =head1 NAME
 
@@ -40,6 +40,10 @@ In the resulting L<WWW::Search::Result> objects, the description field
 consists of a human-readable combination (joined with semicolon-space)
 of the Item Number; number of bids; and high bid amount (or starting
 bid amount).
+
+In the resulting L<WWW::Search::Result> objects, the change_date field
+contains a human-readable DTG of when the auction is scheduled to end
+(in the form "YYYY-MM-DD HH:MM:SS").
 
 In the resulting L<WWW::Search::Result> objects, the bid_count field
 contains the number of bids as an integer.
@@ -105,12 +109,14 @@ package WWW::Search::Ebay;
 
 use Carp ();
 # use Data::Dumper;  # for debugging only
+use Date::Manip;
+&Date_Init('TZ=-0500');
 use WWW::Search qw( generic_option strip_tags );
 # We need the version that has bid_amount() and bid_count() methods:
 use WWW::SearchResult 2.063;
 use WWW::Search::Result;
 
-$VERSION = do { my @r = (q$Revision: 2.151 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.152 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -131,8 +137,8 @@ sub native_setup_search
   $self->{'_next_to_retrieve'} = 0;
   $self->{'_num_hits'} = 0;
 
-  $self->{search_host} = 'http://search.ebay.com';
-  $self->{search_path} = '/ws/search/SaleSearch';
+  $self->{search_host} ||= 'http://search.ebay.com';
+  $self->{search_path} ||= '/ws/search/SaleSearch';
   if (!defined($self->{_options}))
     {
     $self->{_options} = {
@@ -145,7 +151,11 @@ sub native_setup_search
                          'socurrencydisplay' => 1,
                          'sorecordsperpage' => $self->{_hits_per_page},
                          # Display absolute times, NOT relative times:
-                         'sotimedisplay' => 1,
+                         'sotimedisplay' => 0,
+                         # Use the default columns, NOT anything the
+                         # user may have customized (which would come
+                         # through via cookies):
+                         'socustoverride' => 1,
                         };
     } # if
   if (defined($rhOptsArg))
@@ -173,7 +183,7 @@ sub native_setup_search
   } # native_setup_search
 
 
-sub preprocess_results_page_OFF
+sub _OFF_preprocess_results_page
   {
   my $self = shift;
   my $sPage = shift;
@@ -219,30 +229,32 @@ sub parse_tree
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
   my @aoTD = $tree->look_down('_tag', 'td',
-                              'width' => '8%',
-                              sub { ($_[0]->as_text =~ m!\A\d{9,}\Z! ) }
+                              'style' => 'padding: 4px 0px 4px 0px',
                              );
  TD:
   foreach my $oTD (0, @aoTD)
     {
     # Sanity check:
     next TD unless ref $oTD;
-    my $iItemNum = $oTD->as_text;
     my $sTD = $oTD->as_HTML;
-    print STDERR " + try TD ===$sTD===\n" if 1 < $self->{_debug};
-    my $oTDtitle = $oTD->left;
+    print STDERR " + try TD ===$sTD===\n" if (1 < $self->{_debug});
+    next TD unless ($sTD =~ m!value=(\d+)!);
+    my $iItemNum = $1;
+    my $oTDtitle = $oTD->right->right;
     # First A tag contains the url & title:
     my $oA = $oTDtitle->look_down('_tag', 'a');
     next TD unless ref $oA;
     my $sURL = $oA->attr('href');
     next TD unless $sURL =~ m!ViewItem!;
     my $sTitle = $oA->as_text;
-    my ($iPrice, $iBids, $iBidInt, $sDate) = ('$unknown', 'no', 'unknown');
+    my ($iPrice, $iBids, $iBidInt) = ('$unknown', 'no', 'unknown');
     # The rest of the info about this item is in sister TD elements to
     # the right:
-    my @aoSibs = $oTD->right;
+    my @aoSibs = $oTDtitle->right;
+    my $oTDprice;
+    # The first sister is the paypal logo:
+    $oTDprice = shift @aoSibs unless (ref($self) eq 'WWW::Search::Ebay::Motors');
     # The next sister has the current bid amount (or starting bid):
-    my $oTDprice = shift @aoSibs;
     $oTDprice = shift @aoSibs;
     if (ref $oTDprice)
       {
@@ -281,18 +293,27 @@ sub parse_tree
     $sDesc .= '; ';
     $sDesc .= 'no' ne $iBids ? 'current' : 'starting';
     $sDesc .= " bid $iPrice";
-    # The next sister has the auction start date...
+    # The next sister has the auction end date...
     my $oTDdate = shift @aoSibs;
     # ...unless this is a Stores search, in which case the next sister
     # is the store name:
     $oTDdate = shift @aoSibs if (ref($self) eq 'WWW::Search::Ebay::Stores');
+    my $sDate = 'unknown';
     if (ref $oTDdate)
       {
       my $s = $oTDdate->as_HTML;
       print STDERR " +   TDdate ===$s===\n" if 1 < $self->{_debug};
-      $sDate = $oTDdate->as_text;
+      my $sDateTemp = $oTDdate->as_text;
       # Convert nbsp to regular space:
-      $sDate =~ s!\240!\040!g;
+      $sDateTemp =~ s!\240!\040!g;
+      print STDERR " +   raw    sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
+      $sDateTemp =~ s!d! days!;
+      $sDateTemp =~ s!h! hours!;
+      $sDateTemp =~ s!m! minutes!;
+      print STDERR " +   cooked sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
+      $date = &DateCalc('now', "+ $sDateTemp");
+      print STDERR " +   date ===$date===\n" if 1 < $self->{_debug};
+      $sDate = &UnixDate($date, '%Y-%m-%d %H:%M:%S');
       } # if
     my $hit = new WWW::Search::Result;
     # Make sure we don't return two different URLs for the same item:

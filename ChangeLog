@@ -1,3 +1,9 @@
+2004-10-25  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): handle default page format
+
+	* lib/WWW/Search/Ebay/Stores.pm (native_setup_search): let parent object control the HTML page formatting params
+
 2004-10-21  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): handle new HTML page format

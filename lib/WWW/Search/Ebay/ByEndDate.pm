@@ -1,6 +1,6 @@
 # Ebay/ByEndDate.pm
 # by Martin Thurn
-# $Id: ByEndDate.pm,v 2.22 2004/09/17 02:10:47 Daddy Exp $
+# $Id: ByEndDate.pm,v 2.23 2004/10/26 03:17:36 Daddy Exp $
 
 =head1 NAME
 
@@ -96,7 +96,7 @@ use strict;
 use vars qw( @ISA $VERSION $MAINTAINER );
 
 @ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 2.22 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.23 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 # Damn it's hard to get a timezone:
@@ -144,18 +144,21 @@ sub parse_tree
   my ($self, @args) = @_;
   my $hits = $self->SUPER::parse_tree(@args);
   $self->{cache} ||= [];
-  # Convert all eBay relative times to absolute times:
-  $self->{cache} = [
-                    map {
-                      my $iMin = minutes($_->change_date) || minutes(date_to_rel($_->change_date,
-                                                                                 $self->{_today_}));
-                      $_->change_date(&UnixDate(&DateCalc($self->{_today_}, " + $iMin minutes"),
-                                               '%Y-%m-%dT%H:%M:%S'));
-                      $_
-                      }
-                    grep { ref }
-                    @{$self->{cache}}
-                   ];
+  if (0)
+    {
+    # Convert all eBay relative times to absolute times:
+    $self->{cache} = [
+                      map {
+                        my $iMin = minutes($_->change_date) || minutes(date_to_rel($_->change_date,
+                                                                                   $self->{_today_}));
+                        $_->change_date(&UnixDate(&DateCalc($self->{_today_}, " + $iMin minutes"),
+                                                  '%Y-%m-%dT%H:%M:%S'));
+                        $_
+                        }
+                      grep { ref }
+                      @{$self->{cache}}
+                     ];
+    } # if
   # Sort by date using a Schwartzian transform to save memory:
   $self->{cache} = [
                     map { $_->[0] }
