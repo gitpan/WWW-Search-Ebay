@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.12 2002/04/22 14:29:29 mthurn Exp mthurn $
+# $Id: Ebay.pm,v 1.16 2002-10-21 23:49:41-04 kingpin Exp kingpin $
 
 =head1 NAME
 
@@ -59,6 +59,14 @@ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 =head1 VERSION HISTORY
 
+=head2 2.11, 2002-10-21
+
+Fixed parsing for Buy-It-Now prices, and foreign currencies
+
+=head2 2.08, 2002-07-24
+
+Fixed parsing for new images in the results table
+
 =head2 2.07, 2001-12-20
 
 Restructured using parse_tree()
@@ -84,7 +92,7 @@ use Data::Dumper;  # for debugging only
 use WWW::Search qw( generic_option strip_tags );
 require WWW::SearchResult;
 
-$VERSION = '2.08';
+$VERSION = '2.11';
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 # private
@@ -160,6 +168,10 @@ sub parse_tree
   my $self = shift;
   my $tree = shift;
 
+  # A pattern to match HTML whitespace:
+  my $W = q{[\ \t\r\n\240]};
+  # A pattern to match Ebay currencies:
+  my $currency = qr/(?:\$|C|EUR|GBP)/;
   my $hits_found = 0;
   # The hit count is in a FONT tag:
   my @aoFONT = $tree->look_down('_tag', 'font');
@@ -218,7 +230,7 @@ sub parse_tree
         print STDERR " +   TDprice ===$s===\n";
         } # if
       $iPrice = $oTDprice->as_text;
-      $iPrice =~ s!(\d)(\$[\d.,]+)!$1 (US$2)!;
+      $iPrice =~ s!(\d)$W*($currency$W*[\d.,]+)!$1 (Buy-It-Now for $2)!;
       } # if
     # The next sister has the number of bids:
     my $oTDbids = shift @aoSibs;
@@ -231,7 +243,7 @@ sub parse_tree
         } # if
       $iBids = $oTDbids->as_text;
       } # if
-    $iBids = 'no' if $iBids eq '-';
+    $iBids = 'no' if $iBids =~ m!\A$W*-$W*\Z!;
     my $sDesc = "Item \043$iItemNum; $iBids bid";
     $sDesc .= 's' if $iBids ne '1';
     $sDesc .= '; ';
@@ -269,7 +281,7 @@ sub parse_tree
     next TRY_NEXT unless $href;
     # If we get all the to the item list, there must be no next button:
     last TRY_NEXT if $href =~ m!ViewItem!;
-    if ($oA->as_text =~ m!Next\s+(>|&gt;)!i)
+    if ($oA->as_text =~ m!Next$W+(>|&gt;)!i)
       {
       $self->{_next_url} = $self->absurl(undef, $href);
       print STDERR " +   got NEXT A ===", $self->{_next_url}, "===\n" if 1 < $self->{_debug};

@@ -31,11 +31,11 @@ my $debug = 0;
 # goto MULTI_RESULT;
 $debug = 0;
 # This query usually returns 1 page of results:
-&run_test('star wars adult', 1, 49, $debug);
+&run_test('starballz', 1, 49, $debug);
 # goto MULTI_RESULT;
 $debug = 0;
 # This query usually returns 2 pages of results:
-&run_test('bib fortuna', 51, 99, $debug);
+&run_test('fortuna', 51, 99, $debug);
 
 MULTI_RESULT:
 $debug = 0;

@@ -1,3 +1,7 @@
+2002-10-21  Kingpin  <mthurn@megapipe.net>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): Fixed parsing for Buy-It-Now prices, and foreign currencies
+
 2002-07-24  Kingpin  <mthurn@copper.dulles.tasc.com>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): fix parsing around new images in table
