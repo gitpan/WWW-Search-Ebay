@@ -1,3 +1,7 @@
+2003-07-13  Kingpin  <mthurn@megapipe.net>
+
+	* lib/WWW/Search/Ebay/Completed.pm: new backend, thanks to Troy Arnold
+
 2003-02-06  Kingpin  <mthurn@megapipe.net>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): Fixed parsing for slightly-changed ebay.com pages

@@ -1,6 +1,6 @@
 # Ebay/Completed.pm
 # by Martin Thurn
-# $Id: Completed.pm,v 1.0 2003-07-13 18:09:02-04 kingpin Exp kingpin $
+# $Id: Completed.pm,v 1.1 2003-07-13 18:42:01-04 kingpin Exp kingpin $
 
 =head1 NAME
 
@@ -67,7 +67,7 @@ use WWW::Search::Ebay;
 
 use vars qw( $MAINTAINER $VERSION );
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
-$VERSION = sprintf("%d.%02d", q$Revision: 1.0 $ =~ /(\d+)\.(\d+)/o);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/o);
 
 # private
 sub native_setup_search

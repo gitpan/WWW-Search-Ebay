@@ -1,9 +1,9 @@
 use inc::Module::Install;
 
-name('WWW::Search::Ebay');
+name('WWW-Search-Ebay');
 author('Martin Thurn <mthurn@cpan.org>');
 license('perl');
-version(2.14);
+version(2.15);
 
 requires('WWW::Search::Test' => 2.12);
 # Test::More is needed for `make test`:

@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.19 2003-02-06 23:35:09-05 kingpin Exp kingpin $
+# $Id: Ebay.pm,v 1.20 2003-10-22 21:31:02-04 kingpin Exp kingpin $
 
 =head1 NAME
 

@@ -1,18 +1,18 @@
 #line 1 "inc/Module/Install/Metadata.pm - C:/Perl580/site/lib/Module/Install/Metadata.pm"
 # $File: //depot/cpan/Module-Install/lib/Module/Install/Metadata.pm $ $Author: autrijus $
-# $Revision: #20 $ $Change: 1552 $ $DateTime: 2003/05/25 01:11:03 $ vim: expandtab shiftwidth=4
+# $Revision: #26 $ $Change: 1777 $ $DateTime: 2003/10/13 02:25:45 $ vim: expandtab shiftwidth=4
 
 package Module::Install::Metadata;
 use Module::Install::Base; @ISA = qw(Module::Install::Base);
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use strict 'vars';
 use vars qw($VERSION);
 
 sub Meta { shift }
 
-my @scalar_keys = qw(name version abstract author license distribution_type);
+my @scalar_keys = qw(name module_name version abstract author license distribution_type);
 my @tuple_keys  = qw(build_requires requires recommends bundles);
 
 foreach my $key (@scalar_keys) {
@@ -57,6 +57,11 @@ sub _dump {
     my $version = $self->_top->VERSION;
     my %values = %{$self->{values}};
     $values{distribution_type} ||= 'module';
+    $values{name} ||= do {
+        my $name = $values{module_name};
+        $name =~ s/::/-/g;
+        $name;
+    } if $values{module_name};
 
     my $dump = '';
     foreach my $key (@scalar_keys) {
@@ -68,12 +73,20 @@ sub _dump {
         $dump .= "  $_->[0]: $_->[1]\n" for @{$values{$key}};
     }
 
-    return($dump . "private:\n  directory:\n    - inc\ngenerated_by: $package version $version\n");
+    return($dump . << "META");
+no_index:
+  directory:
+    - inc
+private:
+  directory:
+    - inc
+generated_by: $package version $version
+META
 }
 
 sub read {
     my $self = shift;
-    $self->include( 'YAML' );
+    $self->include_deps( 'YAML', 0 );
     require YAML;
     my $data = YAML::LoadFile( 'META.yml' );
     # Call methods explicitly in case user has already set some values.
@@ -93,10 +106,20 @@ sub read {
 
 sub write {
     my $self = shift;
-    return $self unless $self->admin;
-    return if -f "META.yml";
-    warn "Creating META.yml\n";
-    open META, "> META.yml" or die $!;
+    return $self unless $self->is_admin;
+
+    META_NOT_OURS: {
+        local *FH;
+        if (open FH, "META.yml") {
+            while (<FH>) {
+                last META_NOT_OURS if /^generated_by: Module::Install\b/;
+            }
+            return $self;
+        }
+    }
+
+    warn "Writing META.yml\n";
+    open META, "> META.yml" or warn "Cannot write to META.yml: $!";
     print META $self->_dump;
     close META;
     return $self;
@@ -106,6 +129,12 @@ sub version_from {
     my ($self, $version_from) = @_;
     require ExtUtils::MM_Unix;
     $self->version(ExtUtils::MM_Unix->parse_version($version_from));
+}
+
+sub abstract_from {
+    my ($self, $abstract_from) = @_;
+    require ExtUtils::MM_Unix;
+    $self->abstract(ExtUtils::MM_Unix->parse_abstract($abstract_from));
 }
 
 1;

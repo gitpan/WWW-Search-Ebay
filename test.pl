@@ -19,7 +19,7 @@ $iDebug = 0;
 # goto MULTI_RESULT;
 $iDebug = 0;
 # This query usually returns 1 page of results:
-&my_test('normal', 'starballz', 1, 49, $iDebug);
+&my_test('normal', 'star wars chip* -figure -comm* -lay*', 1, 49, $iDebug);
 
 MULTI_RESULT:
 $iDebug = 0;
@@ -33,7 +33,7 @@ $iDebug = 0;
 &my_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 $iDebug = 0;
 # This query usually returns 1 page of results:
-&my_test('normal', 'starballz', 1, 49, $debug);
+&my_test('normal', 'star wars chip* -figure -comm* -lay*', 1, 49, $debug);
 
 COMPLETED:
 &my_new_engine('Ebay::Completed');
@@ -51,8 +51,9 @@ $iDebug = 0;
 # Now get some results and inspect them:
 my $o = new WWW::Search('Ebay');
 ok(ref $o);
-$o->native_query('Tobago flag');
+$o->native_query('Trinidad Tobago flag');
 my @ao = $o->results();
+cmp_ok(0, '<=', scalar(@ao), 'got some results');
 foreach my $oResult (@ao)
   {
   like($oResult->url, qr{\Ahttp://cgi\d*\.ebay\.com},
@@ -75,6 +76,7 @@ $o->native_query('Tobago flag',
                    },
                 );
 my @ao = $o->results();
+cmp_ok(0, '<=', scalar(@ao), 'got some results');
 foreach my $oResult (@ao)
   {
   like($oResult->url, qr{\Ahttp://cgi\d*\.ebay\.com},
@@ -97,6 +99,7 @@ $o->native_query('yakface',
                    },
                 );
 my @ao = $o->results();
+cmp_ok(0, '<=', scalar(@ao), 'got some results');
 foreach my $oResult (@ao)
   {
   like($oResult->url, qr{\Ahttp://cgi\d*\.ebay\.com},
