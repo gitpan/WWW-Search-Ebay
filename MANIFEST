@@ -18,5 +18,6 @@ README
 t/basic.t
 t/buyitnow.t
 t/enddate.t
+t/itemnumber.t
 t/motors.t
 t/stores.t

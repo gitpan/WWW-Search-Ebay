@@ -1,3 +1,9 @@
+2004-11-27  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (_format_date): new function
+	(_create_description): new function
+	(parse_tree): detect redirection to single-auction page
+
 2004-11-24  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): fetch eBay official time, and fix timezone conversion

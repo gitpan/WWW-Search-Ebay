@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.157 2004/11/25 04:20:43 Daddy Exp $
+# $Id: Ebay.pm,v 2.158 2004/11/28 02:43:09 Daddy Exp Daddy $
 
 =head1 NAME
 
@@ -53,6 +53,10 @@ contains the number of bids as an integer.
 In the resulting L<WWW::Search::Result> objects, the bid_amount field is
 a string containing the high bid or starting bid as a human-readable
 monetary value in seller-native units, e.g. "$14.95" or "GBP 6.00".
+
+If your query string happens to be an eBay item number,
+(i.e. if ebay.com redirects the query to an auction page),
+you will get back one WWW::Search::Result without bid or price information.
 
 =head1 OPTIONS
 
@@ -110,7 +114,7 @@ package WWW::Search::Ebay;
 @ISA = qw( WWW::Search );
 
 use Carp ();
-# use Data::Dumper;  # for debugging only
+use Data::Dumper;  # for debugging only
 use Date::Manip;
 &Date_Init('TZ=US/Pacific') unless (defined($ENV{TZ}) && ($ENV{TZ} ne ''));
 use HTML::TreeBuilder;
@@ -120,8 +124,10 @@ use WWW::Search qw( generic_option strip_tags );
 use WWW::SearchResult 2.063;
 use WWW::Search::Result;
 
-$VERSION = do { my @r = (q$Revision: 2.157 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
-$MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
+use strict;
+my
+$VERSION = do { my @r = (q$Revision: 2.158 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
   {
@@ -187,28 +193,41 @@ sub native_setup_search
   } # native_setup_search
 
 
+my $qrTitle = qr{\AeBay\s+item\s+(\d+)\s+\(Ends\s+([^)]+)\)\s+-\s+(.+)\Z}; #
+
 sub preprocess_results_page
   {
   my $self = shift;
   my $sPage = shift;
-  # Fetch the official ebay.com time:
-  $self->{_ebay_official_time} = 'now';
-  my $sPageDate = get('http://cgi1.ebay.com/aw-cgi/eBayISAPI.dll?TimeShow') || '';
-  if ($sPageDate ne '')
+  # print STDERR Dumper($self->{response});
+  my $sTitle = $self->{response}->header('title') || '';
+  if ($sTitle =~ m!$qrTitle!)
     {
-    my $tree = HTML::TreeBuilder->new;
-    $tree->parse($sPageDate);
-    $tree->eof;
-    my $s = $tree->as_text;
-    # print STDERR " DDD official time =====$s=====\n";
-    if ($s =~ m!The official eBay Time is now:(.+?)Pacific\s!i)
-      {
-      # ParseDate automatically converts to local timezone:
-      my $date = &ParseDate($1);
-      # print STDERR " DDD official time =====$date=====\n";
-      $self->{_ebay_official_time} = $date;
-      } # if
+    # print STDERR " DDD got a Title: ==$sTitle==\n";
+    # This search returned a single auction item page.  We do not need
+    # to fetch eBay official time.
     } # if
+  else
+    {
+    # Fetch the official ebay.com time:
+    $self->{_ebay_official_time} = 'now';
+    my $sPageDate = get('http://cgi1.ebay.com/aw-cgi/eBayISAPI.dll?TimeShow') || '';
+    if ($sPageDate ne '')
+      {
+      my $tree = HTML::TreeBuilder->new;
+      $tree->parse($sPageDate);
+      $tree->eof;
+      my $s = $tree->as_text;
+      # print STDERR " DDD official time =====$s=====\n";
+      if ($s =~ m!The official eBay Time is now:(.+?)Pacific\s!i)
+        {
+        # ParseDate automatically converts to local timezone:
+        my $date = &ParseDate($1);
+        # print STDERR " DDD official time =====$date=====\n";
+        $self->{_ebay_official_time} = $date;
+        } # if
+      } # if
+    } # else
   return $sPage;
   # Ebay used to send malformed HTML:
   # my $iSubs = 0 + ($sPage =~ s!</FONT></TD></FONT></TD>!</FONT></TD>!gi);
@@ -226,15 +245,46 @@ sub currency_pattern
   return qr/(?:\$|C|EUR|GBP)/;
   } # currency_pattern
 
+sub _format_date
+  {
+  &UnixDate(shift, '%Y-%m-%d %H:%M %Z');
+  } # _format_date
+
+sub _create_description
+  {
+  my $iItem = shift || 'unknown';
+  my $iBids = shift || 'unknown';
+  my $iPrice = shift || 'unknown';
+  my $sDesc = "Item \043$iItem; $iBids bid";
+  $sDesc .= 's' if $iBids ne '1';
+  $sDesc .= '; ';
+  $sDesc .= 'no' ne $iBids ? 'current' : 'starting';
+  $sDesc .= " bid $iPrice";
+  } # _create_description
+
 # private
 sub parse_tree
   {
   my $self = shift;
   my $tree = shift;
 
+  my $sTitle = $self->{response}->header('title') || '';
+  if ($sTitle =~ m!$qrTitle!)
+    {
+    my $hit = new WWW::Search::Result;
+    $hit->description(&_create_description($1));
+    $hit->change_date(&_format_date($2));
+    $hit->title($3);
+    $hit->add_url($self->{response}->request->uri);
+    # print Dumper($hit);
+    push(@{$self->{cache}}, $hit);
+    $self->{'_num_hits'}++;
+    $self->approximate_result_count(1);
+    return 1;
+    } # if
+  my $hits_found = 0;
   # A pattern to match HTML whitespace:
   my $W = q{[\ \t\r\n\240]};
-  my $hits_found = 0;
   # The hit count is in a FONT tag:
   my @aoFONT = $tree->look_down('_tag' => 'td',
                                 width => '75%',);
@@ -250,7 +300,7 @@ sub parse_tree
     } # foreach
   my @aoTDdate = $tree->look_down('_tag' => 'td',
                                   'bgcolor' => 'ffffff');
-  foreach my $oTD (reverse @aoTD)
+  foreach my $oTD (reverse @aoTDdate)
     {
     
     } # foreach
@@ -317,11 +367,7 @@ sub parse_tree
       $iBids = 'no';
       $iBidInt = 0;
       } # if
-    my $sDesc = "Item \043$iItemNum; $iBids bid";
-    $sDesc .= 's' if $iBids ne '1';
-    $sDesc .= '; ';
-    $sDesc .= 'no' ne $iBids ? 'current' : 'starting';
-    $sDesc .= " bid $iPrice";
+    my $sDesc = &_create_description($iItemNum, $iBids, $iPrice);
     # The next sister has the auction end date...
     my $oTDdate = shift @aoSibs;
     # ...unless this is a Stores search, in which case the next sister
@@ -341,9 +387,9 @@ sub parse_tree
       $sDateTemp =~ s!h! hours!;
       $sDateTemp =~ s!m! minutes!;
       print STDERR " +   cooked sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
-      $date = &DateCalc($self->{_ebay_official_time}, "+ $sDateTemp");
+      my $date = &DateCalc($self->{_ebay_official_time}, "+ $sDateTemp");
       print STDERR " +   date ===$date===\n" if 1 < $self->{_debug};
-      $sDate = &UnixDate($date, '%Y-%m-%d %H:%M %Z');
+      $sDate = &_format_date($date);
       } # if
     my $hit = new WWW::Search::Result;
     # Make sure we don't return two different URLs for the same item:
