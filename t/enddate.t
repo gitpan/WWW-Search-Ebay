@@ -8,40 +8,29 @@ BEGIN { use_ok('WWW::Search::Ebay') };
 
 use strict;
 
-my $iDebug;
+my $iDebug = 0;
 my $iDump = 0;
 
 &my_new_engine('Ebay::ByEndDate');
+# goto TEST_NOW;
 
-goto TEST_NOW;
-
+diag("Sending 0-page query...");
 $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
 &my_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 TEST_NOW:
+diag("Sending 1-page query...");
 $iDebug = 0;
-$iDump = 1;
+$iDump = 0;
 # This query usually returns 1 page of results:
 &my_test('normal', 'star wars chip* -figure -comm* -lay* -moc', 1, 49, $iDebug, $iDump);
 # goto ALL_DONE;  # for debugging
 
-CONTENTS:
 $iDebug = 0;
 # ebay.com reports all date-times as Pacific:
 &Date_Init('TZ=US/Pacific');
 # Now get some ByEndDate results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
-if (0)
-  {
-  my $o = new WWW::Search('Ebay::ByEndDate');
-  ok(ref $o);
-  $o->native_query('tivo sony -directv',
-                     {
-                      search_debug => $iDebug,
-                     },
-                  );
-  @ao = $o->results();
-  } # if
 cmp_ok(0, '<', scalar(@ao), 'got some results');
 my $fDeltaPrev = -1;
 foreach my $oResult (@ao)

@@ -1,3 +1,9 @@
+2004-04-08  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay/ByEndDate.pm (parse_tree): fix undef warning
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): handle new HTML formatting
+
 2003-12-21  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay/Completed.pm: removed because searching completed auctions now requires registered user login

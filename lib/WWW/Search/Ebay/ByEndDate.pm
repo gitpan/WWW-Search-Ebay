@@ -1,6 +1,6 @@
 # Ebay/ByEndDate.pm
 # by Martin Thurn
-# $Id: ByEndDate.pm,v 1.2 2003-12-06 20:12:42-05 kingpin Exp kingpin $
+# $Id: ByEndDate.pm,v 2.21 2004/04/08 18:31:57 Daddy Exp $
 
 =head1 NAME
 
@@ -84,9 +84,12 @@ package WWW::Search::Ebay::ByEndDate;
 
 use Carp;
 use WWW::Search::Ebay;
-@ISA = qw( WWW::Search::Ebay );
 
-$VERSION = '2.02';
+use strict;
+use vars qw( @ISA $VERSION $MAINTAINER );
+
+@ISA = qw( WWW::Search::Ebay );
+$VERSION = do { my @r = (q$Revision: 2.21 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 # private
@@ -111,6 +114,7 @@ sub parse_tree
   {
   my ($self, @args) = @_;
   my $hits = $self->SUPER::parse_tree(@args);
+  $self->{cache} ||= [];
   $self->{cache} = [sort { minutes($a->change_date()) <=>
                            minutes($b->change_date()) }
                     @{$self->{cache}}];

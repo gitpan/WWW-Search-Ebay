@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.22 2003-11-13 06:51:40-05 kingpin Exp kingpin $
+# $Id: Ebay.pm,v 2.142 2004/04/08 18:31:07 Daddy Exp $
 
 =head1 NAME
 
@@ -87,10 +87,9 @@ use Data::Dumper;  # for debugging only
 use WWW::Search qw( generic_option strip_tags );
 use WWW::Search::Result;
 
-$VERSION = '2.14';
+$VERSION = do { my @r = (q$Revision: 2.142 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
-# private
 sub native_setup_search
   {
   my ($self, $native_query, $rhOptsArg) = @_;
@@ -153,6 +152,8 @@ sub preprocess_results_page
   # Ebay sends malformed HTML:
   my $iSubs = 0 + ($sPage =~ s!</FONT></TD></FONT></TD>!</FONT></TD>!gi);
   print STDERR " +   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
+  # print STDERR $sPage;
+  # exit 88;
   return $sPage;
   } # preprocess_results_page
 
@@ -169,7 +170,8 @@ sub parse_tree
   my $currency = qr/(?:\$|C|EUR|GBP)/;
   my $hits_found = 0;
   # The hit count is in a FONT tag:
-  my @aoFONT = $tree->look_down('_tag', 'font');
+  my @aoFONT = $tree->look_down('_tag' => 'td',
+                                width => '99%',);
  FONT:
   foreach my $oFONT (@aoFONT)
     {
@@ -187,10 +189,10 @@ sub parse_tree
                                      ($_[0]->as_HTML =~ m!ViewItem! )
                                      &&
                                      # Ignore thumbnails:
-                                     ($_[0]->as_HTML !~ m!thumbs\.ebay\.com! )
+                                     ($_[0]->as_HTML !~ m!thumbs\.ebay(static)?\.com! )
                                      &&
                                      # Ignore other images:
-                                     ($_[0]->as_HTML !~ m/alt="\[Picture!\]"/i )
+                                     ($_[0]->as_HTML !~ m/Listing has pictures/i )
                                      &&
                                      ($_[0]->as_HTML !~ m!alt="BuyItNow"!i )
                                     )
@@ -200,16 +202,13 @@ sub parse_tree
   foreach my $oTD (@aoTD)
     {
     my $sTD = $oTD->as_HTML;
-    # First FONT tag contains the url & title:
-    my $oFONT = $oTD->look_down('_tag', 'font');
-    next TD unless ref $oFONT;
+    print STDERR " + try TD ===$sTD===\n" if 1 < $self->{_debug};
     # First A tag contains the url & title:
-    my $oA = $oFONT->look_down('_tag', 'a');
+    my $oA = $oTD->look_down('_tag', 'a');
     next TD unless ref $oA;
     my $sURL = $oA->attr('href');
     next TD unless $sURL =~ m!ViewItem!;
     my $sTitle = $oA->as_text;
-    print STDERR " + TD ===$sTD===\n" if 1 < $self->{_debug};
     my ($iItemNum) = ($sURL =~ m!item=(\d+)!);
     my ($iPrice, $iBids, $sDate) = ('$unknown', 'no', 'unknown');
     # The rest of the info about this item is in sister TD elements to
@@ -282,10 +281,10 @@ sub parse_tree
     # If we get all the way to the item list, there must be no next
     # button:
     last TRY_NEXT if $href =~ m!ViewItem!;
-    if ($oA->as_text =~ m!Next$W+(>|&gt;)!i)
+    if ($oA->as_text eq 'Next')
       {
-      $self->{_next_url} = $self->absurl(undef, $href);
-      print STDERR " +   got NEXT A ===", $self->{_next_url}, "===\n" if 1 < $self->{_debug};
+      print STDERR " +   got NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
+      $self->{_next_url} = $self->absurl($self->{_prev_url}, $href);
       last TRY_NEXT;
       } # if
     } # foreach
