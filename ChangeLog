@@ -1,3 +1,7 @@
+2001-07-30  Kingpin  <mthurn@tasc.com>
+
+	* lib/WWW/Search/Ebay/ByEndDate.pm: new backend!
+
 2001-06-26  Kingpin  <mthurn@tasc.com>
 
 	* VERSION 2.05 RELEASED

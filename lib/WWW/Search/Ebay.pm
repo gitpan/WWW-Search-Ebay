@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.6 2001/05/07 15:22:45 mthurn Exp mthurn $
+# $Id: Ebay.pm,v 1.7 2001/07/30 18:05:35 mthurn Exp $
 
 =head1 NAME
 
