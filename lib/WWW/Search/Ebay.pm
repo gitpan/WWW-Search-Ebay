@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.160 2004/11/30 03:09:42 Daddy Exp $
+# $Id: Ebay.pm,v 2.165 2005/01/25 13:14:18 Daddy Exp $
 
 =head1 NAME
 
@@ -125,8 +125,8 @@ use WWW::SearchResult 2.063;
 use WWW::Search::Result;
 
 use strict;
-my
-$VERSION = do { my @r = (q$Revision: 2.160 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+our
+$VERSION = do { my @r = (q$Revision: 2.165 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -199,7 +199,13 @@ sub preprocess_results_page
   {
   my $self = shift;
   my $sPage = shift;
-  # print STDERR Dumper($self->{response});
+  if (0)
+    {
+    # print STDERR Dumper($self->{response});
+    # For debugging:
+    print STDERR $sPage;
+    exit 88;
+    } # if
   my $sTitle = $self->{response}->header('title') || '';
   if ($sTitle =~ m!$qrTitle!)
     {
@@ -232,10 +238,6 @@ sub preprocess_results_page
   # Ebay used to send malformed HTML:
   # my $iSubs = 0 + ($sPage =~ s!</FONT></TD></FONT></TD>!</FONT></TD>!gi);
   # print STDERR " +   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
-  # For debugging:
-  print STDERR $sPage;
-  exit 88;
-  return $sPage;
   } # preprocess_results_page
 
 
@@ -245,21 +247,37 @@ sub currency_pattern
   return qr/(?:\$|C|EUR|GBP)/;
   } # currency_pattern
 
+sub _cleanup_url
+  {
+  my $self = shift;
+  my $sURL = shift || '';
+  # Make sure we don't return two different URLs for the same item:
+  $sURL =~ s!&rd=\d+!!;
+  $sURL =~ s!&category=\d+!!;
+  $sURL =~ s!&ssPageName=[A-Z0-9]+!!;
+  return $sURL;
+  } # _cleanup_url
+
 sub _format_date
   {
+  my $self = shift;
   &UnixDate(shift, '%Y-%m-%d %H:%M %Z');
   } # _format_date
 
 sub _create_description
   {
+  my $self = shift;
   my $iItem = shift || 'unknown';
   my $iBids = shift || 'unknown';
   my $iPrice = shift || 'unknown';
+  my $sWhen = shift || 'current';
+  # print STDERR " DDD _c_d($iItem, $iBids, $iPrice, $sWhen)\n";
   my $sDesc = "Item \043$iItem; $iBids bid";
   $sDesc .= 's' if $iBids ne '1';
   $sDesc .= '; ';
-  $sDesc .= 'no' ne $iBids ? 'current' : 'starting';
+  $sDesc .= 'no' ne $iBids ? $sWhen : 'starting';
   $sDesc .= " bid $iPrice";
+  return $sDesc;
   } # _create_description
 
 # private
@@ -272,8 +290,8 @@ sub parse_tree
   if ($sTitle =~ m!$qrTitle!)
     {
     my $hit = new WWW::Search::Result;
-    $hit->description(&_create_description($1));
-    $hit->change_date(&_format_date($2));
+    $hit->description($self->_create_description($1));
+    $hit->change_date($self->_format_date($2));
     $hit->title($3);
     $hit->add_url($self->{response}->request->uri);
     # print Dumper($hit);
@@ -291,34 +309,41 @@ sub parse_tree
  FONT:
   foreach my $oFONT (@aoFONT)
     {
-    print STDERR " +   try FONT ===", $oFONT->as_text, "===\n" if 1 < $self->{_debug};
+    print STDERR " +   try FONT ===", $oFONT->as_text, "===\n" if (1 < $self->{_debug});
     if ($oFONT->as_text =~ m!(\d+) items found !)
       {
       $self->approximate_result_count($1);
       last FONT;
       } # if
     } # foreach
+
   my @aoTDdate = $tree->look_down('_tag' => 'td',
                                   'bgcolor' => 'ffffff');
   foreach my $oTD (reverse @aoTDdate)
     {
-    
+    # I don't remember what this was going to be for...
     } # foreach
+
   my $currency = $self->currency_pattern;
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
   my @aoTD = $tree->look_down('_tag', 'td',
                               'style' => 'padding: 4px 0px 4px 0px',
                              );
+  unless (@aoTD)
+    {
+    print STDERR " --- did not find table of results\n" if $self->{_debug};
+    } # unless
  TD:
   foreach my $oTD (0, @aoTD)
     {
     # Sanity check:
     next TD unless ref $oTD;
     my $sTD = $oTD->as_HTML;
-    print STDERR " + try TD ===$sTD===\n" if (1 < $self->{_debug});
+    print STDERR " + try starting TD ===$sTD===\n" if (1 < $self->{_debug});
     next TD unless ($sTD =~ m!value=(\d+)!);
     my $iItemNum = $1;
+    print STDERR " +   iItemNum ===$iItemNum===\n" if (1 < $self->{_debug});
     my $oTDtitle = $oTD->right->right;
     # First A tag contains the url & title:
     my $oA = $oTDtitle->look_down('_tag', 'a');
@@ -369,7 +394,6 @@ sub parse_tree
       $iBids = 'no';
       $iBidInt = 0;
       } # if
-    my $sDesc = &_create_description($iItemNum, $iBids, $iPrice);
     # The next sister has the auction end date...
     my $oTDdate = shift @aoSibs;
     # ...unless this is a Stores search, in which case the next sister
@@ -392,15 +416,13 @@ sub parse_tree
       print STDERR " +   cooked sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
       my $date = &DateCalc($self->{_ebay_official_time}, "+ $sDateTemp");
       print STDERR " +   date ===$date===\n" if 1 < $self->{_debug};
-      $sDate = &_format_date($date);
+      $sDate = $self->_format_date($date);
       } # if
     my $hit = new WWW::Search::Result;
-    # Make sure we don't return two different URLs for the same item:
-    $sURL =~ s!&rd=\d+!!;
-    $sURL =~ s!&category=\d+!!;
-    $sURL =~ s!&ssPageName=[A-Z0-9]+!!;
-    $hit->add_url($sURL);
+    $hit->add_url($self->_cleanup_url($sURL));
     $hit->title($sTitle);
+    print STDERR " +   calling _c_d($iItemNum, $iBids, $iPrice)\n" if (1 < $self->{_debug});
+    my $sDesc = $self->_create_description($iItemNum, $iBids, $iPrice);
     $hit->description($sDesc);
     $hit->change_date($sDate);
     $hit->bid_count($iBidInt);

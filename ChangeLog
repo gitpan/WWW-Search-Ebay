@@ -1,3 +1,13 @@
+2005-01-25  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): call _create_description as a method
+
+2005-01-23  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (_format_date): now a method, not just a function
+	(_create_description): now a method, not just a function
+	(_cleanup_url): new method
+
 2004-11-29  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay/UK.pm: new file

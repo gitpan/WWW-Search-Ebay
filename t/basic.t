@@ -1,5 +1,5 @@
 
-# $Id: basic.t,v 1.8 2004/10/26 03:18:16 Daddy Exp $
+# $Id: basic.t,v 1.10 2005/01/25 13:13:14 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -45,7 +45,7 @@ $iDump = 0;
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
 # We perform this many tests on each result object:
-my $iTests = 5;
+my $iTests = 6;
 my $iAnyFailed = my $iResult = 0;
 my ($iVall, %hash);
 foreach my $oResult (@ao)
@@ -64,9 +64,12 @@ foreach my $oResult (@ao)
                                 'ne', '',
                                 'change_date is really a date');
   $oV->Bit_Off(4) unless like($oResult->description,
-                              qr{([0-9]+|no)\s+bids?}, # } #
+                              qr{Item #\d+;}, # } #
+                              'result item number is ok');
+  $oV->Bit_Off(5) unless like($oResult->description,
+                              qr{\s(\d+|no)\s+bids?;}, # } #
                               'result bidcount is ok');
-  $oV->Bit_Off(5) unless like($oResult->bid_count, qr{\A\d+\Z},
+  $oV->Bit_Off(6) unless like($oResult->bid_count, qr{\A\d+\Z},
                               'bid_count is a number');
   my $iV = $oV->to_Dec;
   if ($iV < $iVall)
@@ -86,3 +89,4 @@ if ($iAnyFailed)
 
 
 __END__
+
