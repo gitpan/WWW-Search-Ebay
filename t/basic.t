@@ -17,14 +17,6 @@ $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
 &my_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 
-# goto MULTI_RESULT;
-DEBUG_NOW:
-diag("Sending 1-page query...");
-$iDebug = 0;
-$iDump = 0;
-# This query usually returns 1 page of results:
-&my_test('normal', 'star wars chip* -figure -com* -tech -lay*', 1, 49, $iDebug, $iDump);
-
 # DEBUG_NOW:
 ;
 MULTI_RESULT:
@@ -38,7 +30,7 @@ CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
-&my_test('normal', 'Trinidad Tobago flag', 1, 49, $iDebug, $iDump);
+&my_test('normal', 'Trinidad Tobago flag', 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');

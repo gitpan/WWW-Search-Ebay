@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.142 2004/04/08 18:31:07 Daddy Exp $
+# $Id: Ebay.pm,v 2.143 2004/04/22 03:36:05 Daddy Exp $
 
 =head1 NAME
 
@@ -87,7 +87,7 @@ use Data::Dumper;  # for debugging only
 use WWW::Search qw( generic_option strip_tags );
 use WWW::Search::Result;
 
-$VERSION = do { my @r = (q$Revision: 2.142 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.143 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -99,8 +99,7 @@ sub native_setup_search
   $self->{_debug} = 2 if ($rhOptsArg->{'search_parse_debug'});
   $self->{_debug} ||= 0;
 
-  my $DEFAULT_HITS_PER_PAGE = 50;
-  # $DEFAULT_HITS_PER_PAGE = 30 if $self->{_debug};
+  my $DEFAULT_HITS_PER_PAGE = 100;
   $self->{'_hits_per_page'} = $DEFAULT_HITS_PER_PAGE;
 
   $self->user_agent('non-robot');
@@ -108,16 +107,21 @@ sub native_setup_search
   $self->{'_next_to_retrieve'} = 0;
   $self->{'_num_hits'} = 0;
 
+  $self->{search_host} = 'http://search.ebay.com';
+  $self->{search_path} = '/ws/search/SaleSearch';
   if (!defined($self->{_options}))
     {
     $self->{_options} = {
-                         'ebay_host' => 'http://search.ebay.com',
-                         'ebay_path' => '/search/search.dll',
-                         'MfcISAPICommand' => 'GetResult',
-                         'ht' => 1,
-                         # Default sort order is reverse-order of listing date:
-                         'SortProperty' => 'MetaNewSort',
-                         'query' => $native_query,
+                         'satitle' => $native_query,
+                         # Search AUCTIONS ONLY:
+                         'sasaleclass' => 1,
+                         # Display item number explicitly:
+                         'socolumnlayout' => 2,
+                         # Do not convert everything to US$:
+                         'socurrencydisplay' => 1,
+                         'sorecordsperpage' => $self->{_hits_per_page},
+                         # Display absolute times, NOT relative times:
+                         'sotimedisplay' => 1,
                         };
     } # if
   if (defined($rhOptsArg))
@@ -141,19 +145,20 @@ sub native_setup_search
     } # if
 
   # Finally, figure out the url.
-  $self->{_next_url} = $self->{_options}->{'ebay_host'} . $self->{_options}->{'ebay_path'} .'?'. $self->hash_to_cgi_string($self->{_options});
+  $self->{_next_url} = $self->{'search_host'} . $self->{'search_path'} .'?'. $self->hash_to_cgi_string($self->{_options});
   } # native_setup_search
 
 
-sub preprocess_results_page
+sub preprocess_results_page_OFF
   {
   my $self = shift;
   my $sPage = shift;
-  # Ebay sends malformed HTML:
-  my $iSubs = 0 + ($sPage =~ s!</FONT></TD></FONT></TD>!</FONT></TD>!gi);
-  print STDERR " +   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
-  # print STDERR $sPage;
-  # exit 88;
+  # Ebay used to send malformed HTML:
+  # my $iSubs = 0 + ($sPage =~ s!</FONT></TD></FONT></TD>!</FONT></TD>!gi);
+  # print STDERR " +   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
+  # For debugging:
+  print STDERR $sPage;
+  exit 88;
   return $sPage;
   } # preprocess_results_page
 
@@ -185,31 +190,24 @@ sub parse_tree
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
   my @aoTD = $tree->look_down('_tag', 'td',
-                              sub { (
-                                     ($_[0]->as_HTML =~ m!ViewItem! )
-                                     &&
-                                     # Ignore thumbnails:
-                                     ($_[0]->as_HTML !~ m!thumbs\.ebay(static)?\.com! )
-                                     &&
-                                     # Ignore other images:
-                                     ($_[0]->as_HTML !~ m/Listing has pictures/i )
-                                     &&
-                                     ($_[0]->as_HTML !~ m!alt="BuyItNow"!i )
-                                    )
-                                  }
+                              'width' => '12%',
+                              sub { ($_[0]->as_text =~ m!\A\d{9,}\Z! ) }
                              );
  TD:
   foreach my $oTD (@aoTD)
     {
+    # Sanity check:
+    next TD unless ref $oTD;
+    my $iItemNum = $oTD->as_text;
     my $sTD = $oTD->as_HTML;
     print STDERR " + try TD ===$sTD===\n" if 1 < $self->{_debug};
+    $oTD = $oTD->right;
     # First A tag contains the url & title:
     my $oA = $oTD->look_down('_tag', 'a');
     next TD unless ref $oA;
     my $sURL = $oA->attr('href');
     next TD unless $sURL =~ m!ViewItem!;
     my $sTitle = $oA->as_text;
-    my ($iItemNum) = ($sURL =~ m!item=(\d+)!);
     my ($iPrice, $iBids, $sDate) = ('$unknown', 'no', 'unknown');
     # The rest of the info about this item is in sister TD elements to
     # the right:
@@ -257,6 +255,9 @@ sub parse_tree
       $sDate =~ s!\240!\040!g;
       } # if
     my $hit = new WWW::Search::Result;
+    # Make sure we don't return two different URLs for the same item:
+    $sURL =~ s!&rd=\d+!!;
+    $sURL =~ s!&ssPageName=[A-Z0-9]+!!;
     $hit->add_url($sURL);
     $hit->title($sTitle);
     $hit->description($sDesc);

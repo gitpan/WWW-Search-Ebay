@@ -1,4 +1,4 @@
-#line 1 "inc/Module/Install/Win32.pm - C:/Perl/site/lib/Module/Install/Win32.pm"
+#line 1 "inc/Module/Install/Win32.pm - c:/Perl/site/lib/Module/Install/Win32.pm"
 # $File: //depot/cpan/Module-Install/lib/Module/Install/Win32.pm $ $Author: autrijus $
 # $Revision: #9 $ $Change: 1789 $ $DateTime: 2003/11/11 01:22:54 $ vim: expandtab shiftwidth=4
 

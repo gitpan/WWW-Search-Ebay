@@ -1,3 +1,8 @@
+2004-04-17  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (native_setup_search): new URL / CGI options
+	(parse_tree): handle new HTML formatting
+
 2004-04-08  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay/ByEndDate.pm (parse_tree): fix undef warning
