@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 1.7 2001/07/30 18:05:35 mthurn Exp $
+# $Id: Ebay.pm,v 1.7 2001/07/30 18:05:35 mthurn Exp mthurn $
 
 =head1 NAME
 
@@ -78,7 +78,7 @@ use HTML::TreeBuilder;
 use WWW::Search qw( generic_option strip_tags );
 require WWW::SearchResult;
 
-$VERSION = '2.05';
+$VERSION = '2.06';
 $MAINTAINER = 'Martin Thurn <MartinThurn@iname.com>';
 
 # private
@@ -164,7 +164,11 @@ sub native_retrieve_some
   # Parse the output:
   my $hits_found = 0;
   my $tree = new HTML::TreeBuilder;
-  $tree->parse($response->content);
+  my $sPage = $response->content;
+  # Ebay sends malformed HTML:
+  my $iSubs = 0 + ($sPage =~ s!</FONT></TD></FONT></TD>!</FONT></TD>!gi);
+  # print STDERR " +   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
+  $tree->parse($sPage);
   $tree->eof;
 
   # The hit count is in a FONT tag:
@@ -204,7 +208,7 @@ sub native_retrieve_some
     my $sTitle = $oA->as_text;
     print STDERR " + TD ===$sTD===\n" if 1 < $self->{_debug};
     my ($iItemNum) = ($sURL =~ m!item=(\d+)!);
-    my ($iPrice, $iBids, $sDate) = ('$unknown', 'unknown', 'unknown');
+    my ($iPrice, $iBids, $sDate) = ('$unknown', 'no', 'unknown');
     # The rest of the info about this item is in sister TD elements to
     # the right:
     my @aoSibs = $oTD->right;
@@ -212,16 +216,23 @@ sub native_retrieve_some
     my $oTDprice = shift @aoSibs;
     if (ref $oTDprice)
       {
-      my $s = $oTDprice->as_HTML;
-      print STDERR " +   TDprice ===$s===\n" if 1 < $self->{_debug};
+      if (1 < $self->{_debug})
+        {
+        my $s = $oTDprice->as_HTML;
+        print STDERR " +   TDprice ===$s===\n";
+        } # if
       $iPrice = $oTDprice->as_text;
+      $iPrice =~ s!(\d)(\$[\d.,]+)!$1 (US$2)!;
       } # if
     # The next sister has the number of bids:
     my $oTDbids = shift @aoSibs;
     if (ref $oTDbids)
       {
-      my $s = $oTDbids->as_HTML;
-      print STDERR " +   TDbids ===$s===\n" if 1 < $self->{_debug};
+      if (1 < $self->{_debug})
+        {
+        my $s = $oTDbids->as_HTML;
+        print STDERR " +   TDbids ===$s===\n";
+        } # if
       $iBids = $oTDbids->as_text;
       } # if
     $iBids = 'no' if $iBids eq '-';
@@ -246,29 +257,25 @@ sub native_retrieve_some
     push(@{$self->{cache}}, $hit);
     $self->{'_num_hits'}++;
     $hits_found++;
+    # Delete this HTML element so that future searches go faster!
+    $oTD->detach;
+    $oTD->delete;
     } # foreach
 
-  # If there is a NEXT button, it is the last FORM element:
-  my @aoFORM = $tree->look_down('_tag', 'form');
-  my $oFORM = pop @aoFORM;
-  if (ref $oFORM)
+  # Look for a NEXT link:
+  my @aoA = $tree->look_down('_tag', 'a');
+ TRY_NEXT:
+  foreach my $oA (reverse @aoA)
     {
-    my $sForm = $oFORM->as_HTML;
-    print STDERR " + FORM ===$sForm===\n" if 1 < $self->{_debug};
-    my $oForm = HTML::Form->parse($sForm, $sBaseURL);
-    if (ref $oForm)
+    next unless ref $oA;
+    print STDERR " +   try NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
+    if ($oA->as_text =~ m!Next\s+(>|&gt;)!i)
       {
-      print STDERR " +   FORM parsed OK\n" if 1 < $self->{_debug};
-      my $oNextButton = $oForm->find_input(undef, 'submit');
-      if (ref $oNextButton && (lc $oNextButton->value eq 'next'))
-        {
-        print STDERR " +   found Next button OK\n" if 1 < $self->{_debug};
-        print STDERR " +   NEXT == ", $oNextButton, "\n" if 1 < $self->{_debug};
-        $self->{_next_url} = new $HTTP::URI_CLASS($oNextButton->click($oForm)->uri);
-        print STDERR " +   next_url == ", $self->{_next_url}, "\n" if 1 < $self->{_debug};
-        } # if oForm
-      } # if oNextButton
-    } # if
+      $self->{_next_url} = $self->absurl($sBaseURL, $oA->attr('href'));
+      print STDERR " +   got NEXT A ===", $self->{_next_url}, "===\n" if 1 < $self->{_debug};
+      last TRY_NEXT;
+      } # if
+    } # foreach
 
   # All done with this page.
   $tree->delete;
@@ -284,3 +291,58 @@ Martin''s page download notes, 2001-04:
 http://search.ebay.com/search/search.dll?MfcISAPICommand=GetResult&ht=1&SortProperty=MetaEndSort&query=taco+bell+star+wars
 
 http://search.ebay.com/search/search.dll?MfcISAPICommand=GetResult&ht=1&ebaytag1=ebayreg&query=taco+bell+pog*&query2=taco+bell+pog*&search_option=1&exclude=&category0=&minPrice=&maxPrice=&ebaytag1code=0&st=0&SortProperty=MetaNewSort
+
+<TR>
+<TD align="center" valign="middle" width="12%">
+  <FONT size=3>
+  <A href="http://pages.ebay.com/help/basics/g-pic.html">
+  <IMG height=15 width=64 border=0 alt="[Picture!]" src="http://pics.ebay.com/aw/pics/lst/_p__64x15.gif">
+  </A>
+  </FONT>
+</TD>
+<TD valign="top" width="54%">
+  <A href="http://pages.ebay.com/help/basics/g-new.html">
+    <IMG height=15 width=16 border=0 alt="New!" src="http://pics.ebay.com/aw/pics/lst/new.gif">
+  </A>
+  <FONT size=3>
+    <A href="http://cgi.ebay.com/aw-cgi/eBayISAPI.dll?ViewItem&item=1050807630">
+      Star Wars: Boba Fett:When the fat lady Swings
+    </A>
+  </FONT>
+</TD>
+<TD nowrap align="right" valign="top" width="11%">
+  <FONT size=3>
+    <B>
+      <FONT size="-1" color="#666666">
+        EUR
+      </FONT> 5.50
+    </B>
+    <BR>
+    <I>
+      $4.95
+    </I>
+    </FONT>
+  </TD>
+  </FONT>
+</TD>
+<TD align="center" valign="top" width="5%">
+<FONT size=3>-
+</FONT>
+</TD>
+<TD align="right" valign="top" width="18%">
+<FONT size=3>Dec-20 01:54
+</FONT>
+</TD>
+</TR>
+</TABLE>
+<TABLE width="100%" cellpadding=4 border=0 cellspacing=0 bgcolor="#EFEFEF">
+
+=====
+
+<TABLE width="100%" cellpadding=4 border=0 cellspacing=0 bgcolor="#FFFFFF">
+<TR><TD align="center" valign="middle" width="12%"><FONT size=3>
+<A href="http://pages.ebay.com/help/basics/g-pic.html"><IMG height=15 width=64 border=0 alt="[Picture!]" src="http://pics.ebay.com/aw/pics/lst/_p__64x15.gif"></A>
+</FONT></TD><TD valign="top" width="54%"><A href="http://pages.ebay.com/help/basics/g-new.html"><IMG height=15 width=16 border=0 alt="New!" src="http://pics.ebay.com/aw/pics/lst/new.gif"></A>
+<FONT size=3><A href="http://cgi.ebay.com/aw-cgi/eBayISAPI.dll?ViewItem&item=1050807630">Star Wars: Boba Fett:When the fat lady Swings</A></FONT>
+</TD>
+<TD nowrap align="right" valign="top" width="11%"><FONT size=3><B><FONT size="-1" color="#666666">EUR</FONT> 5.50</B><BR><I>$4.95</I></FONT></TD></FONT></TD><TD align="center" valign="top" width="5%"><FONT size=3>-</FONT></TD><TD align="right" valign="top" width="18%"><FONT size=3>Dec-20 01:54</FONT></TD></TR></TABLE>

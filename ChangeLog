@@ -1,3 +1,7 @@
+2001-12-20  Kingpin  <mthurn@copper.dulles.tasc.com>
+
+	* lib/WWW/Search/Ebay.pm (native_retrieve_some): handle new ebay.com output format
+
 2001-07-30  Kingpin  <mthurn@tasc.com>
 
 	* lib/WWW/Search/Ebay/ByEndDate.pm: new backend!
