@@ -1,3 +1,16 @@
+2004-11-24  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): fetch eBay official time, and fix timezone conversion
+
+2004-11-23  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): omit seconds from change_date value;
+	do not set TZ if it's already in the environment
+
+2004-11-05  Kingpin  <mthurn@verizon.net>
+
+	* t/motors.t: fix 1-page query
+
 2004-10-25  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): handle default page format

@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.152 2004/10/26 03:18:04 Daddy Exp $
+# $Id: Ebay.pm,v 2.157 2004/11/25 04:20:43 Daddy Exp $
 
 =head1 NAME
 
@@ -43,7 +43,9 @@ bid amount).
 
 In the resulting L<WWW::Search::Result> objects, the change_date field
 contains a human-readable DTG of when the auction is scheduled to end
-(in the form "YYYY-MM-DD HH:MM:SS").
+(in the form "YYYY-MM-DD HH:MM:SS TZ").  If environment variable TZ is
+set, the time will be converted to that timezone; otherwise the time
+will be left in ebay.com's default timezone (US/Pacific).
 
 In the resulting L<WWW::Search::Result> objects, the bid_count field
 contains the number of bids as an integer.
@@ -110,13 +112,15 @@ package WWW::Search::Ebay;
 use Carp ();
 # use Data::Dumper;  # for debugging only
 use Date::Manip;
-&Date_Init('TZ=-0500');
+&Date_Init('TZ=US/Pacific') unless (defined($ENV{TZ}) && ($ENV{TZ} ne ''));
+use HTML::TreeBuilder;
+use LWP::Simple;
 use WWW::Search qw( generic_option strip_tags );
 # We need the version that has bid_amount() and bid_count() methods:
 use WWW::SearchResult 2.063;
 use WWW::Search::Result;
 
-$VERSION = do { my @r = (q$Revision: 2.152 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.157 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -183,10 +187,29 @@ sub native_setup_search
   } # native_setup_search
 
 
-sub _OFF_preprocess_results_page
+sub preprocess_results_page
   {
   my $self = shift;
   my $sPage = shift;
+  # Fetch the official ebay.com time:
+  $self->{_ebay_official_time} = 'now';
+  my $sPageDate = get('http://cgi1.ebay.com/aw-cgi/eBayISAPI.dll?TimeShow') || '';
+  if ($sPageDate ne '')
+    {
+    my $tree = HTML::TreeBuilder->new;
+    $tree->parse($sPageDate);
+    $tree->eof;
+    my $s = $tree->as_text;
+    # print STDERR " DDD official time =====$s=====\n";
+    if ($s =~ m!The official eBay Time is now:(.+?)Pacific\s!i)
+      {
+      # ParseDate automatically converts to local timezone:
+      my $date = &ParseDate($1);
+      # print STDERR " DDD official time =====$date=====\n";
+      $self->{_ebay_official_time} = $date;
+      } # if
+    } # if
+  return $sPage;
   # Ebay used to send malformed HTML:
   # my $iSubs = 0 + ($sPage =~ s!</FONT></TD></FONT></TD>!</FONT></TD>!gi);
   # print STDERR " +   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
@@ -224,6 +247,12 @@ sub parse_tree
       $self->approximate_result_count($1);
       last FONT;
       } # if
+    } # foreach
+  my @aoTDdate = $tree->look_down('_tag' => 'td',
+                                  'bgcolor' => 'ffffff');
+  foreach my $oTD (reverse @aoTD)
+    {
+    
     } # foreach
   my $currency = $self->currency_pattern;
   # The list of matching items is in a table.  The first column of the
@@ -307,13 +336,14 @@ sub parse_tree
       # Convert nbsp to regular space:
       $sDateTemp =~ s!\240!\040!g;
       print STDERR " +   raw    sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
+      $sDateTemp =~ s!<!!;
       $sDateTemp =~ s!d! days!;
       $sDateTemp =~ s!h! hours!;
       $sDateTemp =~ s!m! minutes!;
       print STDERR " +   cooked sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
-      $date = &DateCalc('now', "+ $sDateTemp");
+      $date = &DateCalc($self->{_ebay_official_time}, "+ $sDateTemp");
       print STDERR " +   date ===$date===\n" if 1 < $self->{_debug};
-      $sDate = &UnixDate($date, '%Y-%m-%d %H:%M:%S');
+      $sDate = &UnixDate($date, '%Y-%m-%d %H:%M %Z');
       } # if
     my $hit = new WWW::Search::Result;
     # Make sure we don't return two different URLs for the same item:

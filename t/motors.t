@@ -1,5 +1,5 @@
 
-# $Id: motors.t,v 1.5 2004/10/26 02:52:19 Daddy Exp $
+# $Id: motors.t,v 1.6 2004/11/05 22:19:42 Daddy Exp $
 
 use ExtUtils::testlib;
 use Test::More no_plan;
@@ -35,7 +35,7 @@ CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
-&tm_run_test('normal', 'Star Wars', 1, 99, $iDebug, $iDump);
+&tm_run_test('normal', 'REO', 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
