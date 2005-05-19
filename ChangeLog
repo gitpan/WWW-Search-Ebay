@@ -1,3 +1,16 @@
+2005-05-18  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (_result_count_td_specs): new method
+	(_title_td_specs): new method
+	(parse_tree): fixed parser for new webpage contents
+
+	* lib/WWW/Search/Ebay/UK.pm (_result_count_td_specs): new method
+	(_title_td_specs): new method
+
+2005-02-28  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay/UK.pm (currency_pattern): clean up pattern
+
 2005-01-25  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): call _create_description as a method

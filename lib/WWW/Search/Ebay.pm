@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.165 2005/01/25 13:14:18 Daddy Exp $
+# $Id: Ebay.pm,v 2.167 2005/05/19 02:26:24 Daddy Exp $
 
 =head1 NAME
 
@@ -126,7 +126,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.165 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.167 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -280,6 +280,25 @@ sub _create_description
   return $sDesc;
   } # _create_description
 
+# This is what we look_down for to find the HTML element that contains
+# the result count:
+sub _result_count_td_specs
+  {
+  return (
+          '_tag' => 'p',
+          id => 'count'
+         );
+  } # _result_count_td_specs
+
+# This is what we look_down for to find the <TD> that contain auction titles:
+sub _title_td_specs
+  {
+  return (
+          '_tag' => 'td',
+          'class' => 'ebcTtl',
+         );
+  } # _title_td_specs
+
 # private
 sub parse_tree
   {
@@ -304,8 +323,7 @@ sub parse_tree
   # A pattern to match HTML whitespace:
   my $W = q{[\ \t\r\n\240]};
   # The hit count is in a FONT tag:
-  my @aoFONT = $tree->look_down('_tag' => 'td',
-                                width => '75%',);
+  my @aoFONT = $tree->look_down($self->_result_count_td_specs);
  FONT:
   foreach my $oFONT (@aoFONT)
     {
@@ -317,41 +335,36 @@ sub parse_tree
       } # if
     } # foreach
 
-  my @aoTDdate = $tree->look_down('_tag' => 'td',
-                                  'bgcolor' => 'ffffff');
-  foreach my $oTD (reverse @aoTDdate)
-    {
-    # I don't remember what this was going to be for...
-    } # foreach
-
   my $currency = $self->currency_pattern;
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
-  my @aoTD = $tree->look_down('_tag', 'td',
-                              'style' => 'padding: 4px 0px 4px 0px',
-                             );
+  my @a = $self->_title_td_specs;
+  # print STDERR Dumper(\@a);
+  # exit 88;
+  my @aoTD = $tree->look_down(@a);
   unless (@aoTD)
     {
     print STDERR " --- did not find table of results\n" if $self->{_debug};
     } # unless
  TD:
-  foreach my $oTD (0, @aoTD)
+  foreach my $oTDtitle (0, @aoTD)
     {
     # Sanity check:
-    next TD unless ref $oTD;
-    my $sTD = $oTD->as_HTML;
-    print STDERR " + try starting TD ===$sTD===\n" if (1 < $self->{_debug});
-    next TD unless ($sTD =~ m!value=(\d+)!);
+    next TD unless ref $oTDtitle;
+    my $sTDtitle = $oTDtitle->as_HTML;
+    print STDERR " + try TDtitle ===$sTDtitle===\n" if (1 < $self->{_debug});
+    next TD unless ($sTDtitle =~ m!;item=(\d+)!);
     my $iItemNum = $1;
     print STDERR " +   iItemNum ===$iItemNum===\n" if (1 < $self->{_debug});
-    my $oTDtitle = $oTD->right->right;
     # First A tag contains the url & title:
     my $oA = $oTDtitle->look_down('_tag', 'a');
     next TD unless ref $oA;
+    # This is needed for Ebay::UK to make sure we're looking at the right TD:
+    my $sTitle = $oA->as_text || '';
+    next TD if ($sTitle eq '');
+    print STDERR " +   sTitle ===$sTitle===\n" if (1 < $self->{_debug});
     my $sURL = $oA->attr('href');
     next TD unless $sURL =~ m!ViewItem!;
-    my $sTitle = $oA->as_text;
-    print STDERR " +   sTitle ===$sTitle===\n" if (1 < $self->{_debug});
     my ($iPrice, $iBids, $iBidInt) = ('$unknown', 'no', 'unknown');
     # The rest of the info about this item is in sister TD elements to
     # the right:
@@ -401,7 +414,13 @@ sub parse_tree
     # the PayPal logo:
     $oTDdate = shift @aoSibs if (ref($self) =~ m!WWW::Search::Ebay::(Stores|UK)!);
     my $sDate = 'unknown';
-    if (ref $oTDdate)
+    if (! ref $oTDdate)
+      {
+      # There is no date column.  When searching Ebay::UK, this
+      # happens in a mini-display of non-UK auctions.
+      next TD if (ref($self) eq 'WWW::Search::Ebay::UK');
+      }
+    else
       {
       my $s = $oTDdate->as_HTML;
       print STDERR " +   TDdate ===$s===\n" if 1 < $self->{_debug};
@@ -431,8 +450,8 @@ sub parse_tree
     $self->{'_num_hits'}++;
     $hits_found++;
     # Delete this HTML element so that future searches go faster?
-    $oTD->detach;
-    $oTD->delete;
+    $oTDtitle->detach;
+    $oTDtitle->delete;
     } # foreach
 
   # Look for a NEXT link:
