@@ -1,5 +1,5 @@
 
-# $Id: itemnumber.t,v 1.4 2005/05/19 01:39:00 Daddy Exp $
+# $Id: itemnumber.t,v 1.5 2005/06/11 12:17:35 Daddy Exp $
 
 use Data::Dumper;
 use ExtUtils::testlib;
@@ -18,7 +18,7 @@ my $iDump = 0;
 
 $iDebug = 0;
 $iDump = 0;
-&tm_run_test('normal', '4996614183', 1, 1, $iDebug, $iDump);
+&tm_run_test('normal', '6185934497', 1, 1, $iDebug, $iDump);
 
 __END__
 

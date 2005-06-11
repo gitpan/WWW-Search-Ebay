@@ -1,6 +1,7 @@
 
-# $Id: stores.t,v 1.7 2005/03/12 20:06:45 Daddy Exp $
+# $Id: stores.t,v 1.9 2005/06/11 12:31:27 Daddy Exp $
 
+use Bit::Vector;
 use ExtUtils::testlib;
 use Test::More no_plan;
 
@@ -41,18 +42,42 @@ $iDump = 0;
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
+# We perform this many tests on each result object:
+my $iTests = 5;
+my $iAnyFailed = my $iResult = 0;
+my ($iVall, %hash);
 foreach my $oResult (@ao)
   {
-  like($oResult->url, qr{\Ahttp://cgi\d*\.ebay\.com},
-       'result URL is really from ebay.com');
-  cmp_ok($oResult->title, 'ne', '',
-         'result Title is not empty');
-  cmp_ok(&ParseDate($oResult->change_date) || '', 'ne', '',
-         'change_date is really a date');
-  like($oResult->description, qr{([0-9]+|no)\s+bids?},
-       'result bidcount is ok');
-  like($oResult->bid_count, qr{\A\d+\Z}, 'bid_count is a number');
+  $iResult++;
+  my $oV = new Bit::Vector($iTests);
+  $oV->Fill;
+  $iVall = $oV->to_Dec;
+  # Create a vector of which tests passed:
+  $oV->Bit_Off(1) unless like($oResult->url, qr{\Ahttp://cgi\d*\.ebay\.com},
+                              'result URL is really from ebay.com');
+  $oV->Bit_Off(2) unless cmp_ok($oResult->title, 'ne', '',
+                                'result Title is not empty');
+  $oV->Bit_Off(3) unless cmp_ok(&ParseDate($oResult->change_date) || '', 'ne', '',
+                                'change_date is really a date');
+  $oV->Bit_Off(4) unless like($oResult->description, qr{([0-9]+|no)\s+bids?},
+                              'result bidcount is ok');
+  $oV->Bit_Off(0) unless like($oResult->bid_count, qr{\A\d+\Z},
+                              'bid_count is a number');
+  my $iV = $oV->to_Dec;
+  if ($iV < $iVall)
+    {
+    $hash{$iV} = $oResult;
+    $iAnyFailed++;
+    } # if
   } # foreach
+if ($iAnyFailed)
+  {
+  diag(" Here are results that exemplify the failures:");
+  while (my ($sKey, $sVal) = each %hash)
+    {
+    diag(Dumper($sVal));
+    } # while
+  } # if
 
 __END__
 

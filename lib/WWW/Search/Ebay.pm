@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.167 2005/05/19 02:26:24 Daddy Exp $
+# $Id: Ebay.pm,v 2.168 2005/06/10 23:32:10 Daddy Exp $
 
 =head1 NAME
 
@@ -126,7 +126,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.167 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.168 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -376,9 +376,19 @@ sub parse_tree
     $oTDprice = shift @aoSibs;
     if (ref $oTDprice)
       {
+      my $s = $oTDprice->as_HTML;
+      if ($s =~ m!class="ebcBid"!)
+        {
+        # If we see this, we must have been searching for Stores items
+        # but we ran off the bottom of the Stores item list and ran
+        # into the list of "other" items.
+        next TD;
+        # We could probably call last TD instead of next TD, but MAYBE
+        # we hit this because of a parsing glitch which might correct
+        # itself on the next TD.
+        } # if
       if (1 < $self->{_debug})
         {
-        my $s = $oTDprice->as_HTML;
         print STDERR " +   TDprice ===$s===\n";
         } # if
       $iPrice = $oTDprice->as_text;

@@ -1,3 +1,15 @@
+2005-06-11  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay/UK.pm (preprocess_results_page): new method
+	(_title_td_specs): new specs
+	(_result_count_td_specs): new specs
+
+	* lib/WWW/Search/Ebay/Stores.pm (preprocess_results_page): new method
+
+2005-06-10  Kingpin  <mthurn@verizon.net>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): added a hack to detect when a Stores search runs off the bottom of the list
+
 2005-05-18  Kingpin  <mthurn@verizon.net>
 
 	* lib/WWW/Search/Ebay.pm (_result_count_td_specs): new method

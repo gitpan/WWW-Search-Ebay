@@ -1,5 +1,5 @@
 
-# $Id: UK.pm,v 1.4 2005/05/19 02:26:50 Daddy Exp $
+# $Id: UK.pm,v 1.6 2005/06/11 12:39:36 Daddy Exp $
 
 =head1 NAME
 
@@ -25,7 +25,7 @@ use Carp;
 use WWW::Search::Ebay;
 use vars qw( @ISA $VERSION );
 @ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 1.4 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.6 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -45,17 +45,18 @@ sub native_setup_search
 sub _result_count_td_specs
   {
   return (
-          '_tag' => 'td',
-          width => '98%'
+          '_tag' => 'p',
+          id => 'count'
          );
   } # _result_count_td_specs
 
-# This is what we look_down for to find the <TD> that contain auction titles:
+# This is what we look_down for to find the <TD> that contain auction
+# titles:
 sub _title_td_specs
   {
   return (
           '_tag' => 'td',
-          'valign' => 'middle',
+          'class' => 'ebcTtl',
          );
   } # _title_td_specs
 
@@ -66,6 +67,16 @@ sub currency_pattern
   # but Emacs shows it wrong):
   return qr{(?:US\s?\$|£)}; # } } # Emacs indentation bugfix
   } # currency_pattern
+
+sub preprocess_results_page_OFF
+  {
+  my $self = shift;
+  my $sPage = shift;
+  # print STDERR Dumper($self->{response});
+  # For debugging:
+  print STDERR $sPage;
+  exit 88;
+  } # preprocess_results_page
 
 1;
 

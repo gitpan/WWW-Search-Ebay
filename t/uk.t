@@ -1,5 +1,5 @@
 
-# $Id: uk.t,v 1.4 2005/03/02 04:29:30 Daddy Exp $
+# $Id: uk.t,v 1.5 2005/06/11 12:38:56 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -53,7 +53,7 @@ my $qrBid = qr{\b$sBidPattern};
 foreach my $oResult (@ao)
   {
   $iResult++;
-  my $oV = new Bit::Vector(6);
+  my $oV = new Bit::Vector(5);
   $oV->Fill;
   $iVall = $oV->to_Dec;
   # Create a vector of which tests passed:
