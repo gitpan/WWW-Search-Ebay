@@ -1,5 +1,5 @@
 
-# $Id: UK.pm,v 1.6 2005/06/11 12:39:36 Daddy Exp $
+# $Id: UK.pm,v 1.7 2005/07/30 12:32:58 Daddy Exp $
 
 =head1 NAME
 
@@ -25,7 +25,7 @@ use Carp;
 use WWW::Search::Ebay;
 use vars qw( @ISA $VERSION );
 @ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 1.6 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.7 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -42,7 +42,7 @@ sub native_setup_search
 
 # This is what we look_down for to find the HTML element that contains
 # the result count:
-sub _result_count_td_specs
+sub _result_count_td_specs_OLD
   {
   return (
           '_tag' => 'p',

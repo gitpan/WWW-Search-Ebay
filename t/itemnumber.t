@@ -1,5 +1,5 @@
 
-# $Id: itemnumber.t,v 1.5 2005/06/11 12:17:35 Daddy Exp $
+# $Id: itemnumber.t,v 1.6 2005/07/30 12:28:59 Daddy Exp $
 
 use Data::Dumper;
 use ExtUtils::testlib;
@@ -12,13 +12,13 @@ BEGIN { use_ok('WWW::Search::Ebay') };
 use strict;
 
 my $iDebug;
-my $iDump = 0;
+my $iDump;
 
 &tm_new_engine('Ebay');
 
 $iDebug = 0;
 $iDump = 0;
-&tm_run_test('normal', '6185934497', 1, 1, $iDebug, $iDump);
+&tm_run_test('normal', '5224581076', 1, 1, $iDebug, $iDump);
 
 __END__
 

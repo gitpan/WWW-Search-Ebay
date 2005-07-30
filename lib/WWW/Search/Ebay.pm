@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.168 2005/06/10 23:32:10 Daddy Exp $
+# $Id: Ebay.pm,v 2.170 2005/07/30 12:29:31 Daddy Exp $
 
 =head1 NAME
 
@@ -126,7 +126,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.168 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.170 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -193,7 +193,7 @@ sub native_setup_search
   } # native_setup_search
 
 
-my $qrTitle = qr{\AeBay\s+item\s+(\d+)\s+\(Ends\s+([^)]+)\)\s+-\s+(.+)\Z}; #
+my $qrTitle = qr{\AeBay:\s.+\(item\s+(\d+)\s+end\s+time\s+([^)]+)\)\Z}; #
 
 sub preprocess_results_page
   {
@@ -285,12 +285,13 @@ sub _create_description
 sub _result_count_td_specs
   {
   return (
-          '_tag' => 'p',
-          id => 'count'
+          '_tag' => 'div',
+          class => 'count'
          );
   } # _result_count_td_specs
 
-# This is what we look_down for to find the <TD> that contain auction titles:
+# This is what we look_down for to find the <TD> that contain auction
+# titles:
 sub _title_td_specs
   {
   return (
@@ -299,7 +300,7 @@ sub _title_td_specs
          );
   } # _title_td_specs
 
-# private
+
 sub parse_tree
   {
   my $self = shift;
@@ -353,7 +354,7 @@ sub parse_tree
     next TD unless ref $oTDtitle;
     my $sTDtitle = $oTDtitle->as_HTML;
     print STDERR " + try TDtitle ===$sTDtitle===\n" if (1 < $self->{_debug});
-    next TD unless ($sTDtitle =~ m!;item=(\d+)!);
+    next TD unless ($sTDtitle =~ m![;Q]item[=Z](\d+)Q?!);
     my $iItemNum = $1;
     print STDERR " +   iItemNum ===$iItemNum===\n" if (1 < $self->{_debug});
     # First A tag contains the url & title:
