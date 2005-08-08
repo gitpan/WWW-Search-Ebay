@@ -1,3 +1,7 @@
+2005-08-07    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): return URLs as simple old cgi arguments
+
 2005-07-30    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay/UK.pm (_result_count_td_specs_OLD): use parent class' value for this method

@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.170 2005/07/30 12:29:31 Daddy Exp $
+# $Id: Ebay.pm,v 2.171 2005/08/08 01:19:41 Daddy Exp $
 
 =head1 NAME
 
@@ -126,7 +126,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.170 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.171 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -364,8 +364,16 @@ sub parse_tree
     my $sTitle = $oA->as_text || '';
     next TD if ($sTitle eq '');
     print STDERR " +   sTitle ===$sTitle===\n" if (1 < $self->{_debug});
-    my $sURL = $oA->attr('href');
-    next TD unless $sURL =~ m!ViewItem!;
+    my $oURI = URI->new($oA->attr('href'));
+    next TD unless ($oURI =~ m!ViewItem!);
+    if ($oURI->as_string =~ m!QQitemZ(\d+)QQ!)
+      {
+      # Convert new eBay links to old reliable ones:
+      # $oURI->path('');
+      $oURI->path('/ws/eBayISAPI.dll');
+      $oURI->query("ViewItem&item=$1");
+      } # if
+    my $sURL = $oURI->as_string;
     my ($iPrice, $iBids, $iBidInt) = ('$unknown', 'no', 'unknown');
     # The rest of the info about this item is in sister TD elements to
     # the right:
