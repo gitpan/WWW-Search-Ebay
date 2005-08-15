@@ -1,67 +1,47 @@
 
-# $Id: basic.t,v 1.10 2005/01/25 13:13:14 Daddy Exp $
+# $Id: bysellerid.t,v 1.1 2005/08/14 21:54:32 Daddy Exp $
 
 use Bit::Vector;
-use Data::Dumper;
+use Date::Manip;
 use ExtUtils::testlib;
 use Test::More no_plan;
 
-BEGIN { use_ok('Date::Manip') };
-&Date_Init('TZ=-0500');
 BEGIN { use_ok('WWW::Search') };
 BEGIN { use_ok('WWW::Search::Test') };
-BEGIN { use_ok('WWW::Search::Ebay') };
-
-use strict;
+BEGIN { use_ok('WWW::Search::Ebay::BySellerID') };
 
 my $iDebug;
 my $iDump = 0;
 
-&tm_new_engine('Ebay');
+&tm_new_engine('Ebay::BySellerID');
 # goto DEBUG_NOW;
 # goto CONTENTS;
 
-diag("Sending 0-page queries...");
+diag("Sending 0-page query...");
 $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
 &tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
-# There are no hits for "laavar", but eBay gives us all the "lavar"
-# hits:
-$iDebug = 0;
-&tm_run_test('normal', 'laavar', 0, 0, $iDebug);
 
+# goto SKIP_MULTI;
+# DEBUG_NOW:
 ;
 MULTI_RESULT:
 diag("Sending multi-page query...");
 $iDebug = 0;
 $iDump = 0;
-# This query returns hundreds of pages of results:
-&tm_run_test('normal', 'LEGO', 101, undef, $iDebug);
+# This query returns many pages of results:
+&tm_run_test('normal', 'bigrockmedia', 201, undef, $iDebug);
 
-TODO:
-  {
-  local $TODO = "Sometimes there are NO hits for lavarr";
-  diag("Sending 1-page queries...");
-  # There are a few hits for "lavarr", and eBay also gives us all the
-  # "lavar" hits:
-  $iDebug = 0;
-  &tm_run_test('normal', 'lavarr', 1, 99, $iDebug);
-  }
-
-DEBUG_NOW:
+SKIP_MULTI:
 ;
 CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
-&tm_run_test('normal', 'trinidad tobago flag', 1, 99, $iDebug, $iDump);
+&tm_run_test('normal', 'justgonutsinc', 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
-# We perform this many tests on each result object:
-my $iTests = 6;
-my $iAnyFailed = my $iResult = 0;
-my ($iVall, %hash);
 foreach my $oResult (@ao)
   {
   $iResult++;
@@ -85,8 +65,6 @@ foreach my $oResult (@ao)
                               'result bidcount is ok');
   $oV->Bit_Off(6) unless like($oResult->bid_count, qr{\A\d+\Z},
                               'bid_count is a number');
-  $oV->Bit_Off(0) unless unlike($oResult->title, qr{(?i:quakers)},
-                                'result Title is not "quakers"');
   my $iV = $oV->to_Dec;
   if ($iV < $iVall)
     {

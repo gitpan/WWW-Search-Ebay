@@ -1,3 +1,11 @@
+2005-08-14    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay/BySellerID.pm: NEW BACKEND
+	* t/bysellerid.t: new tests for the above
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): do not return results from auto-spell-checked query term
+	* t/basic.t: added tests for the above
+
 2005-08-07    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): return URLs as simple old cgi arguments

@@ -336,6 +336,28 @@ sub parse_tree
       } # if
     } # foreach
 
+  # See if our query was completely replaced by a similar-spelling query:
+  my $oLI = $tree->look_down(_tag => 'li',
+                             class => 'ebInf',
+                            );
+  if (ref $oLI)
+    {
+    if ($oLI->as_text =~ m! keyword has been replaced !)
+      {
+      $self->approximate_result_count(0);
+      return 0;
+      } # if
+    } # if
+  # First, delete all the results that came from spelling variations:
+  my $oDiv = $tree->look_down(_tag => 'div',
+                              id => 'expSplChk',
+                             );
+  if (ref $oDiv)
+    {
+    # print STDERR " DDD found a spell-check ===", $oDiv->as_text, "===\n";
+    $oDiv->detach;
+    $oDiv->delete;
+    } # if
   my $currency = $self->currency_pattern;
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
