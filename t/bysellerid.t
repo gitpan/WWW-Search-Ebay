@@ -1,5 +1,5 @@
 
-# $Id: bysellerid.t,v 1.1 2005/08/14 21:54:32 Daddy Exp $
+# $Id: bysellerid.t,v 1.2 2005/08/17 03:28:04 Daddy Exp $
 
 use Bit::Vector;
 use Date::Manip;
@@ -42,9 +42,9 @@ $iDump = 0;
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
+my $iTests = 7;
 foreach my $oResult (@ao)
   {
-  $iResult++;
   my $oV = new Bit::Vector($iTests);
   $oV->Fill;
   $iVall = $oV->to_Dec;

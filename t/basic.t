@@ -1,5 +1,5 @@
 
-# $Id: basic.t,v 1.10 2005/01/25 13:13:14 Daddy Exp $
+# $Id: basic.t,v 1.11 2005/08/17 02:28:28 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -38,8 +38,12 @@ $iDump = 0;
 # This query returns hundreds of pages of results:
 &tm_run_test('normal', 'LEGO', 101, undef, $iDebug);
 
-TODO:
+if (0)
   {
+  # The intention of this test block is to retrieve a page that
+  # returns hits on the exact query term, AND hits on alternate
+  # spellings.  It's just too hard to find such a word that
+  # consistently performs as needed.
   local $TODO = "Sometimes there are NO hits for lavarr";
   diag("Sending 1-page queries...");
   # There are a few hits for "lavarr", and eBay also gives us all the
@@ -60,11 +64,10 @@ my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
 # We perform this many tests on each result object:
 my $iTests = 6;
-my $iAnyFailed = my $iResult = 0;
+my $iAnyFailed = 0;
 my ($iVall, %hash);
 foreach my $oResult (@ao)
   {
-  $iResult++;
   my $oV = new Bit::Vector($iTests);
   $oV->Fill;
   $iVall = $oV->to_Dec;

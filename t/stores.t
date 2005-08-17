@@ -1,7 +1,8 @@
 
-# $Id: stores.t,v 1.9 2005/06/11 12:31:27 Daddy Exp $
+# $Id: stores.t,v 1.10 2005/08/17 03:12:23 Daddy Exp $
 
 use Bit::Vector;
+use Data::Dumper;
 use ExtUtils::testlib;
 use Test::More no_plan;
 

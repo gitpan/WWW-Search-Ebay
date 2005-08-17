@@ -1,5 +1,5 @@
 
-# $Id: UK.pm,v 1.7 2005/07/30 12:32:58 Daddy Exp $
+# $Id: UK.pm,v 1.8 2005/08/17 03:14:58 Daddy Exp $
 
 =head1 NAME
 
@@ -25,7 +25,7 @@ use Carp;
 use WWW::Search::Ebay;
 use vars qw( @ISA $VERSION );
 @ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 1.7 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -77,6 +77,13 @@ sub preprocess_results_page_OFF
   print STDERR $sPage;
   exit 88;
   } # preprocess_results_page
+
+sub columns
+  {
+  my $self = shift;
+  # This is for UK:
+  return qw( price bids paypal enddate );
+  } # columns
 
 1;
 

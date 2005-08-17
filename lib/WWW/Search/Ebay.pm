@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.171 2005/08/08 01:19:41 Daddy Exp $
+# $Id: Ebay.pm,v 2.173 2005/08/17 03:43:14 Daddy Exp $
 
 =head1 NAME
 
@@ -119,6 +119,7 @@ use Date::Manip;
 &Date_Init('TZ=US/Pacific') unless (defined($ENV{TZ}) && ($ENV{TZ} ne ''));
 use HTML::TreeBuilder;
 use LWP::Simple;
+use Switch;
 use WWW::Search qw( generic_option strip_tags );
 # We need the version that has bid_amount() and bid_count() methods:
 use WWW::SearchResult 2.063;
@@ -126,7 +127,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.171 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.173 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -268,7 +269,7 @@ sub _create_description
   {
   my $self = shift;
   my $iItem = shift || 'unknown';
-  my $iBids = shift || 'unknown';
+  my $iBids = shift || 'no';
   my $iPrice = shift || 'unknown';
   my $sWhen = shift || 'current';
   # print STDERR " DDD _c_d($iItem, $iBids, $iPrice, $sWhen)\n";
@@ -301,6 +302,19 @@ sub _title_td_specs
   } # _title_td_specs
 
 
+sub columns
+  {
+  my $self = shift;
+  # This is for basic USA eBay:
+  return qw( paypal bids price shipping enddate );
+  # This is for UK:
+  return qw( bids price shipping paypal enddate );
+  # This is for Stores:
+  return qw( bids price shipping store enddate );
+  # This is for Motors:
+  return qw( bids price enddate );
+  } # columns
+
 sub parse_tree
   {
   my $self = shift;
@@ -321,8 +335,6 @@ sub parse_tree
     return 1;
     } # if
   my $hits_found = 0;
-  # A pattern to match HTML whitespace:
-  my $W = q{[\ \t\r\n\240]};
   # The hit count is in a FONT tag:
   my @aoFONT = $tree->look_down($self->_result_count_td_specs);
  FONT:
@@ -358,7 +370,6 @@ sub parse_tree
     $oDiv->detach;
     $oDiv->delete;
     } # if
-  my $currency = $self->currency_pattern;
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
   my @a = $self->_title_td_specs;
@@ -369,6 +380,7 @@ sub parse_tree
     {
     print STDERR " --- did not find table of results\n" if $self->{_debug};
     } # unless
+  my $qrItemNum = qr{[;Q]item[=Z](\d+)[;Q]};
  TD:
   foreach my $oTDtitle (0, @aoTD)
     {
@@ -376,9 +388,6 @@ sub parse_tree
     next TD unless ref $oTDtitle;
     my $sTDtitle = $oTDtitle->as_HTML;
     print STDERR " + try TDtitle ===$sTDtitle===\n" if (1 < $self->{_debug});
-    next TD unless ($sTDtitle =~ m![;Q]item[=Z](\d+)Q?!);
-    my $iItemNum = $1;
-    print STDERR " +   iItemNum ===$iItemNum===\n" if (1 < $self->{_debug});
     # First A tag contains the url & title:
     my $oA = $oTDtitle->look_down('_tag', 'a');
     next TD unless ref $oA;
@@ -388,6 +397,9 @@ sub parse_tree
     print STDERR " +   sTitle ===$sTitle===\n" if (1 < $self->{_debug});
     my $oURI = URI->new($oA->attr('href'));
     next TD unless ($oURI =~ m!ViewItem!);
+    next TD unless ($oURI =~ m!$qrItemNum!);
+    my $iItemNum = $1;
+    print STDERR " +   iItemNum ===$iItemNum===\n" if (1 < $self->{_debug});
     if ($oURI->as_string =~ m!QQitemZ(\d+)QQ!)
       {
       # Convert new eBay links to old reliable ones:
@@ -396,104 +408,39 @@ sub parse_tree
       $oURI->query("ViewItem&item=$1");
       } # if
     my $sURL = $oURI->as_string;
-    my ($iPrice, $iBids, $iBidInt) = ('$unknown', 'no', 'unknown');
-    # The rest of the info about this item is in sister TD elements to
-    # the right:
-    my @aoSibs = $oTDtitle->right;
-    my $oTDprice;
-    # The first sister is the paypal logo:
-    $oTDprice = shift @aoSibs unless (ref($self) =~ m!WWW::Search::Ebay::(Motors|UK)!);
-    # The next sister has the current bid amount (or starting bid):
-    $oTDprice = shift @aoSibs;
-    if (ref $oTDprice)
-      {
-      my $s = $oTDprice->as_HTML;
-      if ($s =~ m!class="ebcBid"!)
-        {
-        # If we see this, we must have been searching for Stores items
-        # but we ran off the bottom of the Stores item list and ran
-        # into the list of "other" items.
-        next TD;
-        # We could probably call last TD instead of next TD, but MAYBE
-        # we hit this because of a parsing glitch which might correct
-        # itself on the next TD.
-        } # if
-      if (1 < $self->{_debug})
-        {
-        print STDERR " +   TDprice ===$s===\n";
-        } # if
-      $iPrice = $oTDprice->as_text;
-      print STDERR " +   raw iPrice ===$iPrice===\n" if (1 < $self->{_debug});
-      $iPrice =~ s!(\d)$W*($currency$W*[\d.,]+)!$1 (Buy-It-Now for $2)!;
-      } # if
-    # The next sister has the number of bids:
-    my $oTDbids = shift @aoSibs;
-    if (ref $oTDbids)
-      {
-      if (1 < $self->{_debug})
-        {
-        my $s = $oTDbids->as_HTML;
-        print STDERR " +   TDbids ===$s===\n";
-        } # if
-      $iBidInt = $iBids = $oTDbids->as_text;
-      } # if
-    if (
-        # Bid listed as hyphen means no bids:
-        ($iBids =~ m!\A$W*-$W*\Z!)
-        ||
-        # Bid listed as whitespace means no bids:
-        ($iBids =~ m!\A$W*\Z!)
-       )
-      {
-      $iBids = 'no';
-      $iBidInt = 0;
-      } # if
-    # The next sister has the auction end date...
-    my $oTDdate = shift @aoSibs;
-    # ...unless this is a Stores search, in which case the next sister
-    # is the store name; or if this is Ebay::UK, in which case it is
-    # the PayPal logo:
-    $oTDdate = shift @aoSibs if (ref($self) =~ m!WWW::Search::Ebay::(Stores|UK)!);
-    my $sDate = 'unknown';
-    if (! ref $oTDdate)
-      {
-      # There is no date column.  When searching Ebay::UK, this
-      # happens in a mini-display of non-UK auctions.
-      next TD if (ref($self) eq 'WWW::Search::Ebay::UK');
-      }
-    else
-      {
-      my $s = $oTDdate->as_HTML;
-      print STDERR " +   TDdate ===$s===\n" if 1 < $self->{_debug};
-      my $sDateTemp = $oTDdate->as_text;
-      # Convert nbsp to regular space:
-      $sDateTemp =~ s!\240!\040!g;
-      print STDERR " +   raw    sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
-      $sDateTemp =~ s!<!!;
-      $sDateTemp =~ s!d! days!;
-      $sDateTemp =~ s!h! hours!;
-      $sDateTemp =~ s!m! minutes!;
-      print STDERR " +   cooked sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
-      my $date = &DateCalc($self->{_ebay_official_time}, "+ $sDateTemp");
-      print STDERR " +   date ===$date===\n" if 1 < $self->{_debug};
-      $sDate = $self->_format_date($date);
-      } # if
     my $hit = new WWW::Search::Result;
     $hit->add_url($self->_cleanup_url($sURL));
     $hit->title($sTitle);
-    print STDERR " +   calling _c_d($iItemNum, $iBids, $iPrice)\n" if (1 < $self->{_debug});
-    my $sDesc = $self->_create_description($iItemNum, $iBids, $iPrice);
+    # The rest of the info about this item is in sister TD elements to
+    # the right:
+    my @aoSibs = $oTDtitle->right;
+    my @asColumns = $self->columns;
+ SIBLING_TD:
+    while ((my $oTDsib = shift(@aoSibs))
+           &&
+           (my $sColumn = shift(@asColumns))
+          )
+      {
+      switch ($sColumn)
+        {
+        case 'price'    { next TD unless $self->parse_price($oTDsib, $hit) }
+        case 'bids'     { next TD unless $self->parse_bids($oTDsib, $hit) }
+        case 'shipping' { next TD unless $self->parse_shipping($oTDsib, $hit) }
+        case 'enddate'  { next TD unless $self->parse_enddate($oTDsib, $hit) }
+        else            { next SIBLING_TD }
+        } # switch
+      } # while
+    my $sDesc = $self->_create_description($iItemNum,
+                                           $hit->bid_count,
+                                           $hit->bid_amount);
     $hit->description($sDesc);
-    $hit->change_date($sDate);
-    $hit->bid_count($iBidInt);
-    $hit->bid_amount($iPrice);
     push(@{$self->{cache}}, $hit);
     $self->{'_num_hits'}++;
     $hits_found++;
     # Delete this HTML element so that future searches go faster?
     $oTDtitle->detach;
     $oTDtitle->delete;
-    } # foreach
+    } # foreach TD
 
   # Look for a NEXT link:
   my @aoA = $tree->look_down('_tag', 'a');
@@ -514,11 +461,131 @@ sub parse_tree
       last TRY_NEXT;
       } # if
     } # foreach
-
   # All done with this page.
   $tree->delete;
   return $hits_found;
   } # parse_tree
+
+# A pattern to match HTML whitespace:
+our $W = q{[\ \t\r\n\240]};
+
+sub parse_price
+  {
+  my $self = shift;
+  my $oTDprice = shift;
+  my $hit = shift;
+  return 0 unless (ref $oTDprice);
+  my $s = $oTDprice->as_HTML;
+  if (1 < $self->{_debug})
+    {
+    print STDERR " +   try TDprice ===$s===\n";
+    } # if
+  if ($s =~ m!class="ebcBid"!)
+    {
+    # If we see this, we must have been searching for Stores items
+    # but we ran off the bottom of the Stores item list and ran
+    # into the list of "other" items.
+    return 1;
+    # We could probably return 0 to abandon the rest of the page, but
+    # maybe just maybe we hit this because of a parsing glitch which
+    # might correct itself on the next TD.
+    } # if
+  if ($s =~ m!class="ebcStr"!)
+    {
+    # If we see this, we must have been searching for Buy-It-Now items
+    # but we ran off the bottom of the time-limit item list and ran
+    # into the list of permanent Store items.
+    return 0;
+    # There is a separate backend for searching Stores items!
+    } # if
+  my $iPrice = $oTDprice->as_text;
+  print STDERR " +   raw iPrice ===$iPrice===\n" if (1 < $self->{_debug});
+  my $currency = $self->currency_pattern;
+  $iPrice =~ s!(\d)$W*($currency$W*[\d.,]+)!$1 (Buy-It-Now for $2)!;
+  $hit->bid_amount($iPrice);
+  return 1;
+  } # parse_price
+
+sub parse_bids
+  {
+  my $self = shift;
+  my $oTDbids = shift;
+  my $hit = shift;
+  my $iBids = 0;
+  if (ref $oTDbids)
+    {
+    my $s = $oTDbids->as_HTML;
+    if (1 < $self->{_debug})
+      {
+      print STDERR " +   TDbids ===$s===\n";
+      } # if
+    if ($s =~ m!class="ebcTim"!)
+      {
+      # If we see this, we probably were searching for Store items
+      # but we ran off the bottom of the Store item list and ran
+      # into the list of Auction items.
+      return 0;
+      # There is a separate backend for searching Auction items!
+      } # if
+    $iBids = $oTDbids->as_text;
+    if (
+        # Bid listed as hyphen means no bids:
+        ($iBids =~ m!\A$W*-$W*\Z!)
+        ||
+        # Bid listed as whitespace means no bids:
+        ($iBids =~ m!\A$W*\Z!)
+       )
+      {
+      $iBids = 0;
+      } # if
+    } # if
+  $hit->bid_count($iBids);
+  return 1;
+  } # parse_bids
+
+sub parse_shipping
+  {
+  my $self = shift;
+  my $oTD = shift;
+  my $hit = shift;
+  return 1;
+  } # parse_shipping
+
+sub parse_skip
+  {
+  my $self = shift;
+  my $oTD = shift;
+  my $hit = shift;
+  return 1;
+  } # parse_skip
+
+sub parse_enddate
+  {
+  my $self = shift;
+  my $oTDdate = shift;
+  my $hit = shift;
+  my $sDate = 'unknown';
+  if (! ref $oTDdate)
+    {
+    return 0;
+    }
+  my $s = $oTDdate->as_HTML;
+  print STDERR " +   TDdate ===$s===\n" if 1 < $self->{_debug};
+  my $sDateTemp = $oTDdate->as_text;
+  # Convert nbsp to regular space:
+  $sDateTemp =~ s!\240!\040!g;
+  print STDERR " +   raw    sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
+  $sDateTemp =~ s!<!!;
+  $sDateTemp =~ s!d! days!;
+  $sDateTemp =~ s!h! hours!;
+  $sDateTemp =~ s!m! minutes!;
+  print STDERR " +   cooked sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
+  my $date = &DateCalc($self->{_ebay_official_time}, "+ $sDateTemp");
+  print STDERR " +   date ===$date===\n" if 1 < $self->{_debug};
+  $sDate = $self->_format_date($date);
+  $hit->change_date($sDate);
+  return 1;
+  } # parse_enddate
 
 1;
 

@@ -1,3 +1,15 @@
+2005-08-16    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm: new flexible way of parsing table cells in a backend-specific order!
+
+	* lib/WWW/Search/Ebay/BuyItNow.pm (columns): new method
+
+	* lib/WWW/Search/Ebay/Motors.pm (columns): new method
+
+	* lib/WWW/Search/Ebay/Stores.pm (columns): new method
+
+	* lib/WWW/Search/Ebay/UK.pm (columns): new method
+
 2005-08-14    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay/BySellerID.pm: NEW BACKEND
