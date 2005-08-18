@@ -1,5 +1,5 @@
 
-# $Id: basic.t,v 1.11 2005/08/17 02:28:28 Daddy Exp $
+# $Id: basic.t,v 1.12 2005/08/18 04:56:09 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -63,7 +63,7 @@ $iDump = 0;
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
 # We perform this many tests on each result object:
-my $iTests = 6;
+my $iTests = 7;
 my $iAnyFailed = 0;
 my ($iVall, %hash);
 foreach my $oResult (@ao)

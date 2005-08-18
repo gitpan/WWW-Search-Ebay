@@ -1,5 +1,5 @@
 
-# $Id: Stores.pm,v 1.7 2005/08/17 03:48:32 Daddy Exp $
+# $Id: Stores.pm,v 1.8 2005/08/18 04:55:41 Daddy Exp $
 
 =head1 NAME
 
@@ -53,7 +53,7 @@ package WWW::Search::Ebay::Stores;
 use WWW::Search::Ebay;
 use vars qw( @ISA $VERSION );
 @ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 1.7 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -82,7 +82,7 @@ sub columns
   {
   my $self = shift;
   # This is for Stores:
-  return qw( paypal price bids store enddate );
+  return qw( paypal bids price shipping store enddate );
   } # columns
 
 

@@ -1,5 +1,5 @@
 
-# $Id: BuyItNow.pm,v 1.4 2005/08/17 03:27:27 Daddy Exp $
+# $Id: BuyItNow.pm,v 1.5 2005/08/18 04:47:04 Daddy Exp $
 
 =head1 NAME
 
@@ -54,7 +54,7 @@ package WWW::Search::Ebay::BuyItNow;
 use WWW::Search::Ebay;
 use vars qw( @ISA $VERSION );
 @ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 1.4 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.5 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -66,7 +66,7 @@ sub native_setup_search
 sub columns
   {
   my $self = shift;
-  return qw( paypal buyitnowlogo price shipping enddate );
+  return qw( paypal buyitnowlogo price enddate );
   } # columns
 
 1;

@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.173 2005/08/17 03:43:14 Daddy Exp $
+# $Id: Ebay.pm,v 2.175 2005/08/18 04:55:09 Daddy Exp $
 
 =head1 NAME
 
@@ -127,7 +127,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.173 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.175 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -306,13 +306,7 @@ sub columns
   {
   my $self = shift;
   # This is for basic USA eBay:
-  return qw( paypal bids price shipping enddate );
-  # This is for UK:
-  return qw( bids price shipping paypal enddate );
-  # This is for Stores:
-  return qw( bids price shipping store enddate );
-  # This is for Motors:
-  return qw( bids price enddate );
+  return qw( paypal price bids enddate );
   } # columns
 
 sub parse_tree
@@ -480,6 +474,14 @@ sub parse_price
     {
     print STDERR " +   try TDprice ===$s===\n";
     } # if
+  if ($s =~ m!\sclass="ebcTim"!)
+    {
+    # If we see this, we probably were searching for Store items
+    # but we ran off the bottom of the Store item list and ran
+    # into the list of Auction items.
+    return 0;
+    # There is a separate backend for searching Auction items!
+    } # if
   if ($s =~ m!class="ebcBid"!)
     {
     # If we see this, we must have been searching for Stores items
@@ -519,7 +521,7 @@ sub parse_bids
       {
       print STDERR " +   TDbids ===$s===\n";
       } # if
-    if ($s =~ m!class="ebcTim"!)
+    if ($s =~ m!\sclass="ebcTim"!)
       {
       # If we see this, we probably were searching for Store items
       # but we ran off the bottom of the Store item list and ran
