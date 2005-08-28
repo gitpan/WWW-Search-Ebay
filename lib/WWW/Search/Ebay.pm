@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.175 2005/08/18 04:55:09 Daddy Exp $
+# $Id: Ebay.pm,v 2.176 2005/08/28 02:22:57 Daddy Exp $
 
 =head1 NAME
 
@@ -127,7 +127,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.175 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.176 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -364,6 +364,27 @@ sub parse_tree
     $oDiv->detach;
     $oDiv->delete;
     } # if
+  # By default, use the hard-coded order of columns:
+  my @asColumns = $self->columns;
+  # See if we can glean the actual order of columns from the page itself:
+  my @aoCOL = $tree->look_down(_tag => 'col');
+  my @asId;
+  foreach my $oCOL (@aoCOL)
+    {
+    # Sanity check:
+    next unless ref($oCOL);
+    my $sId = $oCOL->attr('id') || '';
+    # Sanity check:
+    next unless ($sId ne '');
+    $sId =~ s!\Aebc!!;
+    # Try not to go past the first table:
+    last if ($sId eq 'bdrRt');
+    push @asId, $sId;
+    } # foreach
+  1 while (@asId && (shift(@asId) ne 'title'));
+  # local $" = ',';
+  # print STDERR " DDD raw column id are (@asId)\n";
+  @asColumns = @asId if @asId;
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
   my @a = $self->_title_td_specs;
@@ -408,11 +429,11 @@ sub parse_tree
     # The rest of the info about this item is in sister TD elements to
     # the right:
     my @aoSibs = $oTDtitle->right;
-    my @asColumns = $self->columns;
+    my $iCol = 0;
  SIBLING_TD:
     while ((my $oTDsib = shift(@aoSibs))
            &&
-           (my $sColumn = shift(@asColumns))
+           (my $sColumn = $asColumns[$iCol++])
           )
       {
       switch ($sColumn)
@@ -421,6 +442,7 @@ sub parse_tree
         case 'bids'     { next TD unless $self->parse_bids($oTDsib, $hit) }
         case 'shipping' { next TD unless $self->parse_shipping($oTDsib, $hit) }
         case 'enddate'  { next TD unless $self->parse_enddate($oTDsib, $hit) }
+        case 'time'     { next TD unless $self->parse_enddate($oTDsib, $hit) }
         else            { next SIBLING_TD }
         } # switch
       } # while
@@ -474,15 +496,7 @@ sub parse_price
     {
     print STDERR " +   try TDprice ===$s===\n";
     } # if
-  if ($s =~ m!\sclass="ebcTim"!)
-    {
-    # If we see this, we probably were searching for Store items
-    # but we ran off the bottom of the Store item list and ran
-    # into the list of Auction items.
-    return 0;
-    # There is a separate backend for searching Auction items!
-    } # if
-  if ($s =~ m!class="ebcBid"!)
+  if ($oTDprice->attr('class') eq 'ebcBid')
     {
     # If we see this, we must have been searching for Stores items
     # but we ran off the bottom of the Stores item list and ran
@@ -492,16 +506,17 @@ sub parse_price
     # maybe just maybe we hit this because of a parsing glitch which
     # might correct itself on the next TD.
     } # if
-  if ($s =~ m!class="ebcStr"!)
+  if ($oTDprice->attr('class') ne 'ebcPr')
     {
-    # If we see this, we must have been searching for Buy-It-Now items
-    # but we ran off the bottom of the time-limit item list and ran
-    # into the list of permanent Store items.
+    # If we see this, we probably were searching for Store items
+    # but we ran off the bottom of the Store item list and ran
+    # into the list of Auction items.
     return 0;
-    # There is a separate backend for searching Stores items!
+    # There is a separate backend for searching Auction items!
     } # if
   my $iPrice = $oTDprice->as_text;
   print STDERR " +   raw iPrice ===$iPrice===\n" if (1 < $self->{_debug});
+  $iPrice =~ s!&pound;!GBP!;
   my $currency = $self->currency_pattern;
   $iPrice =~ s!(\d)$W*($currency$W*[\d.,]+)!$1 (Buy-It-Now for $2)!;
   $hit->bid_amount($iPrice);
@@ -521,7 +536,7 @@ sub parse_bids
       {
       print STDERR " +   TDbids ===$s===\n";
       } # if
-    if ($s =~ m!\sclass="ebcTim"!)
+    if ($oTDbids->attr('class') ne 'ebcBid')
       {
       # If we see this, we probably were searching for Store items
       # but we ran off the bottom of the Store item list and ran
@@ -573,6 +588,14 @@ sub parse_enddate
     }
   my $s = $oTDdate->as_HTML;
   print STDERR " +   TDdate ===$s===\n" if 1 < $self->{_debug};
+  if ($oTDdate->attr('class') ne 'ebcTim')
+    {
+    # If we see this, we probably were searching for Buy-It-Now items
+    # but we ran off the bottom of the item list and ran into the list
+    # of Store items.
+    return 0;
+    # There is a separate backend for searching Store items!
+    } # if
   my $sDateTemp = $oTDdate->as_text;
   # Convert nbsp to regular space:
   $sDateTemp =~ s!\240!\040!g;

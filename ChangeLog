@@ -1,3 +1,7 @@
+2005-08-27    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): determine order of columns dynamically
+
 2005-08-18    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay/Stores.pm (columns): damn ebay.com changed the column order again

@@ -1,5 +1,5 @@
 
-# $Id: basic.t,v 1.12 2005/08/18 04:56:09 Daddy Exp $
+# $Id: basic.t,v 1.13 2005/08/28 02:23:26 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -66,11 +66,12 @@ cmp_ok(0, '<', scalar(@ao), 'got some results');
 my $iTests = 7;
 my $iAnyFailed = 0;
 my ($iVall, %hash);
+my $oV = new Bit::Vector($iTests);
+$oV->Fill;
+$iVall = $oV->to_Dec;
 foreach my $oResult (@ao)
   {
-  my $oV = new Bit::Vector($iTests);
-  $oV->Fill;
-  $iVall = $oV->to_Dec;
+  $oV->Empty;
   # Create a vector of which tests passed:
   $oV->Bit_Off(1) unless like($oResult->url,
                               qr{\Ahttp://cgi\d*\.ebay\.com},
