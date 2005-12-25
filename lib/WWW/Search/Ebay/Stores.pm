@@ -1,5 +1,5 @@
 
-# $Id: Stores.pm,v 1.8 2005/08/18 04:55:41 Daddy Exp $
+# $Id: Stores.pm,v 1.9 2005/08/30 03:13:35 Daddy Exp $
 
 =head1 NAME
 
@@ -53,7 +53,7 @@ package WWW::Search::Ebay::Stores;
 use WWW::Search::Ebay;
 use vars qw( @ISA $VERSION );
 @ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 1.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.9 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -61,10 +61,13 @@ sub native_setup_search
   # As of 2004-10-20:
   # http://search.stores.ebay.com/search/search.dll?sofocus=bs&sbrftog=1&catref=C6&socurrencydisplay=1&from=R10&sasaleclass=1&sorecordsperpage=100&sotimedisplay=1&socolumnlayout=2&satitle=star+wars+lego&sacategory=-6%26catref%3DC6&bs=Search&sofp=4&sotr=2&sapricelo=&sapricehi=&searchfilters=&sosortproperty=1&sosortorder=1
   # simplest = http://search.stores.ebay.com/search/search.dll?socurrencydisplay=1&sasaleclass=1&sorecordsperpage=100&sotimedisplay=1&socolumnlayout=2&satitle=star+wars+lego
+  # As of 2005-08-29:
+  # http://search.stores.ebay.com/search/search.dll?satitle=093624-69602-5
   $rh->{'search_host'} = 'http://search.stores.ebay.com';
   $rh->{'search_path'} = '/search/search.dll';
-  # This is how we get Stores items only:
-  $rh->{'sasaleclass'} = 1;
+  $rh->{'satitle'} = $sQuery;
+  # Turn off default W::S::Ebay options:
+  $self->{_options} = {};
   return $self->SUPER::native_setup_search($sQuery, $rh);
   } # native_setup_search
 

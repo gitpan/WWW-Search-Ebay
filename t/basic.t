@@ -1,5 +1,5 @@
 
-# $Id: basic.t,v 1.13 2005/08/28 02:23:26 Daddy Exp $
+# $Id: basic.t,v 1.15 2005/12/25 20:29:47 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -53,7 +53,20 @@ if (0)
   }
 
 DEBUG_NOW:
-;
+diag("Sending 1-page query for 12-digit UPC...");
+$iDebug = 0;
+$iDump = 0;
+&tm_run_test('normal', '0-77778-60672-7' , 1, 99, $iDebug, $iDump);
+diag("Sending 1-page query for 13-digit EAN...");
+$iDebug = 0;
+$iDump = 0;
+&tm_run_test('normal', '00-77778-60672-7' , 1, 99, $iDebug, $iDump);
+diag("Sending 1-page query for 10-digit ISBN...");
+$iDebug = 0;
+$iDump = 0;
+&tm_run_test('normal', '0-553-09606-0' , 1, 99, $iDebug, $iDump);
+# goto SKIP_CONTENTS;
+
 CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
@@ -63,7 +76,7 @@ $iDump = 0;
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
 # We perform this many tests on each result object:
-my $iTests = 7;
+my $iTests = 8;  # Numbered zero thru 7
 my $iAnyFailed = 0;
 my ($iVall, %hash);
 my $oV = new Bit::Vector($iTests);
@@ -91,6 +104,8 @@ foreach my $oResult (@ao)
                               'bid_count is a number');
   $oV->Bit_Off(0) unless unlike($oResult->title, qr{(?i:quakers)},
                                 'result Title is not "quakers"');
+  $oV->Bit_Off(7) unless like($oResult->category, qr{\A\d+\Z},
+                              'category is a number');
   my $iV = $oV->to_Dec;
   if ($iV < $iVall)
     {
@@ -106,7 +121,8 @@ if ($iAnyFailed)
     diag(Dumper($sVal));
     } # while
   } # if
-
+SKIP_CONTENTS:
+;
 
 __END__
 

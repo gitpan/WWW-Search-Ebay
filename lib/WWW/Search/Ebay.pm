@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.176 2005/08/28 02:22:57 Daddy Exp $
+# $Id: Ebay.pm,v 2.177 2005/12/25 20:32:12 Daddy Exp $
 
 =head1 NAME
 
@@ -53,6 +53,9 @@ contains the number of bids as an integer.
 In the resulting L<WWW::Search::Result> objects, the bid_amount field is
 a string containing the high bid or starting bid as a human-readable
 monetary value in seller-native units, e.g. "$14.95" or "GBP 6.00".
+
+In the resulting L<WWW::Search::Result> objects, the category field
+contains the Ebay category number.
 
 If your query string happens to be an eBay item number,
 (i.e. if ebay.com redirects the query to an auction page),
@@ -127,7 +130,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.176 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.177 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -143,7 +146,7 @@ sub native_setup_search
   $self->{'_hits_per_page'} = $DEFAULT_HITS_PER_PAGE;
 
   $self->user_agent('non-robot');
-  # $self->agent_name('Mozilla/5.0 (compatible; Mozilla/4.0; MSIE 6.0; Windows NT 5.1; Q312461)');
+  $self->agent_name('Mozilla/5.0 (compatible; Mozilla/4.0; MSIE 6.0; Windows NT 5.1; Q312461)');
 
   $self->{'_next_to_retrieve'} = 0;
   $self->{'_num_hits'} = 0;
@@ -414,6 +417,8 @@ sub parse_tree
     next TD unless ($oURI =~ m!ViewItem!);
     next TD unless ($oURI =~ m!$qrItemNum!);
     my $iItemNum = $1;
+    my $iCategory = 'unknown';
+    $iCategory = $1 if ($oURI =~ m!QQcategoryZ(\d+)QQ!);
     print STDERR " +   iItemNum ===$iItemNum===\n" if (1 < $self->{_debug});
     if ($oURI->as_string =~ m!QQitemZ(\d+)QQ!)
       {
@@ -426,6 +431,7 @@ sub parse_tree
     my $hit = new WWW::Search::Result;
     $hit->add_url($self->_cleanup_url($sURL));
     $hit->title($sTitle);
+    $hit->category($iCategory);
     # The rest of the info about this item is in sister TD elements to
     # the right:
     my @aoSibs = $oTDtitle->right;

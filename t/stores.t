@@ -1,5 +1,5 @@
 
-# $Id: stores.t,v 1.10 2005/08/17 03:12:23 Daddy Exp $
+# $Id: stores.t,v 1.12 2005/08/30 03:14:21 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -35,6 +35,21 @@ $iDump = 0;
 
 DEBUG_NOW:
 ;
+diag("Sending 1-page query for 12-digit UPC...");
+$iDebug = 0;
+$iDump = 0;
+&tm_run_test('normal', '093624-69602-5', # '0-77778-60672-7',
+             1, 99, $iDebug, $iDump);
+diag("Sending 1-page query for 13-digit EAN...");
+$iDebug = 0;
+$iDump = 0;
+&tm_run_test('normal', '00-77778-60672-7' , 1, 99, $iDebug, $iDump);
+diag("Sending query for 10-digit ISBN...");
+$iDebug = 0;
+$iDump = 0;
+&tm_run_test('normal', '0-553-09606-0' , 1, undef, $iDebug, $iDump);
+# goto SKIP_CONTENTS;
+
 CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
@@ -79,6 +94,9 @@ if ($iAnyFailed)
     diag(Dumper($sVal));
     } # while
   } # if
+
+SKIP_CONTENTS:
+;
 
 __END__
 

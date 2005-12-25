@@ -1,3 +1,11 @@
+2005-12-25    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): new returns the item's category number
+
+2005-08-29    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay/Stores.pm (native_setup_search): fixed the CGI options
+
 2005-08-27    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): determine order of columns dynamically
