@@ -1,4 +1,4 @@
-#line 1 "C:/DOCUMENTS/MARTIN/Modules/WWW-Search-Ebay/inc/Module/Install.pm - c:/perl/site/lib/Module/Install.pm"
+#line 1 "C:/DOCUMENTS/MARTIN/Modules/WWW-Search-Ebay/inc/Module/Install.pm - C:/perl/site/lib/Module/Install.pm"
 package Module::Install;
 use 5.004;
 

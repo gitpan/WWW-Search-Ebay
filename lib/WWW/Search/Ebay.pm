@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.177 2005/12/25 20:32:12 Daddy Exp $
+# $Id: Ebay.pm,v 2.179 2005/12/28 02:05:51 Daddy Exp $
 
 =head1 NAME
 
@@ -41,9 +41,9 @@ consists of a human-readable combination (joined with semicolon-space)
 of the Item Number; number of bids; and high bid amount (or starting
 bid amount).
 
-In the resulting L<WWW::Search::Result> objects, the change_date field
+In the resulting L<WWW::Search::Result> objects, the end_date field
 contains a human-readable DTG of when the auction is scheduled to end
-(in the form "YYYY-MM-DD HH:MM:SS TZ").  If environment variable TZ is
+(in the form "YYYY-MM-DD HH:MM TZ").  If environment variable TZ is
 set, the time will be converted to that timezone; otherwise the time
 will be left in ebay.com's default timezone (US/Pacific).
 
@@ -124,13 +124,13 @@ use HTML::TreeBuilder;
 use LWP::Simple;
 use Switch;
 use WWW::Search qw( generic_option strip_tags );
-# We need the version that has bid_amount() and bid_count() methods:
-use WWW::SearchResult 2.063;
+# We need the version that has the end_date() method:
+use WWW::SearchResult 2.067;
 use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.177 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.179 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -321,7 +321,10 @@ sub parse_tree
   if ($sTitle =~ m!$qrTitle!)
     {
     my $hit = new WWW::Search::Result;
+    $hit->item_number($1);
     $hit->description($self->_create_description($1));
+    $hit->end_date($self->_format_date($2));
+    # For backward-compatibility:
     $hit->change_date($self->_format_date($2));
     $hit->title($3);
     $hit->add_url($self->{response}->request->uri);
@@ -432,6 +435,7 @@ sub parse_tree
     $hit->add_url($self->_cleanup_url($sURL));
     $hit->title($sTitle);
     $hit->category($iCategory);
+    $hit->item_number($iItemNum);
     # The rest of the info about this item is in sister TD elements to
     # the right:
     my @aoSibs = $oTDtitle->right;
@@ -614,6 +618,8 @@ sub parse_enddate
   my $date = &DateCalc($self->{_ebay_official_time}, "+ $sDateTemp");
   print STDERR " +   date ===$date===\n" if 1 < $self->{_debug};
   $sDate = $self->_format_date($date);
+  $hit->end_date($sDate);
+  # For backward-compatibility:
   $hit->change_date($sDate);
   return 1;
   } # parse_enddate

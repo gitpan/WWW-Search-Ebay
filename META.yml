@@ -1,5 +1,5 @@
 name: WWW-Search-Ebay
-version: 2.217
+version: 2.218
 author: Martin Thurn <mthurn@cpan.org>
 license: perl
 distribution_type: module
@@ -15,7 +15,7 @@ requires:
   LWP::Simple: 0
   Switch: 2.1
   WWW::Search: 2.529
-  WWW::SearchResult: 2.066
+  WWW::SearchResult: 2.067
 no_index:
   directory:
     - inc
