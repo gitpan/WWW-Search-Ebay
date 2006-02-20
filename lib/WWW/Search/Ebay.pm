@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.179 2005/12/28 02:05:51 Daddy Exp $
+# $Id: Ebay.pm,v 2.180 2006/02/19 20:44:25 Daddy Exp $
 
 =head1 NAME
 
@@ -130,7 +130,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.179 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.180 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -309,7 +309,7 @@ sub columns
   {
   my $self = shift;
   # This is for basic USA eBay:
-  return qw( paypal price bids enddate );
+  return qw( paypal bids price shipping enddate );
   } # columns
 
 sub parse_tree
@@ -372,25 +372,30 @@ sub parse_tree
     } # if
   # By default, use the hard-coded order of columns:
   my @asColumns = $self->columns;
-  # See if we can glean the actual order of columns from the page itself:
-  my @aoCOL = $tree->look_down(_tag => 'col');
-  my @asId;
-  foreach my $oCOL (@aoCOL)
+  if (ref($self) !~ m!::Completed!)
     {
-    # Sanity check:
-    next unless ref($oCOL);
-    my $sId = $oCOL->attr('id') || '';
-    # Sanity check:
-    next unless ($sId ne '');
-    $sId =~ s!\Aebc!!;
-    # Try not to go past the first table:
-    last if ($sId eq 'bdrRt');
-    push @asId, $sId;
-    } # foreach
-  1 while (@asId && (shift(@asId) ne 'title'));
-  # local $" = ',';
-  # print STDERR " DDD raw column id are (@asId)\n";
-  @asColumns = @asId if @asId;
+    # See if we can glean the actual order of columns from the page itself:
+    my @aoCOL = $tree->look_down(_tag => 'col');
+    my @asId;
+    foreach my $oCOL (@aoCOL)
+      {
+      # Sanity check:
+      next unless ref($oCOL);
+      my $sId = $oCOL->attr('id') || '';
+      # Sanity check:
+      next unless ($sId ne '');
+      $sId =~ s!\Aebc!!;
+      # Try not to go past the first table:
+      last if ($sId eq 'bdrRt');
+      push @asId, $sId;
+      } # foreach
+    print STDERR " DDD raw    asId is (@asId)\n" if (1 < $self->{_debug});
+    1 while (@asId && (shift(@asId) ne 'title'));
+    local $" = ',';
+    print STDERR " DDD cooked asId is (@asId)\n" if (1 < $self->{_debug});
+    @asColumns = @asId if @asId;
+    } # if
+  print STDERR " DDD   asColumns is (@asColumns)\n" if (1 < $self->{_debug});
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
   my @a = $self->_title_td_specs;
@@ -439,6 +444,14 @@ sub parse_tree
     # The rest of the info about this item is in sister TD elements to
     # the right:
     my @aoSibs = $oTDtitle->right;
+    # But in the Completed auctions list, the rest of the info is in
+    # the next row of the table:
+    if (ref($self) =~ m!::Completed!)
+      {
+      @aoSibs = $oTDtitle->parent->right->look_down(_tag => 'td');
+      # Throw out one empty cell:
+      shift @aoSibs;
+      } # if
     my $iCol = 0;
  SIBLING_TD:
     while ((my $oTDsib = shift(@aoSibs))
@@ -446,6 +459,9 @@ sub parse_tree
            (my $sColumn = $asColumns[$iCol++])
           )
       {
+      next unless ref($oTDsib);
+      my $s = $oTDsib->as_HTML;
+      print STDERR " DDD   try TD$sColumn ===$s===\n" if (1 < $self->{_debug});
       switch ($sColumn)
         {
         case 'price'    { next TD unless $self->parse_price($oTDsib, $hit) }
@@ -474,7 +490,7 @@ sub parse_tree
   foreach my $oA (0, reverse @aoA)
     {
     next TRY_NEXT unless ref $oA;
-    print STDERR " +   try NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
+    print STDERR " +   try NEXT A ===", $oA->as_HTML, "===\n" if (1 < $self->{_debug});
     my $href = $oA->attr('href');
     next TRY_NEXT unless $href;
     # If we get all the way to the item list, there must be no next
@@ -516,7 +532,7 @@ sub parse_price
     # maybe just maybe we hit this because of a parsing glitch which
     # might correct itself on the next TD.
     } # if
-  if ($oTDprice->attr('class') ne 'ebcPr')
+  if ($oTDprice->attr('class') !~ m'ebcPr')
     {
     # If we see this, we probably were searching for Store items
     # but we ran off the bottom of the Store item list and ran
@@ -546,7 +562,7 @@ sub parse_bids
       {
       print STDERR " +   TDbids ===$s===\n";
       } # if
-    if ($oTDbids->attr('class') ne 'ebcBid')
+    if ($oTDbids->attr('class') !~ m'ebcBid')
       {
       # If we see this, we probably were searching for Store items
       # but we ran off the bottom of the Store item list and ran
@@ -598,7 +614,7 @@ sub parse_enddate
     }
   my $s = $oTDdate->as_HTML;
   print STDERR " +   TDdate ===$s===\n" if 1 < $self->{_debug};
-  if ($oTDdate->attr('class') ne 'ebcTim')
+  if ($oTDdate->attr('class') !~ m'ebcTim')
     {
     # If we see this, we probably were searching for Buy-It-Now items
     # but we ran off the bottom of the item list and ran into the list

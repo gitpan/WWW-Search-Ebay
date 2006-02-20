@@ -1,22 +1,23 @@
-name: WWW-Search-Ebay
-version: 2.218
 author: Martin Thurn <mthurn@cpan.org>
-license: perl
-distribution_type: module
 build_requires:
   Bit::Vector: 0
-  IO::Capture::ErrorMessages: 0
+  IO::Capture::Stderr: 0
   Test::More: 0
   WWW::Search::Test: 2.265
+distribution_type: module
+generated_by: Module::Install version 0.52
+license: perl
+name: WWW-Search-Ebay
+no_index:
+  directory:
+    - inc
+    - t
 requires:
-  perl: 5.005
   Date::Manip: 0
   HTML::TreeBuilder: 0
   LWP::Simple: 0
   Switch: 2.1
   WWW::Search: 2.529
   WWW::SearchResult: 2.067
-no_index:
-  directory:
-    - inc
-generated_by: Module::Install version 0.48
+  perl: 5.005
+version: 2.219

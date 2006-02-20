@@ -1,18 +1,18 @@
 
-# $rcs = ' $Id: Makefile.PL,v 1.35 2005/12/28 02:05:08 Daddy Exp $ ';
+# $rcs = ' $Id: Makefile.PL,v 1.37 2006/02/19 20:43:40 Daddy Exp $ ';
 
 use inc::Module::Install;
 
 name('WWW-Search-Ebay');
 author('Martin Thurn <mthurn@cpan.org>');
 license('perl');
-version(2.218);
+version(2.219);
 
 requires(perl => 5.005);
 build_requires('Bit::Vector');
 requires('Date::Manip');
 requires('HTML::TreeBuilder');
-build_requires('IO::Capture::ErrorMessages');
+build_requires('IO::Capture::Stderr');
 requires('LWP::Simple');
 requires('Switch' => 2.10);
 # Test::More is needed for `make test`:
