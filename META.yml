@@ -1,11 +1,11 @@
-author: Martin Thurn <mthurn@cpan.org>
+author: 'Martin Thurn <mthurn@cpan.org>'
 build_requires:
   Bit::Vector: 0
   IO::Capture::Stderr: 0
   Test::More: 0
   WWW::Search::Test: 2.265
 distribution_type: module
-generated_by: Module::Install version 0.52
+generated_by: Module::Install version 0.60
 license: perl
 name: WWW-Search-Ebay
 no_index:
@@ -20,4 +20,4 @@ requires:
   WWW::Search: 2.529
   WWW::SearchResult: 2.067
   perl: 5.005
-version: 2.219
+version: 2.221

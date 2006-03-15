@@ -1,3 +1,7 @@
+2006-03-11    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (parse_enddate): now can take a string argument
+
 2006-02-18    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): enhanced to parse Completed listings

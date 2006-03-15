@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.180 2006/02/19 20:44:25 Daddy Exp $
+# $Id: Ebay.pm,v 2.182 2006/03/15 01:05:03 Daddy Exp $
 
 =head1 NAME
 
@@ -130,7 +130,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.180 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.182 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -254,7 +254,7 @@ sub currency_pattern
 sub _cleanup_url
   {
   my $self = shift;
-  my $sURL = shift || '';
+  my $sURL = shift() || '';
   # Make sure we don't return two different URLs for the same item:
   $sURL =~ s!&rd=\d+!!;
   $sURL =~ s!&category=\d+!!;
@@ -271,10 +271,10 @@ sub _format_date
 sub _create_description
   {
   my $self = shift;
-  my $iItem = shift || 'unknown';
-  my $iBids = shift || 'no';
-  my $iPrice = shift || 'unknown';
-  my $sWhen = shift || 'current';
+  my $iItem = shift() || 'unknown';
+  my $iBids = shift() || 'no';
+  my $iPrice = shift() || 'unknown';
+  my $sWhen = shift() || 'current';
   # print STDERR " DDD _c_d($iItem, $iBids, $iPrice, $sWhen)\n";
   my $sDesc = "Item \043$iItem; $iBids bid";
   $sDesc .= 's' if $iBids ne '1';
@@ -608,13 +608,18 @@ sub parse_enddate
   my $oTDdate = shift;
   my $hit = shift;
   my $sDate = 'unknown';
-  if (! ref $oTDdate)
+  my ($s, $sDateTemp);
+  if (ref $oTDdate)
     {
-    return 0;
+    $sDateTemp = $oTDdate->as_text;
+    $s = $oTDdate->as_HTML;
     }
-  my $s = $oTDdate->as_HTML;
+  else
+    {
+    $sDateTemp = $s = $oTDdate;
+    }
   print STDERR " +   TDdate ===$s===\n" if 1 < $self->{_debug};
-  if ($oTDdate->attr('class') !~ m'ebcTim')
+  if (ref($oTDdate) && ($oTDdate->attr('class') !~ m'ebcTim'))
     {
     # If we see this, we probably were searching for Buy-It-Now items
     # but we ran off the bottom of the item list and ran into the list
@@ -622,7 +627,6 @@ sub parse_enddate
     return 0;
     # There is a separate backend for searching Store items!
     } # if
-  my $sDateTemp = $oTDdate->as_text;
   # Convert nbsp to regular space:
   $sDateTemp =~ s!\240!\040!g;
   print STDERR " +   raw    sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
