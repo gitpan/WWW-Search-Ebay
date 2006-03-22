@@ -1,3 +1,7 @@
+2006-03-22    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): don't use the Switch module
+
 2006-03-11    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay.pm (parse_enddate): now can take a string argument

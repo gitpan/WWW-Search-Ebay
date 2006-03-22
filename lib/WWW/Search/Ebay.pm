@@ -1,6 +1,6 @@
 # Ebay.pm
 # by Martin Thurn
-# $Id: Ebay.pm,v 2.182 2006/03/15 01:05:03 Daddy Exp $
+# $Id: Ebay.pm,v 2.183 2006/03/22 23:32:24 Daddy Exp $
 
 =head1 NAME
 
@@ -122,7 +122,6 @@ use Date::Manip;
 &Date_Init('TZ=US/Pacific') unless (defined($ENV{TZ}) && ($ENV{TZ} ne ''));
 use HTML::TreeBuilder;
 use LWP::Simple;
-use Switch;
 use WWW::Search qw( generic_option strip_tags );
 # We need the version that has the end_date() method:
 use WWW::SearchResult 2.067;
@@ -130,7 +129,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.182 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.183 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -462,15 +461,30 @@ sub parse_tree
       next unless ref($oTDsib);
       my $s = $oTDsib->as_HTML;
       print STDERR " DDD   try TD$sColumn ===$s===\n" if (1 < $self->{_debug});
-      switch ($sColumn)
+      if ($sColumn eq 'price')
         {
-        case 'price'    { next TD unless $self->parse_price($oTDsib, $hit) }
-        case 'bids'     { next TD unless $self->parse_bids($oTDsib, $hit) }
-        case 'shipping' { next TD unless $self->parse_shipping($oTDsib, $hit) }
-        case 'enddate'  { next TD unless $self->parse_enddate($oTDsib, $hit) }
-        case 'time'     { next TD unless $self->parse_enddate($oTDsib, $hit) }
-        else            { next SIBLING_TD }
-        } # switch
+        next TD unless $self->parse_price($oTDsib, $hit);
+        }
+      elsif ($sColumn eq 'bids')
+        {
+        next TD unless $self->parse_bids($oTDsib, $hit);
+        }
+      elsif ($sColumn eq 'shipping')
+        {
+        next TD unless $self->parse_shipping($oTDsib, $hit);
+        }
+      elsif ($sColumn eq 'enddate')
+        {
+        next TD unless $self->parse_enddate($oTDsib, $hit);
+        }
+      elsif ($sColumn eq 'time')
+        {
+        next TD unless $self->parse_enddate($oTDsib, $hit);
+        }
+      else
+        {
+        next SIBLING_TD;
+        }
       } # while
     my $sDesc = $self->_create_description($iItemNum,
                                            $hit->bid_count,

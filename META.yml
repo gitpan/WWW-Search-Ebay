@@ -5,7 +5,7 @@ build_requires:
   Test::More: 0
   WWW::Search::Test: 2.265
 distribution_type: module
-generated_by: Module::Install version 0.60
+generated_by: Module::Install version 0.61
 license: perl
 name: WWW-Search-Ebay
 no_index:
@@ -16,8 +16,7 @@ requires:
   Date::Manip: 0
   HTML::TreeBuilder: 0
   LWP::Simple: 0
-  Switch: 2.1
   WWW::Search: 2.529
   WWW::SearchResult: 2.067
   perl: 5.005
-version: 2.221
+version: 2.222
