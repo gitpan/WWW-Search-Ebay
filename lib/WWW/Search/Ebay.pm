@@ -1,6 +1,5 @@
-# Ebay.pm
-# by Martin Thurn
-# $Id: Ebay.pm,v 2.183 2006/03/22 23:32:24 Daddy Exp $
+
+# $Id: Ebay.pm,v 2.188 2006/04/22 20:02:54 Daddy Exp $
 
 =head1 NAME
 
@@ -36,26 +35,63 @@ The query is applied to TITLES only.
 The results are ordered youngest auctions first (reverse order of
 auction listing date).
 
-In the resulting L<WWW::Search::Result> objects, the description field
-consists of a human-readable combination (joined with semicolon-space)
-of the Item Number; number of bids; and high bid amount (or starting
-bid amount).
+In the resulting L<WWW::Search::Result> objects, the description()
+field consists of a human-readable combination (joined with
+semicolon-space) of the Item Number; number of bids; and high bid
+amount (or starting bid amount).
 
-In the resulting L<WWW::Search::Result> objects, the end_date field
+In the resulting L<WWW::Search::Result> objects, the end_date() field
 contains a human-readable DTG of when the auction is scheduled to end
 (in the form "YYYY-MM-DD HH:MM TZ").  If environment variable TZ is
 set, the time will be converted to that timezone; otherwise the time
 will be left in ebay.com's default timezone (US/Pacific).
 
-In the resulting L<WWW::Search::Result> objects, the bid_count field
+In the resulting L<WWW::Search::Result> objects, the bid_count() field
 contains the number of bids as an integer.
 
-In the resulting L<WWW::Search::Result> objects, the bid_amount field is
-a string containing the high bid or starting bid as a human-readable
-monetary value in seller-native units, e.g. "$14.95" or "GBP 6.00".
+In the resulting L<WWW::Search::Result> objects, the bid_amount()
+field is a string containing the high bid or starting bid as a
+human-readable monetary value in seller-native units, e.g. "$14.95" or
+"GBP 6.00".
 
-In the resulting L<WWW::Search::Result> objects, the category field
+In the resulting L<WWW::Search::Result> objects, the category() field
 contains the Ebay category number.
+
+In the resulting L<WWW::Search::Result> objects, the sold() field will
+be non-zero if the item has already sold.  (Only if you're using
+WWW::Search::Ebay::Completed)
+
+After a successful search, your search object will contain an element
+named 'categories' which will be a reference to an array of hashes
+containing names and IDs of categories and nested subcategories, and
+the count of items matching your query in each category and
+subcategory.  (Special thanks to Nick Lokkju for this code!)  For
+example:
+
+  $oSearch->{category} = [
+          {
+            'ID' => '1',
+            'Count' => 19,
+            'Name' => 'Collectibles',
+            'Subcategory' => [
+                               {
+                                 'ID' => '13877',
+                                 'Count' => 11,
+                                 'Name' => 'Historical Memorabilia'
+                               },
+                               {
+                                 'ID' => '11450',
+                                 'Count' => 1,
+                                 'Name' => 'Clothing, Shoes & Accessories'
+                               },
+                             ]
+          },
+          {
+            'ID' => '281',
+            'Count' => 1,
+            'Name' => 'Jewelry & Watches',
+          }
+        ];
 
 If your query string happens to be an eBay item number,
 (i.e. if ebay.com redirects the query to an auction page),
@@ -117,20 +153,22 @@ package WWW::Search::Ebay;
 @ISA = qw( WWW::Search );
 
 use Carp ();
+use CGI;
 use Data::Dumper;  # for debugging only
 use Date::Manip;
 &Date_Init('TZ=US/Pacific') unless (defined($ENV{TZ}) && ($ENV{TZ} ne ''));
 use HTML::TreeBuilder;
 use LWP::Simple;
 use WWW::Search qw( generic_option strip_tags );
-# We need the version that has the end_date() method:
-use WWW::SearchResult 2.067;
+# We need the version that has the sold() method:
+use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.183 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.188 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
+my $cgi = new CGI;
 
 sub native_setup_search
   {
@@ -190,7 +228,8 @@ sub native_setup_search
         }
       } # foreach
     } # if
-
+  # Clear the list of results per category:
+  $self->{categories} = [];
   # Finally, figure out the url.
   $self->{_next_url} = $self->{'search_host'} . $self->{'search_path'} .'?'. $self->hash_to_cgi_string($self->{_options});
   } # native_setup_search
@@ -267,19 +306,35 @@ sub _format_date
   &UnixDate(shift, '%Y-%m-%d %H:%M %Z');
   } # _format_date
 
+sub _bidcount_as_text
+  {
+  my $self = shift;
+  my $hit = shift;
+  my $iBids = $hit->bid_count || 'no';
+  my $s = "$iBids bid";
+  $s .= 's' if ($iBids ne '1');
+  $s .= '; ';
+  } # _bidcount_as_text
+
+sub _bidamount_as_text
+  {
+  my $self = shift;
+  my $hit = shift;
+  my $iPrice = $hit->bid_amount || 'unknown';
+  my $sDesc = '';
+  $sDesc .= $hit->bid_count ? 'current' : 'starting';
+  $sDesc .= " bid $iPrice";
+  } # _bidamount_as_text
+
 sub _create_description
   {
   my $self = shift;
-  my $iItem = shift() || 'unknown';
-  my $iBids = shift() || 'no';
-  my $iPrice = shift() || 'unknown';
+  my $hit = shift;
+  my $iItem = $hit->item_number || 'unknown';
   my $sWhen = shift() || 'current';
   # print STDERR " DDD _c_d($iItem, $iBids, $iPrice, $sWhen)\n";
-  my $sDesc = "Item \043$iItem; $iBids bid";
-  $sDesc .= 's' if $iBids ne '1';
-  $sDesc .= '; ';
-  $sDesc .= 'no' ne $iBids ? $sWhen : 'starting';
-  $sDesc .= " bid $iPrice";
+  my $sDesc = "Item \043$iItem; ". $self->_bidcount_as_text($hit);
+  $sDesc .= $self->_bidamount_as_text($hit);
   return $sDesc;
   } # _create_description
 
@@ -321,12 +376,12 @@ sub parse_tree
     {
     my $hit = new WWW::Search::Result;
     $hit->item_number($1);
-    $hit->description($self->_create_description($1));
     $hit->end_date($self->_format_date($2));
     # For backward-compatibility:
     $hit->change_date($self->_format_date($2));
     $hit->title($3);
     $hit->add_url($self->{response}->request->uri);
+    $hit->description($self->_create_description($hit));
     # print Dumper($hit);
     push(@{$self->{cache}}, $hit);
     $self->{'_num_hits'}++;
@@ -346,6 +401,13 @@ sub parse_tree
       last FONT;
       } # if
     } # foreach
+
+  # Recursively parse the stats telling how many items were found in
+  # each category:
+  my $oUL = $tree->look_down(_tag => 'ul',
+                             class => 'categories');
+  $self->{categories} ||= [];
+  $self->_parse_category_list($oUL, $self->{categories}) if ref($oUL);
 
   # See if our query was completely replaced by a similar-spelling query:
   my $oLI = $tree->look_down(_tag => 'li',
@@ -486,9 +548,7 @@ sub parse_tree
         next SIBLING_TD;
         }
       } # while
-    my $sDesc = $self->_create_description($iItemNum,
-                                           $hit->bid_count,
-                                           $hit->bid_amount);
+    my $sDesc = $self->_create_description($hit);
     $hit->description($sDesc);
     push(@{$self->{cache}}, $hit);
     $self->{'_num_hits'}++;
@@ -522,6 +582,47 @@ sub parse_tree
   return $hits_found;
   } # parse_tree
 
+sub _parse_category_list
+  {
+  my $self = shift;
+  my $oTree = shift;
+  my $ra = shift;
+  my $oUL = $oTree->look_down(_tag => 'ul');
+  my @aoLI = $oUL->look_down(_tag => 'li');
+ CATLIST_LI:
+  foreach my $oLI (@aoLI)
+    {
+    my %hash;
+    next CATLIST_LI unless ref($oLI);
+    if ($oLI->parent->same_as($oUL))
+      {
+      my $oA = $oLI->look_down(_tag => 'a');
+      next CATLIST_LI unless ref($oA);
+      my $oSPAN = $oLI->look_down(_tag => 'span');
+      next CATLIST_LI unless ref($oSPAN);
+      $hash{'Name'} = $oA->as_text;
+      $hash{'ID'} = $oA->{'href'};
+      $hash{'ID'} =~ /sacatZ([0-9]+)/;
+      $hash{'ID'} = $1;
+      my $i = $oSPAN->as_text;
+      $i =~ tr/0-9//cd;
+      $hash{'Count'} = $i;
+      push @{$ra}, \%hash;
+      } # if
+    my @aoUL = $oLI->look_down(_tag => 'ul');
+ CATLIST_UL:
+    foreach my $oUL (@aoUL)
+      {
+      next CATLIST_UL unless ref($oUL);
+      if($oUL->parent()->same_as($oLI))
+        {
+        $hash{'Subcategory'} = ();
+        $self->_parse_category_list($oLI, \@{$hash{'Subcategory'}});
+        } # if
+      } # foreach CATLIST_UL
+    } # foreach CATLIST_LI
+  } # _parse_category_list
+
 # A pattern to match HTML whitespace:
 our $W = q{[\ \t\r\n\240]};
 
@@ -553,6 +654,12 @@ sub parse_price
     # into the list of Auction items.
     return 0;
     # There is a separate backend for searching Auction items!
+    } # if
+  if ($oTDprice->look_down(_tag => 'span',
+                          class => 'ebSold'))
+    {
+    # This item sold, even if it had no bids (i.e. Buy-It-Now)
+    $hit->sold(1);
     } # if
   my $iPrice = $oTDprice->as_text;
   print STDERR " +   raw iPrice ===$iPrice===\n" if (1 < $self->{_debug});
@@ -658,7 +765,43 @@ sub parse_enddate
   return 1;
   } # parse_enddate
 
+=item result_as_HTML
+
+Given a WWW::SearchResult object representing an auction, formats it
+human-readably with HTML.
+
+=cut
+
+sub result_as_HTML
+  {
+  my $self = shift;
+  my $oSR = shift or return '';
+  my $dateEnd = &ParseDate($oSR->end_date);
+  my $sSold = $oSR->sold
+  ? $cgi->font({color=>'green'}, 'sold') .q{; }
+  : $cgi->font({color=>'red'}, 'not sold') .q{; };
+  my $sBids = $self->_bidcount_as_text($oSR);
+  my $sPrice = $self->_bidamount_as_text($oSR);
+  my $sEnded = '';
+  if (&Date_Cmp($dateEnd, 'now') < 0)
+    {
+    $sEnded = $cgi->font({ color => 'red', }, 'ended');
+    }
+  else
+    {
+    $sEnded = $cgi->font({ color => 'green', },
+                         &UnixDate($dateEnd, q{ends %Y-%m-%d %H:%M:%S}));
+    }
+  return $cgi->b(
+                 $cgi->font({face => 'Arial, Helvetica'},
+                            $cgi->a({href => $oSR->url}, $oSR->title),
+                            $cgi->br,
+                            qq{$sEnded; $sSold$sBids$sPrice},
+                           ),
+                   );
+  } # result_as_HTML
+
+
 1;
 
 __END__
-

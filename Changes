@@ -1,3 +1,16 @@
+2006-04-22    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (_bidamount_as_text): new private method
+	(_bidcount_as_text): new private method
+	(result_as_HTML): new method
+	(parse_price): set sold() on results (as suggested by Nick Lokkju)
+	(_parse_category_list): new private method
+
+2006-04-21    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (_bid_as_text): new method
+	(result_as_HTML): new method
+
 2006-03-22    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay.pm (parse_tree): don't use the Switch module

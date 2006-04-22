@@ -1,5 +1,5 @@
 
-# $Id: basic.t,v 1.15 2005/12/25 20:29:47 Daddy Exp $
+# $Id: basic.t,v 1.16 2006/04/22 19:59:58 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -98,12 +98,10 @@ foreach my $oResult (@ao)
                               qr{Item #\d+;},
                               'result item number is ok');
   $oV->Bit_Off(5) unless like($oResult->description,
-                              qr{\s(\d+|no)\s+bids?;},
+                              qr{\s(\d+|no)\s+bids?;}, # }, # Ebay bug
                               'result bidcount is ok');
   $oV->Bit_Off(6) unless like($oResult->bid_count, qr{\A\d+\Z},
                               'bid_count is a number');
-  $oV->Bit_Off(0) unless unlike($oResult->title, qr{(?i:quakers)},
-                                'result Title is not "quakers"');
   $oV->Bit_Off(7) unless like($oResult->category, qr{\A\d+\Z},
                               'category is a number');
   my $iV = $oV->to_Dec;
@@ -121,6 +119,8 @@ if ($iAnyFailed)
     diag(Dumper($sVal));
     } # while
   } # if
+# Sanity check for new category list parsing:
+# print STDERR Dumper($WWW::Search::Test::oSearch->{categories});
 SKIP_CONTENTS:
 ;
 
