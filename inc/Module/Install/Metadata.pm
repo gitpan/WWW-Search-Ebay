@@ -1,12 +1,15 @@
 #line 1
 package Module::Install::Metadata;
 
-use Module::Install::Base;
-@ISA = qw{Module::Install::Base};
-
-$VERSION = '0.61';
-
 use strict 'vars';
+use Module::Install::Base;
+
+use vars qw{$VERSION $ISCORE @ISA};
+BEGIN {
+	$VERSION = '0.63';
+	$ISCORE  = 1;
+	@ISA     = qw{Module::Install::Base};
+}
 
 my @scalar_keys = qw{
     name module_name abstract author version license
@@ -120,9 +123,9 @@ sub auto_provides {
 
     require Module::Build;
     my $build = Module::Build->new(
-        dist_name    => $self->{name},
-        dist_version => $self->{version},
-        license      => $self->{license},
+        dist_name    => $self->name,
+        dist_version => $self->version,
+        license      => $self->license,
     );
     $self->provides(%{ $build->find_dist_packages || {} });
 }
@@ -235,11 +238,13 @@ sub perl_version_from {
         ^
         use \s*
         v?
-        ([\d\.]+)
+        ([\d_\.]+)
         \s* ;
     /ixms
       )
     {
+        my $v = $1;
+        $v =~ s{_}{}g;
         $self->perl_version($1);
     }
     else {
@@ -271,7 +276,7 @@ sub author_from {
 
 sub license_from {
     my ( $self, $file ) = @_;
-
+    # print STDERR " DDD start license_from($file)\n";
     if (
         $self->_slurp($file) =~ m/
         =head \d \s+
@@ -296,12 +301,14 @@ sub license_from {
         );
         while ( my ( $pattern, $license ) = splice( @phrases, 0, 2 ) ) {
             $pattern =~ s{\s+}{\\s+}g;
+            # print STDERR " DDD look for ==$pattern== in ==$license_text==\n";
             if ( $license_text =~ /\b$pattern\b/i ) {
                 $self->license($license);
-                return 1;
-            }
-        }
-    }
+                # print STDERR " DDD   matched!\n";
+                return $license;
+            } # if
+        } # while
+    } # if
 
     warn "Cannot determine license info from $file\n";
     return 'unknown';

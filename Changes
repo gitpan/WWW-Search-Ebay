@@ -1,3 +1,15 @@
+2006-08-25    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay/DE.pm: new backend
+
+	* lib/WWW/Search/Ebay.pm (_process_date_abbrevs): new method
+	(_result_count_regex): new method
+	(_next_text): new method
+
+2006-06-14    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (parse_shipping): replace stub method with actual code! (as suggested by John Baleshiski 8-)
+
 2006-04-22    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay.pm (_bidamount_as_text): new private method

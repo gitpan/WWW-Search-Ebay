@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.188 2006/04/22 20:02:54 Daddy Exp $
+# $Id: Ebay.pm,v 2.194 2006/08/26 03:51:29 Daddy Exp $
 
 =head1 NAME
 
@@ -166,7 +166,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.188 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.194 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -359,6 +359,11 @@ sub _title_td_specs
   } # _title_td_specs
 
 
+sub _result_count_regex
+  {
+  return qr'(\d+) items found ';
+  } # _result_count_regex
+
 sub columns
   {
   my $self = shift;
@@ -395,7 +400,8 @@ sub parse_tree
   foreach my $oFONT (@aoFONT)
     {
     print STDERR " +   try FONT ===", $oFONT->as_text, "===\n" if (1 < $self->{_debug});
-    if ($oFONT->as_text =~ m!(\d+) items found !)
+    my $qr = $self->_result_count_regex;
+    if ($oFONT->as_text =~ m!$qr!)
       {
       $self->approximate_result_count($1);
       last FONT;
@@ -570,7 +576,7 @@ sub parse_tree
     # If we get all the way to the item list, there must be no next
     # button:
     last TRY_NEXT if ($href =~ m!ViewItem!);
-    if ($oA->as_text eq 'Next')
+    if ($oA->as_text eq $self->_next_text)
       {
       print STDERR " +   got NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
       $self->{_next_url} = $self->absurl($self->{_prev_url}, $href);
@@ -581,6 +587,12 @@ sub parse_tree
   $tree->delete;
   return $hits_found;
   } # parse_tree
+
+sub _next_text
+  {
+  # The text of the "Next" button, localized:
+  return 'Next';
+  } # _next_text
 
 sub _parse_category_list
   {
@@ -664,6 +676,8 @@ sub parse_price
   my $iPrice = $oTDprice->as_text;
   print STDERR " +   raw iPrice ===$iPrice===\n" if (1 < $self->{_debug});
   $iPrice =~ s!&pound;!GBP!;
+  # Convert nbsp to regular space:
+  $iPrice =~ s!\240!\040!g;
   my $currency = $self->currency_pattern;
   $iPrice =~ s!(\d)$W*($currency$W*[\d.,]+)!$1 (Buy-It-Now for $2)!;
   $hit->bid_amount($iPrice);
@@ -712,6 +726,10 @@ sub parse_shipping
   my $self = shift;
   my $oTD = shift;
   my $hit = shift;
+  my $iPrice = $oTD->as_text;
+  print STDERR " +   raw shipping ===$iPrice===\n" if (1 < $self->{_debug});
+  $iPrice =~ s!&pound;!GBP!;
+  $hit->shipping($iPrice);
   return 1;
   } # parse_shipping
 
@@ -752,9 +770,7 @@ sub parse_enddate
   $sDateTemp =~ s!\240!\040!g;
   print STDERR " +   raw    sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
   $sDateTemp =~ s!<!!;
-  $sDateTemp =~ s!d! days!;
-  $sDateTemp =~ s!h! hours!;
-  $sDateTemp =~ s!m! minutes!;
+  $sDateTemp = $self->_process_date_abbrevs($sDateTemp);
   print STDERR " +   cooked sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
   my $date = &DateCalc($self->{_ebay_official_time}, "+ $sDateTemp");
   print STDERR " +   date ===$date===\n" if 1 < $self->{_debug};
@@ -764,6 +780,17 @@ sub parse_enddate
   $hit->change_date($sDate);
   return 1;
   } # parse_enddate
+
+sub _process_date_abbrevs
+  {
+  my $self = shift;
+  my $s = shift;
+  $s =~ s!d! days!;
+  $s =~ s!h! hours!;
+  $s =~ s!m! minutes!;
+  return $s;
+  } # _process_date_abbrevs
+
 
 =item result_as_HTML
 
