@@ -10,8 +10,10 @@ inc/Module/Install/WriteAll.pm
 lib/WWW/Search/Ebay.pm
 lib/WWW/Search/Ebay/Auctions.pm
 lib/WWW/Search/Ebay/BuyItNow.pm
+lib/WWW/Search/Ebay/ByBidderID.pm
 lib/WWW/Search/Ebay/ByEndDate.pm
 lib/WWW/Search/Ebay/BySellerID.pm
+lib/WWW/Search/Ebay/DE.pm
 lib/WWW/Search/Ebay/Motors.pm
 lib/WWW/Search/Ebay/Stores.pm
 lib/WWW/Search/Ebay/UK.pm
@@ -21,7 +23,9 @@ META.yml
 README
 t/basic.t
 t/buyitnow.t
+t/bybidderid.t
 t/bysellerid.t
+t/de.t
 t/enddate.t
 t/itemnumber.t
 t/motors.t
