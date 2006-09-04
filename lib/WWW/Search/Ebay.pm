@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.194 2006/08/26 03:51:29 Daddy Exp $
+# $Id: Ebay.pm,v 2.195 2006/09/04 02:49:57 Daddy Exp $
 
 =head1 NAME
 
@@ -166,7 +166,7 @@ use WWW::Search::Result;
 
 use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.194 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.195 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -282,11 +282,19 @@ sub preprocess_results_page
   # print STDERR " +   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
   } # preprocess_results_page
 
+sub whitespace_pattern
+  {
+  # A pattern to match HTML whitespace:
+  return qr{[\ \t\r\n\240]};
+  } # whitespace_pattern 
 
 sub currency_pattern
   {
-  # A pattern to match all possible currencies found in eBay listings:
-  return qr/(?:\$|C|EUR|GBP)/;
+  my $self = shift;
+  # A pattern to match all possible currencies found in USA eBay
+  # listings:
+  my $W = $self->whitespace_pattern;
+  return qr/(?:\$|C|EUR|GBP)$W*[0-9.,]+/;
   } # currency_pattern
 
 sub _cleanup_url
@@ -635,9 +643,6 @@ sub _parse_category_list
     } # foreach CATLIST_LI
   } # _parse_category_list
 
-# A pattern to match HTML whitespace:
-our $W = q{[\ \t\r\n\240]};
-
 sub parse_price
   {
   my $self = shift;
@@ -679,7 +684,8 @@ sub parse_price
   # Convert nbsp to regular space:
   $iPrice =~ s!\240!\040!g;
   my $currency = $self->currency_pattern;
-  $iPrice =~ s!(\d)$W*($currency$W*[\d.,]+)!$1 (Buy-It-Now for $2)!;
+  my $W = $self->whitespace_pattern;
+  $iPrice =~ s!($currency)$W*($currency)!$1 (Buy-It-Now for $2)!;
   $hit->bid_amount($iPrice);
   return 1;
   } # parse_price
@@ -706,6 +712,7 @@ sub parse_bids
       # There is a separate backend for searching Auction items!
       } # if
     $iBids = $oTDbids->as_text;
+    my $W = $self->whitespace_pattern;
     if (
         # Bid listed as hyphen means no bids:
         ($iBids =~ m!\A$W*-$W*\Z!)

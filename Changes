@@ -1,3 +1,13 @@
+2006-09-03    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (whitespace_pattern): new method
+
+	* lib/WWW/Search/Ebay/ES.pm: new backend
+
+	* lib/WWW/Search/Ebay/FR.pm: new backend
+
+	* lib/WWW/Search/Ebay/IT.pm: new backend
+
 2006-08-25    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay/DE.pm: new backend

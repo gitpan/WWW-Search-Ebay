@@ -14,6 +14,9 @@ lib/WWW/Search/Ebay/ByBidderID.pm
 lib/WWW/Search/Ebay/ByEndDate.pm
 lib/WWW/Search/Ebay/BySellerID.pm
 lib/WWW/Search/Ebay/DE.pm
+lib/WWW/Search/Ebay/ES.pm
+lib/WWW/Search/Ebay/FR.pm
+lib/WWW/Search/Ebay/IT.pm
 lib/WWW/Search/Ebay/Motors.pm
 lib/WWW/Search/Ebay/Stores.pm
 lib/WWW/Search/Ebay/UK.pm
@@ -27,6 +30,9 @@ t/bybidderid.t
 t/bysellerid.t
 t/de.t
 t/enddate.t
+t/es.t
+t/fr.t
+t/it.t
 t/itemnumber.t
 t/motors.t
 t/stores.t
