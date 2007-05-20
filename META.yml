@@ -1,3 +1,4 @@
+--- 
 author: Martin Thurn <mthurn@cpan.org>
 build_requires: 
   Bit::Vector: 0
@@ -5,8 +6,11 @@ build_requires:
   Test::More: 0
   WWW::Search::Test: 2.265
 distribution_type: module
-generated_by: Module::Install version 0.63
+generated_by: Module::Install version 0.67
 license: perl
+meta-spec: 
+  url: http://module-build.sourceforge.net/META-spec-v1.3.html
+  version: 1.3
 name: WWW-Search-Ebay
 no_index: 
   directory: 
@@ -19,4 +23,4 @@ requires:
   WWW::Search: 2.529
   WWW::SearchResult: 2.067
   perl: 5.005
-version: 2.226
+version: 2.229

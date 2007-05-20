@@ -1,5 +1,5 @@
 
-# $Id: stores.t,v 1.12 2005/08/30 03:14:21 Daddy Exp $
+# $Id: stores.t,v 1.13 2007/05/20 13:33:20 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -40,10 +40,15 @@ $iDebug = 0;
 $iDump = 0;
 &tm_run_test('normal', '093624-69602-5', # '0-77778-60672-7',
              1, 99, $iDebug, $iDump);
-diag("Sending 1-page query for 13-digit EAN...");
-$iDebug = 0;
-$iDump = 0;
-&tm_run_test('normal', '00-77778-60672-7' , 1, 99, $iDebug, $iDump);
+TODO:
+  {
+  $TODO = 'sometimes there are none of this item listed';
+  diag("Sending 1-page query for 13-digit EAN...");
+  $iDebug = 0;
+  $iDump = 0;
+  &tm_run_test('normal', '00-77778-60672-7' , 1, 99, $iDebug, $iDump);
+  $TODO = '';
+  }
 diag("Sending query for 10-digit ISBN...");
 $iDebug = 0;
 $iDump = 0;

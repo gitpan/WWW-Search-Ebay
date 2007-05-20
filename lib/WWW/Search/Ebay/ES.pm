@@ -1,9 +1,9 @@
 
-# $Id: ES.pm,v 2.1 2006/09/04 02:50:41 Daddy Exp $
+# $Id: ES.pm,v 2.4 2007/05/20 13:23:03 Daddy Exp $
 
 =head1 NAME
 
-WWW::Search::Ebay::ES - backend for searching auctions at eBay France
+WWW::Search::Ebay::ES - backend for searching auctions at eBay Spain
 
 =head1 DESCRIPTION
 
@@ -11,21 +11,19 @@ Acts just like WWW::Search::Ebay.
 
 =head1 AUTHOR
 
-C<WWW::Search::Ebay::ES> was written by Martin Thurn
-(mthurn@cpan.org).
-
-C<WWW::Search::Ebay::ES> is maintained by Martin Thurn
-(mthurn@cpan.org).
+C<WWW::Search::Ebay::ES> was written by and is maintained by
+Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
 =cut
 
 package WWW::Search::Ebay::ES;
 
+use strict;
+
 use Carp;
-use WWW::Search::Ebay;
-use vars qw( @ISA $VERSION );
-@ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 2.1 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+use base 'WWW::Search::Ebay';
+our
+$VERSION = do { my @r = (q$Revision: 2.4 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -62,7 +60,7 @@ sub _title_td_specs
 
 sub _result_count_regex
   {
-  return qr' encontrado (\d+) artículos ';
+  return qr'(?:encontrado )?(\d+) artículos (?:encontrado)?';
   } # _result_count_regex
 
 sub _next_text

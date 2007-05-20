@@ -1,5 +1,5 @@
 
-# $Id: es.t,v 1.1 2006/09/04 02:50:54 Daddy Exp $
+# $Id: es.t,v 1.2 2007/05/20 13:33:19 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -32,7 +32,7 @@ diag("Sending multi-page query...");
 $iDebug = 0;
 $iDump = 0;
 # This query returns many of pages of results:
-&tm_run_test('normal', 'cuba', 101, undef, $iDebug);
+&tm_run_test('normal', 'cuba', 52, undef, $iDebug);
 
 DEBUG_NOW:
 ;
@@ -40,7 +40,7 @@ CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
-&tm_run_test('normal', 'trinidad', 1, 99, $iDebug, $iDump);
+&tm_run_test('normal', 'trinidad', 1, 49, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');

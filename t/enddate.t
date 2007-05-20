@@ -1,5 +1,5 @@
 
-# $Id: enddate.t,v 1.7 2005/08/18 04:40:55 Daddy Exp $
+# $Id: enddate.t,v 1.8 2007/05/20 13:33:19 Daddy Exp $
 
 use Data::Dumper;
 use ExtUtils::testlib;
@@ -8,7 +8,8 @@ use Test::More no_plan;
 use constant DEBUG_DATE => 0;
 
 BEGIN { use_ok('Date::Manip') };
-&Date_Init('TZ=US/Eastern');
+$ENV{TZ} = 'EST5EDT';
+&Date_Init('TZ=EST5EDT');
 BEGIN { use_ok('WWW::Search') };
 BEGIN { use_ok('WWW::Search::Test') };
 BEGIN { use_ok('WWW::Search::Ebay') };

@@ -1,5 +1,5 @@
 
-# $Id: UK.pm,v 1.8 2005/08/17 03:14:58 Daddy Exp $
+# $Id: UK.pm,v 1.10 2007/05/20 13:32:57 Daddy Exp $
 
 =head1 NAME
 
@@ -11,21 +11,19 @@ Acts just like WWW::Search::Ebay.
 
 =head1 AUTHOR
 
-C<WWW::Search::Ebay::UK> was written by Martin Thurn
-(mthurn@cpan.org).
-
-C<WWW::Search::Ebay::UK> is maintained by Martin Thurn
-(mthurn@cpan.org).
+C<WWW::Search::Ebay::UK> was written by and is maintained by
+Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
 =cut
 
 package WWW::Search::Ebay::UK;
 
+use strict;
+
 use Carp;
-use WWW::Search::Ebay;
-use vars qw( @ISA $VERSION );
-@ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 1.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+use base 'WWW::Search::Ebay';
+our
+$VERSION = do { my @r = (q$Revision: 1.10 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {

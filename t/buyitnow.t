@@ -1,5 +1,5 @@
 
-# $Id: buyitnow.t,v 1.9 2006/02/19 20:43:55 Daddy Exp $
+# $Id: buyitnow.t,v 1.10 2007/05/20 13:33:19 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -42,10 +42,16 @@ TODO:
   &tm_run_test('normal', '0-77778-60672-7' , 1, 99, $iDebug, $iDump);
   $TODO = '';
   } # end of TODO
-diag("Sending 1-page query for 13-digit EAN...");
-$iDebug = 0;
-$iDump = 0;
-&tm_run_test('normal', '00-75678-26382-8' , 1, 99, $iDebug, $iDump);
+;
+TODO:
+  {
+  $TODO = 'sometimes there are zero of this item';
+  diag("Sending 1-page query for 13-digit EAN...");
+  $iDebug = 0;
+  $iDump = 0;
+  &tm_run_test('normal', '00-75678-26382-8' , 1, 99, $iDebug, $iDump);
+  $TODO = '';
+  }
 DEBUG_NOW:
 diag("Sending 1-page query for 10-digit ISBN...");
 TODO:

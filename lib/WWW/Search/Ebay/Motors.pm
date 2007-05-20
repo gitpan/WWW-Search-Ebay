@@ -1,5 +1,5 @@
 
-# $Id: Motors.pm,v 1.3 2005/08/17 03:15:29 Daddy Exp $
+# $Id: Motors.pm,v 1.5 2007/05/20 13:32:56 Daddy Exp $
 
 =head1 NAME
 
@@ -43,11 +43,8 @@ Please tell the author if you find any!
 
 =head1 AUTHOR
 
-C<WWW::Search::Ebay::Motors> was written by Martin Thurn
-(mthurn@cpan.org).
-
-C<WWW::Search::Ebay::Motors> is maintained by Martin Thurn
-(mthurn@cpan.org).
+C<WWW::Search::Ebay::Motors> was written by and is maintained by
+Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
 =head1 LEGALESE
 
@@ -61,16 +58,14 @@ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 package WWW::Search::Ebay::Motors;
 
+use strict;
+
 use Carp;
 use Data::Dumper;
-use WWW::Search::Ebay;
-
-use strict;
-use vars qw( @ISA $VERSION $MAINTAINER );
-
-@ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 1.3 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
-$MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
+use base 'WWW::Search::Ebay';
+our
+$VERSION = do { my @r = (q$Revision: 1.5 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
   {

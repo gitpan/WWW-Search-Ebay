@@ -1,5 +1,5 @@
 
-# $Id: DE.pm,v 2.2 2006/08/26 03:53:57 Daddy Exp $
+# $Id: DE.pm,v 2.4 2007/05/20 13:32:56 Daddy Exp $
 
 =head1 NAME
 
@@ -11,21 +11,19 @@ Acts just like WWW::Search::Ebay.
 
 =head1 AUTHOR
 
-C<WWW::Search::Ebay::DE> was written by Martin Thurn
-(mthurn@cpan.org).
-
-C<WWW::Search::Ebay::DE> is maintained by Martin Thurn
-(mthurn@cpan.org).
+C<WWW::Search::Ebay::DE> was written by and is maintained by
+Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
 =cut
 
 package WWW::Search::Ebay::DE;
 
+use strict;
+
 use Carp;
-use WWW::Search::Ebay;
-use vars qw( @ISA $VERSION );
-@ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 2.2 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+use base 'WWW::Search::Ebay';
+our
+$VERSION = do { my @r = (q$Revision: 2.4 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -103,8 +101,8 @@ sub _process_date_abbrevs
   # Convert German abbreviations for units of time to something
   # Date::Manip can parse (namely, English words):
   $s =~ s!(\d)T!$1 days!;
-  $s =~ s!(\d)Std!$1 hours!;
-  $s =~ s!(\d)Min!$1 minutes!;
+  $s =~ s!(\d)Std\.?!$1 hours!;
+  $s =~ s!(\d)Min\.?!$1 minutes!;
   return $s;
   } # _process_date_abbrevs
 

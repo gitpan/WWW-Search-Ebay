@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.195 2006/09/04 02:49:57 Daddy Exp $
+# $Id: Ebay.pm,v 2.202 2007/05/20 13:38:45 Daddy Exp $
 
 =head1 NAME
 
@@ -120,29 +120,9 @@ the results will be ALL the auctions in that category.
 
 =back
 
-=head1 SEE ALSO
+=head1 PUBLIC METHODS OF NOTE
 
-To make new back-ends, see L<WWW::Search>.
-
-=head1 BUGS
-
-Please tell the author if you find any!
-
-=head1 AUTHOR
-
-C<WWW::Search::Ebay> was written by Martin Thurn
-(mthurn@cpan.org).
-
-C<WWW::Search::Ebay> is maintained by Martin Thurn
-(mthurn@cpan.org).
-
-Some fixes along the way contributed by Troy Davis.
-
-=head1 LEGALESE
-
-THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
-WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+=over
 
 =cut
 
@@ -150,7 +130,11 @@ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 package WWW::Search::Ebay;
 
-@ISA = qw( WWW::Search );
+use strict;
+
+use base 'WWW::Search';
+
+use constant DEBUG_DATES => 0;
 
 use Carp ();
 use CGI;
@@ -164,10 +148,9 @@ use WWW::Search qw( generic_option strip_tags );
 use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
-use strict;
 our
-$VERSION = do { my @r = (q$Revision: 2.195 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
-my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
+$VERSION = do { my @r = (q$Revision: 2.202 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
 sub native_setup_search
@@ -214,7 +197,7 @@ sub native_setup_search
     # Copy in new options.
     foreach my $key (keys %$rhOptsArg)
       {
-      # print STDERR " +   inspecting option $key...";
+      # print STDERR " DDD   inspecting option $key...";
       if (WWW::Search::generic_option($key))
         {
         # print STDERR "promote & delete\n";
@@ -267,11 +250,13 @@ sub preprocess_results_page
       $tree->eof;
       my $s = $tree->as_text;
       # print STDERR " DDD official time =====$s=====\n";
-      if ($s =~ m!The official eBay Time is now:(.+?)Pacific\s!i)
+      if ($s =~ m!The official eBay Time is now:(.+?(P[SD]T))\s*Pacific\s!i)
         {
-        # ParseDate automatically converts to local timezone:
-        my $date = &ParseDate($1);
-        # print STDERR " DDD official time =====$date=====\n";
+        my ($sDateRaw, $sTZ) = ($1, $2);
+        DEBUG_DATES && print STDERR " DDD official time raw     ==$sDateRaw==\n";
+        # Apparently, ParseDate() automatically converts to local timezone:
+        my $date = &ParseDate($sDateRaw);
+        DEBUG_DATES && print STDERR " DDD official time cooked  ==$date==\n";
         $self->{_ebay_official_time} = $date;
         } # if
       } # if
@@ -279,7 +264,7 @@ sub preprocess_results_page
   return $sPage;
   # Ebay used to send malformed HTML:
   # my $iSubs = 0 + ($sPage =~ s!</FONT></TD></FONT></TD>!</FONT></TD>!gi);
-  # print STDERR " +   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
+  # print STDERR " DDD   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
   } # preprocess_results_page
 
 sub whitespace_pattern
@@ -311,7 +296,7 @@ sub _cleanup_url
 sub _format_date
   {
   my $self = shift;
-  &UnixDate(shift, '%Y-%m-%d %H:%M %Z');
+  return &UnixDate(shift, '%Y-%m-%d %H:%M %Z');
   } # _format_date
 
 sub _bidcount_as_text
@@ -387,12 +372,14 @@ sub parse_tree
   my $sTitle = $self->{response}->header('title') || '';
   if ($sTitle =~ m!$qrTitle!)
     {
+    my ($iItem, $sDateRaw, $sTitle) = ($1, $2, $3);
+    my $sDateCooked = $self->_format_date($sDateRaw);
     my $hit = new WWW::Search::Result;
-    $hit->item_number($1);
-    $hit->end_date($self->_format_date($2));
+    $hit->item_number($iItem);
+    $hit->end_date($sDateCooked);
     # For backward-compatibility:
-    $hit->change_date($self->_format_date($2));
-    $hit->title($3);
+    $hit->change_date($sDateCooked);
+    $hit->title($sTitle);
     $hit->add_url($self->{response}->request->uri);
     $hit->description($self->_create_description($hit));
     # print Dumper($hit);
@@ -407,7 +394,7 @@ sub parse_tree
  FONT:
   foreach my $oFONT (@aoFONT)
     {
-    print STDERR " +   try FONT ===", $oFONT->as_text, "===\n" if (1 < $self->{_debug});
+    print STDERR " DDD   try FONT ===", $oFONT->as_text, "===\n" if (1 < $self->{_debug});
     my $qr = $self->_result_count_regex;
     if ($oFONT->as_text =~ m!$qr!)
       {
@@ -488,21 +475,21 @@ sub parse_tree
     # Sanity check:
     next TD unless ref $oTDtitle;
     my $sTDtitle = $oTDtitle->as_HTML;
-    print STDERR " + try TDtitle ===$sTDtitle===\n" if (1 < $self->{_debug});
+    print STDERR " DDD try TDtitle ===$sTDtitle===\n" if (1 < $self->{_debug});
     # First A tag contains the url & title:
     my $oA = $oTDtitle->look_down('_tag', 'a');
     next TD unless ref $oA;
     # This is needed for Ebay::UK to make sure we're looking at the right TD:
     my $sTitle = $oA->as_text || '';
     next TD if ($sTitle eq '');
-    print STDERR " +   sTitle ===$sTitle===\n" if (1 < $self->{_debug});
+    print STDERR " DDD   sTitle ===$sTitle===\n" if (1 < $self->{_debug});
     my $oURI = URI->new($oA->attr('href'));
     next TD unless ($oURI =~ m!ViewItem!);
     next TD unless ($oURI =~ m!$qrItemNum!);
     my $iItemNum = $1;
     my $iCategory = 'unknown';
     $iCategory = $1 if ($oURI =~ m!QQcategoryZ(\d+)QQ!);
-    print STDERR " +   iItemNum ===$iItemNum===\n" if (1 < $self->{_debug});
+    print STDERR " DDD   iItemNum ===$iItemNum===\n" if (1 < $self->{_debug});
     if ($oURI->as_string =~ m!QQitemZ(\d+)QQ!)
       {
       # Convert new eBay links to old reliable ones:
@@ -578,7 +565,7 @@ sub parse_tree
   foreach my $oA (0, reverse @aoA)
     {
     next TRY_NEXT unless ref $oA;
-    print STDERR " +   try NEXT A ===", $oA->as_HTML, "===\n" if (1 < $self->{_debug});
+    print STDERR " DDD   try NEXT A ===", $oA->as_HTML, "===\n" if (1 < $self->{_debug});
     my $href = $oA->attr('href');
     next TRY_NEXT unless $href;
     # If we get all the way to the item list, there must be no next
@@ -586,7 +573,7 @@ sub parse_tree
     last TRY_NEXT if ($href =~ m!ViewItem!);
     if ($oA->as_text eq $self->_next_text)
       {
-      print STDERR " +   got NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
+      print STDERR " DDD   got NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
       $self->{_next_url} = $self->absurl($self->{_prev_url}, $href);
       last TRY_NEXT;
       } # if
@@ -652,7 +639,7 @@ sub parse_price
   my $s = $oTDprice->as_HTML;
   if (1 < $self->{_debug})
     {
-    print STDERR " +   try TDprice ===$s===\n";
+    print STDERR " DDD   try TDprice ===$s===\n";
     } # if
   if ($oTDprice->attr('class') eq 'ebcBid')
     {
@@ -679,7 +666,7 @@ sub parse_price
     $hit->sold(1);
     } # if
   my $iPrice = $oTDprice->as_text;
-  print STDERR " +   raw iPrice ===$iPrice===\n" if (1 < $self->{_debug});
+  print STDERR " DDD   raw iPrice ===$iPrice===\n" if (1 < $self->{_debug});
   $iPrice =~ s!&pound;!GBP!;
   # Convert nbsp to regular space:
   $iPrice =~ s!\240!\040!g;
@@ -701,7 +688,7 @@ sub parse_bids
     my $s = $oTDbids->as_HTML;
     if (1 < $self->{_debug})
       {
-      print STDERR " +   TDbids ===$s===\n";
+      print STDERR " DDD   TDbids ===$s===\n";
       } # if
     if ($oTDbids->attr('class') !~ m'ebcBid')
       {
@@ -734,7 +721,7 @@ sub parse_shipping
   my $oTD = shift;
   my $hit = shift;
   my $iPrice = $oTD->as_text;
-  print STDERR " +   raw shipping ===$iPrice===\n" if (1 < $self->{_debug});
+  print STDERR " DDD   raw shipping ===$iPrice===\n" if (1 < $self->{_debug});
   $iPrice =~ s!&pound;!GBP!;
   $hit->shipping($iPrice);
   return 1;
@@ -764,7 +751,7 @@ sub parse_enddate
     {
     $sDateTemp = $s = $oTDdate;
     }
-  print STDERR " +   TDdate ===$s===\n" if 1 < $self->{_debug};
+  print STDERR " DDD   TDdate ===$s===\n" if (1 < $self->{_debug});
   if (ref($oTDdate) && ($oTDdate->attr('class') !~ m'ebcTim'))
     {
     # If we see this, we probably were searching for Buy-It-Now items
@@ -775,12 +762,13 @@ sub parse_enddate
     } # if
   # Convert nbsp to regular space:
   $sDateTemp =~ s!\240!\040!g;
-  print STDERR " +   raw    sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
+  print STDERR " DDD   raw    sDateTemp ===$sDateTemp===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   $sDateTemp =~ s!<!!;
   $sDateTemp = $self->_process_date_abbrevs($sDateTemp);
-  print STDERR " +   cooked sDateTemp ===$sDateTemp===\n" if 1 < $self->{_debug};
-  my $date = &DateCalc($self->{_ebay_official_time}, "+ $sDateTemp");
-  print STDERR " +   date ===$date===\n" if 1 < $self->{_debug};
+  print STDERR " DDD   cooked sDateTemp ===$sDateTemp===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
+  print STDERR " DDD   official time =====$self->{_ebay_official_time}=====\n" if (DEBUG_DATES || (1 < $self->{_debug}));
+  my $date = &DateCalc($self->{_ebay_official_time}, " + $sDateTemp");
+  print STDERR " DDD   date ===$date===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   $sDate = $self->_format_date($date);
   $hit->end_date($sDate);
   # For backward-compatibility:
@@ -804,37 +792,78 @@ sub _process_date_abbrevs
 Given a WWW::SearchResult object representing an auction, formats it
 human-readably with HTML.
 
+An optional second argument is the date format,
+a string as specified for Date::Manip::UnixDate.
+Default is '%Y-%m-%d %H:%M:%S'
+
+  my $sHTML = $oSearch->result_as_HTML($oSearchResult, '%H:%M %b %E');
+
 =cut
 
 sub result_as_HTML
   {
   my $self = shift;
   my $oSR = shift or return '';
+  my $sDateFormat = shift || q'%Y-%m-%d %H:%M:%S';
   my $dateEnd = &ParseDate($oSR->end_date);
+  my $iItemNum = $oSR->item_number;
   my $sSold = $oSR->sold
   ? $cgi->font({color=>'green'}, 'sold') .q{; }
   : $cgi->font({color=>'red'}, 'not sold') .q{; };
   my $sBids = $self->_bidcount_as_text($oSR);
   my $sPrice = $self->_bidamount_as_text($oSR);
-  my $sEnded = '';
-  if (&Date_Cmp($dateEnd, 'now') < 0)
+  my $sEndedColor = 'green';
+  my $sEndedWord = 'ends';
+  my $dateNow = &ParseDate('now');
+  print STDERR " DDD compare end_date ==$dateEnd==\n" if (DEBUG_DATES || (1 < $self->{_debug}));
+  print STDERR " DDD compare date_now ==$dateNow==\n" if (DEBUG_DATES || (1 < $self->{_debug}));
+  if (&Date_Cmp($dateEnd, $dateNow) < 0)
     {
-    $sEnded = $cgi->font({ color => 'red', }, 'ended');
-    }
-  else
-    {
-    $sEnded = $cgi->font({ color => 'green', },
-                         &UnixDate($dateEnd, q{ends %Y-%m-%d %H:%M:%S}));
-    }
-  return $cgi->b(
-                 $cgi->font({face => 'Arial, Helvetica'},
-                            $cgi->a({href => $oSR->url}, $oSR->title),
-                            $cgi->br,
-                            qq{$sEnded; $sSold$sBids$sPrice},
-                           ),
-                   );
+    $sEndedColor = 'red';
+    $sEndedWord = 'ended';
+    } # if
+  my $sEnded = $cgi->font({ color => $sEndedColor },
+                          &UnixDate($dateEnd,
+                                    qq"$sEndedWord $sDateFormat"));
+  my $s = $cgi->b(
+                  $cgi->a({href => $oSR->url}, $oSR->title),
+                  $cgi->br,
+                  qq{$sEnded; $sSold$sBids$sPrice},
+                 );
+  $s .= $cgi->br;
+  $s .= $cgi->font({size => -1},
+                   $cgi->a({href => qq{http://cgi.ebay.com/ws/eBayISAPI.dll?MakeTrack&item=$iItemNum}}, 'watch this item in MyEbay'),
+                  );
+  # Format the entire thing as Helvetica:
+  $s = $cgi->font({face => 'Arial, Helvetica'}, $s);
+  return $s;
   } # result_as_HTML
 
+
+=back
+
+=head1 SEE ALSO
+
+To make new back-ends, see L<WWW::Search>.
+
+=head1 BUGS
+
+Please tell the author if you find any!
+
+=head1 AUTHOR
+
+C<WWW::Search::Ebay> was written by and is maintained by
+Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
+
+Some fixes along the way contributed by Troy Davis.
+
+=head1 LEGALESE
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+=cut
 
 1;
 

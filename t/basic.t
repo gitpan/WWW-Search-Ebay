@@ -1,5 +1,5 @@
 
-# $Id: basic.t,v 1.16 2006/04/22 19:59:58 Daddy Exp $
+# $Id: basic.t,v 1.17 2007/05/20 13:33:19 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -30,6 +30,7 @@ $iDebug = 0;
 $iDebug = 0;
 &tm_run_test('normal', 'laavar', 0, 0, $iDebug);
 
+DEBUG_NOW:
 ;
 MULTI_RESULT:
 diag("Sending multi-page query...");
@@ -37,6 +38,7 @@ $iDebug = 0;
 $iDump = 0;
 # This query returns hundreds of pages of results:
 &tm_run_test('normal', 'LEGO', 101, undef, $iDebug);
+# goto SKIP_CONTENTS; # for debugging
 
 if (0)
   {
@@ -44,23 +46,28 @@ if (0)
   # returns hits on the exact query term, AND hits on alternate
   # spellings.  It's just too hard to find such a word that
   # consistently performs as needed.
-  local $TODO = "Sometimes there are NO hits for lavarr";
+  $TODO = "Sometimes there are NO hits for lavarr";
   diag("Sending 1-page queries...");
   # There are a few hits for "lavarr", and eBay also gives us all the
   # "lavar" hits:
   $iDebug = 0;
   &tm_run_test('normal', 'lavarr', 1, 99, $iDebug);
-  }
+  $TODO = '';
+  } # if
 
-DEBUG_NOW:
 diag("Sending 1-page query for 12-digit UPC...");
 $iDebug = 0;
 $iDump = 0;
 &tm_run_test('normal', '0-77778-60672-7' , 1, 99, $iDebug, $iDump);
-diag("Sending 1-page query for 13-digit EAN...");
-$iDebug = 0;
-$iDump = 0;
-&tm_run_test('normal', '00-77778-60672-7' , 1, 99, $iDebug, $iDump);
+TODO:
+  {
+  $TODO = 'too hard to find a consistent EAN';
+  diag("Sending 1-page query for 13-digit EAN...");
+  $iDebug = 0;
+  $iDump = 0;
+  &tm_run_test('normal', '00-77778-60672-7' , 1, 99, $iDebug, $iDump);
+  $TODO = '';
+  }
 diag("Sending 1-page query for 10-digit ISBN...");
 $iDebug = 0;
 $iDump = 0;

@@ -1,5 +1,5 @@
 
-# $Id: BySellerID.pm,v 2.2 2005/08/15 00:12:38 Daddy Exp $
+# $Id: BySellerID.pm,v 2.4 2007/05/20 13:32:56 Daddy Exp $
 
 =head1 NAME
 
@@ -42,17 +42,18 @@ Please tell the author if you find any!
 
 =head1 AUTHOR
 
-C<WWW::Search::Ebay::BySellerID> was written by Martin Thurn
-(mthurn@cpan.org).
+C<WWW::Search::Ebay::BySellerID> was written by and is maintained by
+Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
 =cut
 
 package WWW::Search::Ebay::BySellerID;
 
-use WWW::Search::Ebay;
-use vars qw( @ISA $VERSION );
-@ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 2.2 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+use strict;
+
+use base 'WWW::Search::Ebay';
+our
+$VERSION = do { my @r = (q$Revision: 2.4 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {

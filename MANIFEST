@@ -32,8 +32,10 @@ t/de.t
 t/enddate.t
 t/es.t
 t/fr.t
+t/html.t
 t/it.t
 t/itemnumber.t
 t/motors.t
+t/pod.t
 t/stores.t
 t/uk.t

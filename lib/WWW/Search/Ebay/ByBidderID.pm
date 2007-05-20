@@ -1,5 +1,5 @@
 
-# $Id: ByBidderID.pm,v 2.1 2005/12/28 02:06:02 Daddy Exp $
+# $Id: ByBidderID.pm,v 2.3 2007/05/20 13:32:56 Daddy Exp $
 
 =head1 NAME
 
@@ -72,19 +72,20 @@ Please tell the maintainer if you find any!
 =head1 AUTHOR
 
 Code contributed by Andreas Grau.  Thank you!
-Maintained by Martin Thurn as part of the WWW-Search-Ebay distribution.
+Maintained by Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z> as part of the WWW-Search-Ebay distribution..
 
 =cut
 
 package WWW::Search::Ebay::ByBidderID;
 
+use strict;
+
 use Data::Dumper;
 use Switch;
-use WWW::Search::Ebay;
+use base 'WWW::Search::Ebay';
 
-use vars qw( @ISA $VERSION );
-@ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 2.1 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+our
+$VERSION = do { my @r = (q$Revision: 2.3 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -144,7 +145,7 @@ sub parse_tree
   my $self = shift;
   my $tree = shift;
   my $sBidder = '';
-
+  my $iHits = 0;
   # Parse title to get the bidder id
   my $sTitle = $self->{response}->header('title') || '';
   if ($sTitle =~ m!$qrTitle!)
@@ -223,7 +224,7 @@ sub parse_tree
       # print STDERR Dumper($hit);
       push @{$self->{cache}}, $hit;
       $self->{'_num_hits'}++;
-      $hits_found++;
+      $iHits++;
       # Delete this HTML element so that future searches go faster?
       $oTD->detach;
       $oTD->delete;
@@ -250,7 +251,7 @@ sub parse_tree
       } # foreach
     } # if
   $tree->delete;
-  return $hits_found;
+  return $iHits;
   } # parse_tree
 
 # A pattern to match HTML whitespace:
@@ -259,7 +260,7 @@ our $W = q{[\ \t\r\n\240]};
 sub parse_price
   {
   my $currency = qr/(?:\$|C|EUR|GBP|\�|CHF|\�|AUD|AU)/;
-  
+
   my $self = shift;
   my $oTDprice = shift;
   my $hit = shift;

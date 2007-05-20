@@ -1,3 +1,21 @@
+2007-05-20    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay/ES.pm (_result_count_regex): fixed result-count parsing
+
+	* lib/WWW/Search/Ebay/DE.pm (_process_date_abbrevs): fixed date parsing
+
+2007-01-29    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (result_as_HTML): now takes an optional date format argument
+
+2007-01-26    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (result_as_HTML): added end-time to "ended" items
+
+2006-12-24    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (result_as_HTML): added "add to myEbay" link
+
 2006-09-03    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay.pm (whitespace_pattern): new method

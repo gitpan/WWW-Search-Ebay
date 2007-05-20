@@ -1,5 +1,5 @@
 
-# $Id: BuyItNow.pm,v 1.5 2005/08/18 04:47:04 Daddy Exp $
+# $Id: BuyItNow.pm,v 1.7 2007/05/20 13:32:56 Daddy Exp $
 
 =head1 NAME
 
@@ -44,17 +44,17 @@ Please tell the author if you find any!
 
 =head1 AUTHOR
 
-C<WWW::Search::Ebay::BuyItNow> was written by Martin Thurn
-(mthurn@cpan.org).
+C<WWW::Search::Ebay::BuyItNow> was written by and is maintained by
+Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
 =cut
 
 package WWW::Search::Ebay::BuyItNow;
 
-use WWW::Search::Ebay;
-use vars qw( @ISA $VERSION );
-@ISA = qw( WWW::Search::Ebay );
-$VERSION = do { my @r = (q$Revision: 1.5 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+use strict;
+use base 'WWW::Search::Ebay';
+our
+$VERSION = do { my @r = (q$Revision: 1.7 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {

@@ -1,12 +1,12 @@
 
-# $rcs = ' $Id: Makefile.PL,v 1.42 2006/08/26 04:11:30 Daddy Exp $ ';
+# $rcs = ' $Id: Makefile.PL,v 1.46 2007/05/20 13:33:39 Daddy Exp $ ';
 
 use inc::Module::Install;
 
 name('WWW-Search-Ebay');
 author('Martin Thurn <mthurn@cpan.org>');
 license('perl');
-version(2.226);
+version(2.229);
 
 requires(perl => 5.005);
 build_requires('Bit::Vector');
@@ -24,7 +24,6 @@ requires('WWW::SearchResult' => 2.067);
 # functions:
 build_requires('WWW::Search::Test' => 2.265);
 
-check_nmake();      # check and download nmake.exe for Win32
 &WriteAll;
 
 sub MY::postamble

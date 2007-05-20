@@ -1,5 +1,5 @@
 
-# $Id: bysellerid.t,v 1.4 2005/12/25 20:30:18 Daddy Exp $
+# $Id: bysellerid.t,v 1.5 2006/12/25 00:30:02 Daddy Exp $
 
 use Bit::Vector;
 use Date::Manip;
@@ -30,7 +30,7 @@ diag("Sending multi-page query...");
 $iDebug = 0;
 $iDump = 0;
 # This query returns many pages of results:
-&tm_run_test('normal', 'bigrockmedia', 201, undef, $iDebug);
+&tm_run_test('normal', 'toymom21957', 201, undef, $iDebug);
 
 SKIP_MULTI:
 ;
