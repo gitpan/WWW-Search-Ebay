@@ -1,5 +1,5 @@
 
-# $Id: bysellerid.t,v 1.5 2006/12/25 00:30:02 Daddy Exp $
+# $Id: bysellerid.t,v 1.6 2007/08/21 01:01:41 Daddy Exp $
 
 use Bit::Vector;
 use Date::Manip;
@@ -39,7 +39,7 @@ diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
 # local $TODO = 'Too hard to find a seller with consistently one page of auctions';
-&tm_run_test('normal', 'toysnstuff', 1, 99, $iDebug, $iDump);
+&tm_run_test('normal', 'martinthurn', 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');

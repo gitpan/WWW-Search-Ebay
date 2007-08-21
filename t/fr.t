@@ -1,5 +1,5 @@
 
-# $Id: fr.t,v 1.1 2006/09/04 02:50:55 Daddy Exp $
+# $Id: fr.t,v 1.2 2007/08/21 01:01:41 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -39,8 +39,8 @@ DEBUG_NOW:
 CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
-$iDump = 1;
-&tm_run_test('normal', 'thurn', 1, 99, $iDebug, $iDump);
+$iDump = 0;
+&tm_run_test('normal', 'sammlung', 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');

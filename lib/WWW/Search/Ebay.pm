@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.202 2007/05/20 13:38:45 Daddy Exp $
+# $Id: Ebay.pm,v 2.204 2007/08/21 00:52:33 Daddy Exp $
 
 =head1 NAME
 
@@ -149,7 +149,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.202 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.204 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -218,7 +218,7 @@ sub native_setup_search
   } # native_setup_search
 
 
-my $qrTitle = qr{\AeBay:\s.+\(item\s+(\d+)\s+end\s+time\s+([^)]+)\)\Z}; #
+my $qrTitle = qr{\A(.+?)\s+-\s+\(EBAY\s+ITEM\s+(\d+)\s+END\s+TIME\s+([^)]+)\)\Z}i; #
 
 sub preprocess_results_page
   {
@@ -372,7 +372,7 @@ sub parse_tree
   my $sTitle = $self->{response}->header('title') || '';
   if ($sTitle =~ m!$qrTitle!)
     {
-    my ($iItem, $sDateRaw, $sTitle) = ($1, $2, $3);
+    my ($sTitle, $iItem, $sDateRaw) = ($1, $2, $3);
     my $sDateCooked = $self->_format_date($sDateRaw);
     my $hit = new WWW::Search::Result;
     $hit->item_number($iItem);
@@ -720,6 +720,13 @@ sub parse_shipping
   my $self = shift;
   my $oTD = shift;
   my $hit = shift;
+  if ($oTD->attr('class') =~ m'ebcCty')
+    {
+    # If we see this, we probably were searching for UK auctions
+    # but we ran off the bottom of the UK item list and ran
+    # into the list of international items.
+    return 0;
+    } # if
   my $iPrice = $oTD->as_text;
   print STDERR " DDD   raw shipping ===$iPrice===\n" if (1 < $self->{_debug});
   $iPrice =~ s!&pound;!GBP!;
@@ -770,6 +777,7 @@ sub parse_enddate
   my $date = &DateCalc($self->{_ebay_official_time}, " + $sDateTemp");
   print STDERR " DDD   date ===$date===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   $sDate = $self->_format_date($date);
+  print STDERR " DDD   sDate ===$sDate===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   $hit->end_date($sDate);
   # For backward-compatibility:
   $hit->change_date($sDate);

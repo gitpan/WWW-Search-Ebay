@@ -1,5 +1,5 @@
 
-# $Id: UK.pm,v 1.10 2007/05/20 13:32:57 Daddy Exp $
+# $Id: UK.pm,v 1.11 2007/08/21 00:52:52 Daddy Exp $
 
 =head1 NAME
 
@@ -23,7 +23,7 @@ use strict;
 use Carp;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.10 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.11 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -66,7 +66,7 @@ sub currency_pattern
   return qr{(?:US\s?\$|£)}; # } } # Emacs indentation bugfix
   } # currency_pattern
 
-sub preprocess_results_page_OFF
+sub _preprocess_results_page
   {
   my $self = shift;
   my $sPage = shift;
@@ -80,7 +80,7 @@ sub columns
   {
   my $self = shift;
   # This is for UK:
-  return qw( price bids paypal enddate );
+  return qw( bids price postage paypal enddate );
   } # columns
 
 1;
