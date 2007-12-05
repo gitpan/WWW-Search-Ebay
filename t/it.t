@@ -1,5 +1,5 @@
 
-# $Id: it.t,v 1.1 2006/09/04 02:41:33 Daddy Exp $
+# $Id: it.t,v 1.2 2007/12/05 19:06:06 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -18,14 +18,14 @@ my $iDebug;
 my $iDump = 0;
 
 &tm_new_engine('Ebay::IT');
-# goto DEBUG_NOW;
+# goto SKIP_ZERO;
 # goto CONTENTS;
 
 diag("Sending 0-page query...");
 $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
 &tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
-
+SKIP_ZERO:
 ;
 MULTI_RESULT:
 diag("Sending multi-page query...");
@@ -33,7 +33,7 @@ $iDebug = 0;
 $iDump = 0;
 # This query returns many of pages of results:
 &tm_run_test('normal', 'scatola', 101, undef, $iDebug);
-
+# goto ALL_DONE;
 DEBUG_NOW:
 ;
 CONTENTS:
@@ -89,6 +89,8 @@ if ($iAnyFailed)
     } # while
   } # if
 
+ALL_DONE:
+pass('all done');
 
 __END__
 

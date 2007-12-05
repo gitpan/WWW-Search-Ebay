@@ -1,5 +1,5 @@
 
-# $Id: IT.pm,v 2.3 2007/05/20 13:32:56 Daddy Exp $
+# $Id: IT.pm,v 2.4 2007/12/05 19:04:58 Daddy Exp $
 
 =head1 NAME
 
@@ -23,7 +23,7 @@ use strict;
 use Carp;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 2.3 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.4 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -60,7 +60,7 @@ sub _title_td_specs
 
 sub _result_count_regex
   {
-  return qr'(\d+) inserzioni trovate ';
+  return qr'(\d+) (oggetti|inserzioni) trovat[ei] ';
   } # _result_count_regex
 
 sub _next_text

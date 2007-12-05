@@ -1,21 +1,23 @@
 
-# $rcs = ' $Id: Makefile.PL,v 1.47 2007/08/21 01:02:05 Daddy Exp $ ';
+# $rcs = ' $Id: Makefile.PL,v 1.48 2007/12/05 19:25:03 Daddy Exp $ ';
 
 use inc::Module::Install;
 
 name('WWW-Search-Ebay');
 author('Martin Thurn <mthurn@cpan.org>');
 license('perl');
-version(2.231);
+version(2.232);
 
 requires(perl => 5.005);
 build_requires('Bit::Vector');
 requires('Date::Manip');
+test_requires('Date::Manip');
 requires('HTML::TreeBuilder');
 build_requires('IO::Capture::Stderr');
 requires('LWP::Simple');
 # Test::More is needed for `make test`:
 build_requires('Test::More');
+test_recommends('Test::Pod');
 # We need the version that has method agent_name():
 requires('WWW::Search' => 2.529);
 # We need the version that has the bidder and seller methods:

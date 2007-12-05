@@ -1,3 +1,13 @@
+2007-12-05    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (_result_count_regex): allow one hit to match!
+
+	* lib/WWW/Search/Ebay/IT.pm (_result_count_regex): fixed pattern
+
+2007-12-02    <Daddy@C-3PO>
+
+	* lib/WWW/Search/Ebay.pm (parse_tree): ignore auctions from other countries
+
 2007-08-20    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay.pm: FIXED page title regex

@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.204 2007/08/21 00:52:33 Daddy Exp $
+# $Id: Ebay.pm,v 2.206 2007/12/05 19:13:28 Daddy Exp $
 
 =head1 NAME
 
@@ -149,7 +149,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.204 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.206 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -354,7 +354,7 @@ sub _title_td_specs
 
 sub _result_count_regex
   {
-  return qr'(\d+) items found ';
+  return qr'(\d+) items? found ';
   } # _result_count_regex
 
 sub columns
@@ -544,8 +544,15 @@ sub parse_tree
         {
         next TD unless $self->parse_enddate($oTDsib, $hit);
         }
+      elsif ($sColumn eq 'country')
+        {
+        # This listing is from a country other than the base site
+        # we're searching against.  Throw it out:
+        next TD;
+        }
       else
         {
+        print STDERR " DDD     do not know how to handle column named $sColumn\n" if (1 < $self->{_debug});
         next SIBLING_TD;
         }
       } # while

@@ -1,5 +1,5 @@
 
-# $Id: basic.t,v 1.17 2007/05/20 13:33:19 Daddy Exp $
+# $Id: basic.t,v 1.18 2007/12/02 22:57:33 Daddy Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -78,7 +78,9 @@ CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
-&tm_run_test('normal', 'trinidad tobago flag', 1, 99, $iDebug, $iDump);
+my $sQuery = 'trinidad tobago flag';
+# $sQuery = 'church spread wings';  # Special debugging
+&tm_run_test('normal', $sQuery, 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');

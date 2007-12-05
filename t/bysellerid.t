@@ -1,5 +1,5 @@
 
-# $Id: bysellerid.t,v 1.6 2007/08/21 01:01:41 Daddy Exp $
+# $Id: bysellerid.t,v 1.7 2007/12/05 19:12:52 Daddy Exp $
 
 use Bit::Vector;
 use Date::Manip;
@@ -14,7 +14,7 @@ my $iDebug;
 my $iDump = 0;
 
 &tm_new_engine('Ebay::BySellerID');
-# goto DEBUG_NOW;
+goto DEBUG_NOW;
 # goto CONTENTS;
 
 diag("Sending 0-page query...");
@@ -32,6 +32,8 @@ $iDump = 0;
 # This query returns many pages of results:
 &tm_run_test('normal', 'toymom21957', 201, undef, $iDebug);
 
+DEBUG_NOW:
+;
 SKIP_MULTI:
 ;
 CONTENTS:

@@ -1,5 +1,5 @@
 
-# $Id: motors.t,v 1.8 2005/08/08 01:20:55 Daddy Exp $
+# $Id: motors.t,v 1.9 2007/12/05 19:09:59 Daddy Exp $
 
 use ExtUtils::testlib;
 use Test::More no_plan;
@@ -20,7 +20,7 @@ $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
 &tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 
-# DEBUG_NOW:
+DEBUG_NOW:
 ;
 MULTI_RESULT:
 diag("Sending multi-page query...");
@@ -28,8 +28,8 @@ $iDebug = 0;
 $iDump = 0;
 # This query returns hundreds of pages of results:
 &tm_run_test('normal', 'Chevrolet', 101, undef, $iDebug);
-
-DEBUG_NOW:
+# goto SKIP_CONTENTS;
+# DEBUG_NOW:
 ;
 CONTENTS:
 diag("Sending 1-page query to check contents...");
@@ -50,6 +50,8 @@ foreach my $oResult (@ao)
   like($oResult->description, qr{([0-9]+|no)\s+bids?},
        'result bidcount is ok');
   } # foreach
+SKIP_CONTENTS:
+pass('all done');
 
 __END__
 
