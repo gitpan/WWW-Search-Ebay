@@ -1,5 +1,5 @@
 
-# $Id: FR.pm,v 2.3 2007/05/20 13:32:56 Daddy Exp $
+# $Id: FR.pm,v 2.7 2008/02/25 01:24:46 Daddy Exp $
 
 =head1 NAME
 
@@ -19,11 +19,12 @@ Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 package WWW::Search::Ebay::FR;
 
 use strict;
+use warnings;
 
 use Carp;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 2.3 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.7 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -40,28 +41,28 @@ sub native_setup_search
 
 # This is what we look_down for to find the HTML element that contains
 # the result count:
-sub _result_count_td_specs_OLD
+sub result_count_element_specs_OLD
   {
   return (
           '_tag' => 'p',
           id => 'count'
          );
-  } # _result_count_td_specs
+  } # result_count_element_specs
+
+sub result_count_pattern
+  {
+  return qr'(\d+) objets? trouv';
+  } # result_count_pattern
 
 # This is what we look_down for to find the <TD> that contain auction
 # titles:
-sub _title_td_specs
+sub title_element_specs
   {
   return (
           '_tag' => 'td',
           'class' => 'ebcTtl',
          );
-  } # _title_td_specs
-
-sub _result_count_regex
-  {
-  return qr'(\d+) objets trouvés ';
-  } # _result_count_regex
+  } # title_element_specs
 
 sub _next_text
   {
@@ -69,12 +70,16 @@ sub _next_text
   return 'Suivante';
   } # _next_text
 
+sub title_pattern
+  {
+  my $self = shift;
+  return qr{\A(.+?)\s+EN\s+VENTE\s+SUR\s+EBAY\.FR\s+()\(FIN\s+LE\s+([^)]+)\)}i;
+  } # title_pattern
+
 sub currency_pattern
   {
   my $self = shift;
   # A pattern to match all possible currencies found in eBay listings
-  # (if one character looks weird, it's really a British Pound symbol
-  # but Emacs shows it wrong):
   my $W = $self->whitespace_pattern;
   return qr{[\d.,]+$W+EUR}; # } } # Emacs indentation bugfix
   } # currency_pattern

@@ -1,5 +1,5 @@
 
-# $Id: UK.pm,v 1.11 2007/08/21 00:52:52 Daddy Exp $
+# $Id: UK.pm,v 1.14 2008/02/25 01:24:46 Daddy Exp $
 
 =head1 NAME
 
@@ -19,11 +19,12 @@ Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 package WWW::Search::Ebay::UK;
 
 use strict;
+use warnings;
 
 use Carp;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.11 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.14 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -40,23 +41,23 @@ sub native_setup_search
 
 # This is what we look_down for to find the HTML element that contains
 # the result count:
-sub _result_count_td_specs_OLD
+sub result_count_element_specs_OLD
   {
   return (
           '_tag' => 'p',
           id => 'count'
          );
-  } # _result_count_td_specs
+  } # result_count_element_specs
 
 # This is what we look_down for to find the <TD> that contain auction
 # titles:
-sub _title_td_specs
+sub title_element_specs
   {
   return (
           '_tag' => 'td',
           'class' => 'ebcTtl',
          );
-  } # _title_td_specs
+  } # title_element_specs
 
 sub currency_pattern
   {

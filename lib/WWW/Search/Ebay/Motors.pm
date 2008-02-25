@@ -1,5 +1,5 @@
 
-# $Id: Motors.pm,v 1.5 2007/05/20 13:32:56 Daddy Exp $
+# $Id: Motors.pm,v 1.8 2008/02/25 01:24:46 Daddy Exp $
 
 =head1 NAME
 
@@ -59,12 +59,13 @@ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 package WWW::Search::Ebay::Motors;
 
 use strict;
+use warnings;
 
 use Carp;
 use Data::Dumper;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.5 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub native_setup_search
@@ -80,10 +81,31 @@ sub native_setup_search
   return $self->SUPER::native_setup_search($native_query, $rhOptsArg);
   } # native_setup_search
 
+sub result_count_element_specs
+  {
+  return (
+          '_tag' => 'div',
+          id => 'matchesFound'
+         );
+  } # result_count_element_specs
+
+sub result_count_pattern
+  {
+  return qr'(\d+)\s+match(es)?\s+found';
+  } # result_count_pattern
+
+sub title_element_specs
+  {
+  return (
+          '_tag' => 'td',
+          'class' => 'details',
+         );
+  } # title_element_specs
+
 sub columns
   {
   my $self = shift;
-  return qw( price bids enddate );
+  return qw( bids price shipping enddate );
   } # columns
 
 1;

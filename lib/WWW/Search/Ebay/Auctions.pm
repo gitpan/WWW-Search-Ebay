@@ -1,5 +1,5 @@
 
-# $Id: Auctions.pm,v 1.6 2007/05/20 13:32:56 Daddy Exp $
+# $Id: Auctions.pm,v 1.7 2008/02/24 21:16:21 Daddy Exp $
 
 =head1 NAME
 
@@ -19,10 +19,11 @@ Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 package WWW::Search::Ebay::Auctions;
 
 use strict;
+use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.6 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.7 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 1;
 

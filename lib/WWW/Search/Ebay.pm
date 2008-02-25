@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.206 2007/12/05 19:13:28 Daddy Exp $
+# $Id: Ebay.pm,v 2.211 2008/02/25 01:24:45 Daddy Exp $
 
 =head1 NAME
 
@@ -126,11 +126,10 @@ the results will be ALL the auctions in that category.
 
 =cut
 
-#####################################################################
-
 package WWW::Search::Ebay;
 
 use strict;
+use warnings;
 
 use base 'WWW::Search';
 
@@ -149,9 +148,16 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.206 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.211 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
+
+=item native_setup_search
+
+Part of the basic WWW::Search mantra.
+See WWW::Search for details.
+
+=cut
 
 sub native_setup_search
   {
@@ -218,8 +224,6 @@ sub native_setup_search
   } # native_setup_search
 
 
-my $qrTitle = qr{\A(.+?)\s+-\s+\(EBAY\s+ITEM\s+(\d+)\s+END\s+TIME\s+([^)]+)\)\Z}i; #
-
 sub preprocess_results_page
   {
   my $self = shift;
@@ -232,6 +236,7 @@ sub preprocess_results_page
     exit 88;
     } # if
   my $sTitle = $self->{response}->header('title') || '';
+  my $qrTitle = $self->title_pattern;
   if ($sTitle =~ m!$qrTitle!)
     {
     # print STDERR " DDD got a Title: ==$sTitle==\n";
@@ -266,21 +271,6 @@ sub preprocess_results_page
   # my $iSubs = 0 + ($sPage =~ s!</FONT></TD></FONT></TD>!</FONT></TD>!gi);
   # print STDERR " DDD   deleted $iSubs extraneous tags\n" if 1 < $self->{_debug};
   } # preprocess_results_page
-
-sub whitespace_pattern
-  {
-  # A pattern to match HTML whitespace:
-  return qr{[\ \t\r\n\240]};
-  } # whitespace_pattern 
-
-sub currency_pattern
-  {
-  my $self = shift;
-  # A pattern to match all possible currencies found in USA eBay
-  # listings:
-  my $W = $self->whitespace_pattern;
-  return qr/(?:\$|C|EUR|GBP)$W*[0-9.,]+/;
-  } # currency_pattern
 
 sub _cleanup_url
   {
@@ -331,45 +321,14 @@ sub _create_description
   return $sDesc;
   } # _create_description
 
-# This is what we look_down for to find the HTML element that contains
-# the result count:
-sub _result_count_td_specs
-  {
-  return (
-          '_tag' => 'div',
-          class => 'count'
-         );
-  } # _result_count_td_specs
-
-# This is what we look_down for to find the <TD> that contain auction
-# titles:
-sub _title_td_specs
-  {
-  return (
-          '_tag' => 'td',
-          'class' => 'ebcTtl',
-         );
-  } # _title_td_specs
-
-
-sub _result_count_regex
-  {
-  return qr'(\d+) items? found ';
-  } # _result_count_regex
-
-sub columns
-  {
-  my $self = shift;
-  # This is for basic USA eBay:
-  return qw( paypal bids price shipping enddate );
-  } # columns
-
 sub parse_tree
   {
   my $self = shift;
   my $tree = shift;
 
   my $sTitle = $self->{response}->header('title') || '';
+  my $qrTitle = $self->title_pattern;
+  # print STDERR " DDD trying to match ==$sTitle== against ==$qrTitle==\n";
   if ($sTitle =~ m!$qrTitle!)
     {
     my ($sTitle, $iItem, $sDateRaw) = ($1, $2, $3);
@@ -390,14 +349,16 @@ sub parse_tree
     } # if
   my $hits_found = 0;
   # The hit count is in a FONT tag:
-  my @aoFONT = $tree->look_down($self->_result_count_td_specs);
+  my @aoFONT = $tree->look_down($self->result_count_element_specs);
  FONT:
   foreach my $oFONT (@aoFONT)
     {
-    print STDERR " DDD   try FONT ===", $oFONT->as_text, "===\n" if (1 < $self->{_debug});
-    my $qr = $self->_result_count_regex;
+    my $qr = $self->result_count_pattern;
+    print STDERR (" DDD   result_count try ==",
+                  $oFONT->as_text, "== against qr=$qr=\n") if (1 < $self->{_debug});
     if ($oFONT->as_text =~ m!$qr!)
       {
+      print STDERR " DDD     matched ($1)\n" if (1 < $self->{_debug});
       $self->approximate_result_count($1);
       last FONT;
       } # if
@@ -460,7 +421,7 @@ sub parse_tree
   print STDERR " DDD   asColumns is (@asColumns)\n" if (1 < $self->{_debug});
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
-  my @a = $self->_title_td_specs;
+  my @a = $self->title_element_specs;
   # print STDERR Dumper(\@a);
   # exit 88;
   my @aoTD = $tree->look_down(@a);
@@ -523,7 +484,7 @@ sub parse_tree
       {
       next unless ref($oTDsib);
       my $s = $oTDsib->as_HTML;
-      print STDERR " DDD   try TD$sColumn ===$s===\n" if (1 < $self->{_debug});
+      print STDERR " DDD   try TD'$sColumn' ===$s===\n" if (1 < $self->{_debug});
       if ($sColumn eq 'price')
         {
         next TD unless $self->parse_price($oTDsib, $hit);
@@ -658,7 +619,7 @@ sub parse_price
     # maybe just maybe we hit this because of a parsing glitch which
     # might correct itself on the next TD.
     } # if
-  if ($oTDprice->attr('class') !~ m'ebcPr')
+  if ($oTDprice->attr('class') !~ m'\A(ebcPr|prices)\z')
     {
     # If we see this, we probably were searching for Store items
     # but we ran off the bottom of the Store item list and ran
@@ -697,7 +658,7 @@ sub parse_bids
       {
       print STDERR " DDD   TDbids ===$s===\n";
       } # if
-    if ($oTDbids->attr('class') !~ m'ebcBid')
+    if ($oTDbids->attr('class') !~ m'\A(ebcBid|bids)\z')
       {
       # If we see this, we probably were searching for Store items
       # but we ran off the bottom of the Store item list and ran
@@ -705,7 +666,7 @@ sub parse_bids
       return 0;
       # There is a separate backend for searching Auction items!
       } # if
-    $iBids = $oTDbids->as_text;
+    $iBids = $1 if ($oTDbids->as_text =~ m/(\d+)/);
     my $W = $self->whitespace_pattern;
     if (
         # Bid listed as hyphen means no bids:
@@ -736,6 +697,7 @@ sub parse_shipping
     } # if
   my $iPrice = $oTD->as_text;
   print STDERR " DDD   raw shipping ===$iPrice===\n" if (1 < $self->{_debug});
+  return 1 if ($iPrice !~ m/\d/);
   $iPrice =~ s!&pound;!GBP!;
   $hit->shipping($iPrice);
   return 1;
@@ -766,7 +728,7 @@ sub parse_enddate
     $sDateTemp = $s = $oTDdate;
     }
   print STDERR " DDD   TDdate ===$s===\n" if (1 < $self->{_debug});
-  if (ref($oTDdate) && ($oTDdate->attr('class') !~ m'ebcTim'))
+  if (ref($oTDdate) && ($oTDdate->attr('class') !~ m'\A(ebcTim|time)\z'))
     {
     # If we see this, we probably were searching for Buy-It-Now items
     # but we ran off the bottom of the item list and ran into the list
@@ -854,6 +816,95 @@ sub result_as_HTML
   return $s;
   } # result_as_HTML
 
+
+=back
+
+=head1 METHODS TO BE OVERRIDDEN IN SUBCLASSING
+
+=over
+
+=item whitespace_pattern
+
+Return a qr// pattern to match whitespace your webpage's language.
+
+=cut
+
+sub whitespace_pattern
+  {
+  # A pattern to match HTML whitespace:
+  return qr{[\ \t\r\n\240]};
+  } # whitespace_pattern
+
+=item currency_pattern
+
+Return a qr// pattern to match mentions of money in your webpage's language.
+Include the digits in the pattern.
+
+=cut
+
+sub currency_pattern
+  {
+  my $self = shift;
+  # A pattern to match all possible currencies found in USA eBay
+  # listings:
+  my $W = $self->whitespace_pattern;
+  return qr/(?:\$|C|EUR|GBP)$W*[0-9.,]+/;
+  } # currency_pattern
+
+=item title_pattern
+
+Return a qr// pattern to match the webpage title in your webpage's language.
+Add grouping parenthesis so that
+$1 becomes the auction title,
+$2 becomes the eBay item number, and
+$3 becomes the end date.
+
+=cut
+
+sub title_pattern
+  {
+  return qr{\A(.+?)\s+-\s+EBAY\s+\(ITEM\s+(\d+)\s+END\s+TIME\s+([^)]+)\)\Z}i; #
+  } # title_pattern
+
+=item result_count_pattern
+
+Return a qr// pattern to match the result count in your webpage's language.
+Include parentheses so that $1 becomes the number (with commas is OK).
+
+=cut
+
+sub result_count_pattern
+  {
+  return qr'(\d+) items? found ';
+  } # result_count_pattern
+
+# This is what we look_down for to find the HTML element that contains
+# the result count:
+sub result_count_element_specs
+  {
+  return (
+          '_tag' => 'div',
+          class => 'count'
+         );
+  } # result_count_element_specs
+
+# This is what we look_down for to find the <TD> that contain auction
+# titles:
+sub title_element_specs
+  {
+  return (
+          '_tag' => 'td',
+          'class' => 'ebcTtl',
+         );
+  } # title_element_specs
+
+
+sub columns
+  {
+  my $self = shift;
+  # This is for basic USA eBay:
+  return qw( paypal bids price shipping enddate );
+  } # columns
 
 =back
 

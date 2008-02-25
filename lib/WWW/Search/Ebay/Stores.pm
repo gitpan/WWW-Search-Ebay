@@ -1,5 +1,5 @@
 
-# $Id: Stores.pm,v 1.11 2007/05/20 13:32:56 Daddy Exp $
+# $Id: Stores.pm,v 1.12 2008/02/24 21:16:21 Daddy Exp $
 
 =head1 NAME
 
@@ -51,10 +51,11 @@ Some fixes along the way contributed by Troy Davis.
 package WWW::Search::Ebay::Stores;
 
 use strict;
+use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.11 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.12 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {

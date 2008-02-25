@@ -1,23 +1,23 @@
 
-# $rcs = ' $Id: Makefile.PL,v 1.48 2007/12/05 19:25:03 Daddy Exp $ ';
+# $rcs = ' $Id: Makefile.PL,v 1.51 2007/12/05 19:28:21 Daddy Exp $ ';
 
 use inc::Module::Install;
 
 name('WWW-Search-Ebay');
 author('Martin Thurn <mthurn@cpan.org>');
 license('perl');
-version(2.232);
+version(2.233);
 
 requires(perl => 5.005);
 build_requires('Bit::Vector');
 requires('Date::Manip');
-test_requires('Date::Manip');
+build_requires('Date::Manip');
 requires('HTML::TreeBuilder');
 build_requires('IO::Capture::Stderr');
 requires('LWP::Simple');
 # Test::More is needed for `make test`:
 build_requires('Test::More');
-test_recommends('Test::Pod');
+build_recommends('Test::Pod');
 # We need the version that has method agent_name():
 requires('WWW::Search' => 2.529);
 # We need the version that has the bidder and seller methods:
@@ -33,8 +33,7 @@ sub MY::postamble
   my $ret = <<'PART0';
 coverage :
 	$(RM_RF) cover_db/*
-	$(MAKE) HARNESS_PERL_SWITCHES=-MDevel::Cover coverage_slave
-coverage_slave : test
+	$(MAKE) HARNESS_PERL_SWITCHES=-MDevel::Cover test
 	cover
 PART0
   return $ret;

@@ -26,4 +26,4 @@ requires:
   WWW::Search: 2.529
   WWW::SearchResult: 2.067
   perl: 5.005
-version: 2.232
+version: 2.233
