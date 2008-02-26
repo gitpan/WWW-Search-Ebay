@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.211 2008/02/25 01:24:45 Daddy Exp $
+# $Id: Ebay.pm,v 2.212 2008/02/26 03:24:08 Daddy Exp $
 
 =head1 NAME
 
@@ -148,7 +148,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.211 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.212 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -222,6 +222,21 @@ sub native_setup_search
   # Finally, figure out the url.
   $self->{_next_url} = $self->{'search_host'} . $self->{'search_path'} .'?'. $self->hash_to_cgi_string($self->{_options});
   } # native_setup_search
+
+
+=item user_agent_delay
+
+I get sporadic test failures, so I'm trying a little delay in case ebay's servers are mad at me...
+
+=cut
+
+sub user_agent_delay
+  {
+  my $self = shift;
+  my $iSecs = 2;
+  print STDERR " DDD sleeping $iSecs seconds...\n" if (0 < $self->{_debug});
+  sleep($iSecs);
+  } # user_agent_delay
 
 
 sub preprocess_results_page
