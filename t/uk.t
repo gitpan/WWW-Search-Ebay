@@ -1,5 +1,5 @@
 
-# $Id: uk.t,v 1.5 2005/06/11 12:38:56 Daddy Exp $
+# $Id: uk.t,v 1.6 2008/04/05 15:30:26 Martin Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -20,6 +20,7 @@ my $iDump = 0;
 &tm_new_engine('Ebay::UK');
 # goto DEBUG_NOW;
 # goto CONTENTS;
+# goto MULTI_RESULT;
 
 diag("Sending 0-page query...");
 $iDebug = 0;

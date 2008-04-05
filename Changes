@@ -1,3 +1,7 @@
+2008-04-05    <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay/ES.pm (result_count_pattern): fixed
+
 2008-02-25    <Daddy@C-3PO>
 
 	* lib/WWW/Search/Ebay.pm (user_agent_delay): new method

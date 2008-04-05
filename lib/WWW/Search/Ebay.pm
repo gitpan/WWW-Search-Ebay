@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.212 2008/02/26 03:24:08 Daddy Exp $
+# $Id: Ebay.pm,v 2.216 2008/04/05 15:30:51 Martin Exp $
 
 =head1 NAME
 
@@ -134,6 +134,7 @@ use warnings;
 use base 'WWW::Search';
 
 use constant DEBUG_DATES => 0;
+use constant DEBUG_COLUMNS => 0;
 
 use Carp ();
 use CGI;
@@ -148,7 +149,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.212 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.216 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -262,10 +263,13 @@ sub preprocess_results_page
     {
     # Fetch the official ebay.com time:
     $self->{_ebay_official_time} = 'now';
-    my $sPageDate = get('http://cgi1.ebay.com/aw-cgi/eBayISAPI.dll?TimeShow') || '';
+    # my $sPageDate = get('http://cgi1.ebay.com/aw-cgi/eBayISAPI.dll?TimeShow') || '';
+    my $sPageDate = get('http://viv.ebay.com/ws/eBayISAPI.dll?EbayTime') || '';
+
     if ($sPageDate ne '')
       {
       my $tree = HTML::TreeBuilder->new;
+      $tree->utf8_mode('true');
       $tree->parse($sPageDate);
       $tree->eof;
       my $s = $tree->as_text;
@@ -280,6 +284,10 @@ sub preprocess_results_page
         $self->{_ebay_official_time} = $date;
         } # if
       } # if
+    else
+      {
+      die " EEE could not fetch official eBay time";
+      }
     } # else
   return $sPage;
   # Ebay used to send malformed HTML:
@@ -499,7 +507,7 @@ sub parse_tree
       {
       next unless ref($oTDsib);
       my $s = $oTDsib->as_HTML;
-      print STDERR " DDD   try TD'$sColumn' ===$s===\n" if (1 < $self->{_debug});
+      print STDERR " DDD   try TD'$sColumn' ===$s===\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
       if ($sColumn eq 'price')
         {
         next TD unless $self->parse_price($oTDsib, $hit);
@@ -551,8 +559,8 @@ sub parse_tree
     print STDERR " DDD   try NEXT A ===", $oA->as_HTML, "===\n" if (1 < $self->{_debug});
     my $href = $oA->attr('href');
     next TRY_NEXT unless $href;
-    # If we get all the way to the item list, there must be no next
-    # button:
+    # Looking backwards from the bottom of the page, if we get all the
+    # way to the item list, there must be no next button:
     last TRY_NEXT if ($href =~ m!ViewItem!);
     if ($oA->as_text eq $self->_next_text)
       {
@@ -620,7 +628,7 @@ sub parse_price
   my $hit = shift;
   return 0 unless (ref $oTDprice);
   my $s = $oTDprice->as_HTML;
-  if (1 < $self->{_debug})
+  if (DEBUG_COLUMNS || (1 < $self->{_debug}))
     {
     print STDERR " DDD   try TDprice ===$s===\n";
     } # if
@@ -649,10 +657,13 @@ sub parse_price
     $hit->sold(1);
     } # if
   my $iPrice = $oTDprice->as_text;
-  print STDERR " DDD   raw iPrice ===$iPrice===\n" if (1 < $self->{_debug});
+  print STDERR " DDD   raw iPrice ===$iPrice===\n" if  (DEBUG_COLUMNS || (1 < $self->{_debug}));
   $iPrice =~ s!&pound;!GBP!;
   # Convert nbsp to regular space:
   $iPrice =~ s!\240!\040!g;
+  # I don't know why there are sometimes weird characters in there:
+  $iPrice =~ s!&Acirc;!!g;
+  $iPrice =~ s!Â!!g;
   my $currency = $self->currency_pattern;
   my $W = $self->whitespace_pattern;
   $iPrice =~ s!($currency)$W*($currency)!$1 (Buy-It-Now for $2)!;
@@ -669,7 +680,7 @@ sub parse_bids
   if (ref $oTDbids)
     {
     my $s = $oTDbids->as_HTML;
-    if (1 < $self->{_debug})
+    if (DEBUG_COLUMNS || (1 < $self->{_debug}))
       {
       print STDERR " DDD   TDbids ===$s===\n";
       } # if
@@ -711,7 +722,10 @@ sub parse_shipping
     return 0;
     } # if
   my $iPrice = $oTD->as_text;
-  print STDERR " DDD   raw shipping ===$iPrice===\n" if (1 < $self->{_debug});
+  # I don't know why there are sometimes weird characters in there:
+  $iPrice =~ s!&Acirc;!!g;
+  $iPrice =~ s!Â!!g;
+  print STDERR " DDD   raw shipping ===$iPrice===\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
   return 1 if ($iPrice !~ m/\d/);
   $iPrice =~ s!&pound;!GBP!;
   $hit->shipping($iPrice);
@@ -737,12 +751,12 @@ sub parse_enddate
     {
     $sDateTemp = $oTDdate->as_text;
     $s = $oTDdate->as_HTML;
-    }
+    } # if
   else
     {
     $sDateTemp = $s = $oTDdate;
     }
-  print STDERR " DDD   TDdate ===$s===\n" if (1 < $self->{_debug});
+  print STDERR " DDD   TDdate ===$s===\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
   if (ref($oTDdate) && ($oTDdate->attr('class') !~ m'\A(ebcTim|time)\z'))
     {
     # If we see this, we probably were searching for Buy-It-Now items
@@ -754,6 +768,9 @@ sub parse_enddate
   # Convert nbsp to regular space:
   $sDateTemp =~ s!\240!\040!g;
   print STDERR " DDD   raw    sDateTemp ===$sDateTemp===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
+  # I don't know why there are sometimes weird characters in there:
+  $sDateTemp =~ s!&Acirc;!!g;
+  $sDateTemp =~ s!Â!!g;
   $sDateTemp =~ s!<!!;
   $sDateTemp = $self->_process_date_abbrevs($sDateTemp);
   print STDERR " DDD   cooked sDateTemp ===$sDateTemp===\n" if (DEBUG_DATES || (1 < $self->{_debug}));

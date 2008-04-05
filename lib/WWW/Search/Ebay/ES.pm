@@ -1,5 +1,5 @@
 
-# $Id: ES.pm,v 2.8 2008/02/25 01:24:45 Daddy Exp $
+# $Id: ES.pm,v 2.9 2008/04/05 14:48:03 Martin Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ use warnings;
 use Carp;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 2.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.9 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub native_setup_search
   {
@@ -41,11 +41,11 @@ sub native_setup_search
 
 # This is what we look_down for to find the HTML element that contains
 # the result count:
-sub result_count_element_specs_OLD
+sub result_count_element_specs_USE_DEFAULT
   {
   return (
-          '_tag' => 'p',
-          id => 'count'
+          '_tag' => 'div',
+          class => 'count'
          );
   } # result_count_element_specs
 
@@ -61,7 +61,7 @@ sub title_element_specs
 
 sub result_count_pattern
   {
-  return qr'(?:encontrado )?(\d+) artículos (?:encontrado)?';
+  return qr'(?:encontrados?\s+)?(\d+)\s+art(í|Ã­)culos\s+(?:encontrados?)?';
   } # result_count_pattern
 
 sub _next_text
