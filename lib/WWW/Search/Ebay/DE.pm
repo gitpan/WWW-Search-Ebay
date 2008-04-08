@@ -1,5 +1,5 @@
 
-# $Id: DE.pm,v 2.8 2008/02/25 01:24:45 Daddy Exp $
+# $Id: DE.pm,v 2.10 2008/04/06 03:51:23 Martin Exp $
 
 =head1 NAME
 
@@ -24,45 +24,36 @@ use warnings;
 use Carp;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 2.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.10 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
-sub native_setup_search
+sub _native_setup_search
   {
   my ($self, $native_query, $rhOptsArg) = @_;
   $rhOptsArg ||= {};
   unless (ref($rhOptsArg) eq 'HASH')
     {
-    carp " --- second argument to native_setup_search should be hashref, not arrayref";
+    carp " --- second argument to _native_setup_search should be hashref, not arrayref";
     return undef;
     } # unless
   $rhOptsArg->{search_host} = 'http://search.ebay.de';
-  return $self->SUPER::native_setup_search($native_query, $rhOptsArg);
-  } # native_setup_search
+  return $self->SUPER::_native_setup_search($native_query, $rhOptsArg);
+  } # _native_setup_search
 
 # This is what we look_down for to find the HTML element that contains
 # the result count:
-sub result_count_element_specs_NOT_NEEDED
+sub _result_count_element_specs_NOT_NEEDED
   {
   return (
           '_tag' => 'p',
           class => 'count'
          );
-  } # result_count_element_specs
+  } # _result_count_element_specs
 
-# This is what we look_down for to find the <TD> that contain auction
-# titles:
-sub title_element_specs
-  {
-  return (
-          '_tag' => 'td',
-          'class' => 'ebcTtl',
-         );
-  } # title_element_specs
 
-sub result_count_pattern
+sub _result_count_pattern
   {
   return qr'(\d+) Artikel gefunden ';
-  } # result_count_pattern
+  } # _result_count_pattern
 
 sub _next_text
   {
@@ -70,15 +61,15 @@ sub _next_text
   return 'Weiter';
   } # _next_text
 
-sub currency_pattern
+sub _currency_pattern
   {
   # A pattern to match all possible currencies found in eBay listings
   # (if one character looks weird, it's really a British Pound symbol
   # but Emacs shows it wrong):
   return qr{(?:US\s?\$|£|EUR)}; # } } # Emacs indentation bugfix
-  } # currency_pattern
+  } # _currency_pattern
 
-sub preprocess_results_page_OFF
+sub _preprocess_results_page_OFF
   {
   my $self = shift;
   my $sPage = shift;
@@ -86,14 +77,14 @@ sub preprocess_results_page_OFF
   # For debugging:
   print STDERR $sPage;
   exit 88;
-  } # preprocess_results_page
+  } # _preprocess_results_page
 
-sub columns
+sub _columns
   {
   my $self = shift;
   # This is for DE:
   return qw( bids price shipping paypal enddate );
-  } # columns
+  } # _columns
 
 sub _process_date_abbrevs
   {

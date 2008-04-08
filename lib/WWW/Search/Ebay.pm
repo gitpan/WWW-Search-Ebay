@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.216 2008/04/05 15:30:51 Martin Exp $
+# $Id: Ebay.pm,v 2.219 2008/04/06 03:51:23 Martin Exp $
 
 =head1 NAME
 
@@ -149,18 +149,11 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.216 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.219 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
-=item native_setup_search
-
-Part of the basic WWW::Search mantra.
-See WWW::Search for details.
-
-=cut
-
-sub native_setup_search
+sub _native_setup_search
   {
   my ($self, $native_query, $rhOptsArg) = @_;
 
@@ -222,12 +215,13 @@ sub native_setup_search
   $self->{categories} = [];
   # Finally, figure out the url.
   $self->{_next_url} = $self->{'search_host'} . $self->{'search_path'} .'?'. $self->hash_to_cgi_string($self->{_options});
-  } # native_setup_search
+  } # _native_setup_search
 
 
 =item user_agent_delay
 
-I get sporadic test failures, so I'm trying a little delay in case ebay's servers are mad at me...
+I get sporadic test failures,
+so I'm trying a little delay in case ebay's servers are mad at me...
 
 =cut
 
@@ -239,6 +233,13 @@ sub user_agent_delay
   sleep($iSecs);
   } # user_agent_delay
 
+
+=item preprocess_results_page
+
+Grab the eBay Official Time so that when we parse the DTG from the HTML,
+we can convert / return exactly what eBay means for each one.
+
+=cut
 
 sub preprocess_results_page
   {
@@ -252,7 +253,7 @@ sub preprocess_results_page
     exit 88;
     } # if
   my $sTitle = $self->{response}->header('title') || '';
-  my $qrTitle = $self->title_pattern;
+  my $qrTitle = $self->_title_pattern;
   if ($sTitle =~ m!$qrTitle!)
     {
     # print STDERR " DDD got a Title: ==$sTitle==\n";
@@ -344,284 +345,7 @@ sub _create_description
   return $sDesc;
   } # _create_description
 
-sub parse_tree
-  {
-  my $self = shift;
-  my $tree = shift;
-
-  my $sTitle = $self->{response}->header('title') || '';
-  my $qrTitle = $self->title_pattern;
-  # print STDERR " DDD trying to match ==$sTitle== against ==$qrTitle==\n";
-  if ($sTitle =~ m!$qrTitle!)
-    {
-    my ($sTitle, $iItem, $sDateRaw) = ($1, $2, $3);
-    my $sDateCooked = $self->_format_date($sDateRaw);
-    my $hit = new WWW::Search::Result;
-    $hit->item_number($iItem);
-    $hit->end_date($sDateCooked);
-    # For backward-compatibility:
-    $hit->change_date($sDateCooked);
-    $hit->title($sTitle);
-    $hit->add_url($self->{response}->request->uri);
-    $hit->description($self->_create_description($hit));
-    # print Dumper($hit);
-    push(@{$self->{cache}}, $hit);
-    $self->{'_num_hits'}++;
-    $self->approximate_result_count(1);
-    return 1;
-    } # if
-  my $hits_found = 0;
-  # The hit count is in a FONT tag:
-  my @aoFONT = $tree->look_down($self->result_count_element_specs);
- FONT:
-  foreach my $oFONT (@aoFONT)
-    {
-    my $qr = $self->result_count_pattern;
-    print STDERR (" DDD   result_count try ==",
-                  $oFONT->as_text, "== against qr=$qr=\n") if (1 < $self->{_debug});
-    if ($oFONT->as_text =~ m!$qr!)
-      {
-      print STDERR " DDD     matched ($1)\n" if (1 < $self->{_debug});
-      $self->approximate_result_count($1);
-      last FONT;
-      } # if
-    } # foreach
-
-  # Recursively parse the stats telling how many items were found in
-  # each category:
-  my $oUL = $tree->look_down(_tag => 'ul',
-                             class => 'categories');
-  $self->{categories} ||= [];
-  $self->_parse_category_list($oUL, $self->{categories}) if ref($oUL);
-
-  # See if our query was completely replaced by a similar-spelling query:
-  my $oLI = $tree->look_down(_tag => 'li',
-                             class => 'ebInf',
-                            );
-  if (ref $oLI)
-    {
-    if ($oLI->as_text =~ m! keyword has been replaced !)
-      {
-      $self->approximate_result_count(0);
-      return 0;
-      } # if
-    } # if
-  # First, delete all the results that came from spelling variations:
-  my $oDiv = $tree->look_down(_tag => 'div',
-                              id => 'expSplChk',
-                             );
-  if (ref $oDiv)
-    {
-    # print STDERR " DDD found a spell-check ===", $oDiv->as_text, "===\n";
-    $oDiv->detach;
-    $oDiv->delete;
-    } # if
-  # By default, use the hard-coded order of columns:
-  my @asColumns = $self->columns;
-  if (ref($self) !~ m!::Completed!)
-    {
-    # See if we can glean the actual order of columns from the page itself:
-    my @aoCOL = $tree->look_down(_tag => 'col');
-    my @asId;
-    foreach my $oCOL (@aoCOL)
-      {
-      # Sanity check:
-      next unless ref($oCOL);
-      my $sId = $oCOL->attr('id') || '';
-      # Sanity check:
-      next unless ($sId ne '');
-      $sId =~ s!\Aebc!!;
-      # Try not to go past the first table:
-      last if ($sId eq 'bdrRt');
-      push @asId, $sId;
-      } # foreach
-    print STDERR " DDD raw    asId is (@asId)\n" if (1 < $self->{_debug});
-    1 while (@asId && (shift(@asId) ne 'title'));
-    local $" = ',';
-    print STDERR " DDD cooked asId is (@asId)\n" if (1 < $self->{_debug});
-    @asColumns = @asId if @asId;
-    } # if
-  print STDERR " DDD   asColumns is (@asColumns)\n" if (1 < $self->{_debug});
-  # The list of matching items is in a table.  The first column of the
-  # table is nothing but icons; the second column is the good stuff.
-  my @a = $self->title_element_specs;
-  # print STDERR Dumper(\@a);
-  # exit 88;
-  my @aoTD = $tree->look_down(@a);
-  unless (@aoTD)
-    {
-    print STDERR " --- did not find table of results\n" if $self->{_debug};
-    } # unless
-  my $qrItemNum = qr{[;Q]item[=Z](\d+)[;Q]};
- TD:
-  foreach my $oTDtitle (0, @aoTD)
-    {
-    # Sanity check:
-    next TD unless ref $oTDtitle;
-    my $sTDtitle = $oTDtitle->as_HTML;
-    print STDERR " DDD try TDtitle ===$sTDtitle===\n" if (1 < $self->{_debug});
-    # First A tag contains the url & title:
-    my $oA = $oTDtitle->look_down('_tag', 'a');
-    next TD unless ref $oA;
-    # This is needed for Ebay::UK to make sure we're looking at the right TD:
-    my $sTitle = $oA->as_text || '';
-    next TD if ($sTitle eq '');
-    print STDERR " DDD   sTitle ===$sTitle===\n" if (1 < $self->{_debug});
-    my $oURI = URI->new($oA->attr('href'));
-    next TD unless ($oURI =~ m!ViewItem!);
-    next TD unless ($oURI =~ m!$qrItemNum!);
-    my $iItemNum = $1;
-    my $iCategory = 'unknown';
-    $iCategory = $1 if ($oURI =~ m!QQcategoryZ(\d+)QQ!);
-    print STDERR " DDD   iItemNum ===$iItemNum===\n" if (1 < $self->{_debug});
-    if ($oURI->as_string =~ m!QQitemZ(\d+)QQ!)
-      {
-      # Convert new eBay links to old reliable ones:
-      # $oURI->path('');
-      $oURI->path('/ws/eBayISAPI.dll');
-      $oURI->query("ViewItem&item=$1");
-      } # if
-    my $sURL = $oURI->as_string;
-    my $hit = new WWW::Search::Result;
-    $hit->add_url($self->_cleanup_url($sURL));
-    $hit->title($sTitle);
-    $hit->category($iCategory);
-    $hit->item_number($iItemNum);
-    # The rest of the info about this item is in sister TD elements to
-    # the right:
-    my @aoSibs = $oTDtitle->right;
-    # But in the Completed auctions list, the rest of the info is in
-    # the next row of the table:
-    if (ref($self) =~ m!::Completed!)
-      {
-      @aoSibs = $oTDtitle->parent->right->look_down(_tag => 'td');
-      # Throw out one empty cell:
-      shift @aoSibs;
-      } # if
-    my $iCol = 0;
- SIBLING_TD:
-    while ((my $oTDsib = shift(@aoSibs))
-           &&
-           (my $sColumn = $asColumns[$iCol++])
-          )
-      {
-      next unless ref($oTDsib);
-      my $s = $oTDsib->as_HTML;
-      print STDERR " DDD   try TD'$sColumn' ===$s===\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
-      if ($sColumn eq 'price')
-        {
-        next TD unless $self->parse_price($oTDsib, $hit);
-        }
-      elsif ($sColumn eq 'bids')
-        {
-        next TD unless $self->parse_bids($oTDsib, $hit);
-        }
-      elsif ($sColumn eq 'shipping')
-        {
-        next TD unless $self->parse_shipping($oTDsib, $hit);
-        }
-      elsif ($sColumn eq 'enddate')
-        {
-        next TD unless $self->parse_enddate($oTDsib, $hit);
-        }
-      elsif ($sColumn eq 'time')
-        {
-        next TD unless $self->parse_enddate($oTDsib, $hit);
-        }
-      elsif ($sColumn eq 'country')
-        {
-        # This listing is from a country other than the base site
-        # we're searching against.  Throw it out:
-        next TD;
-        }
-      else
-        {
-        print STDERR " DDD     do not know how to handle column named $sColumn\n" if (1 < $self->{_debug});
-        next SIBLING_TD;
-        }
-      } # while
-    my $sDesc = $self->_create_description($hit);
-    $hit->description($sDesc);
-    push(@{$self->{cache}}, $hit);
-    $self->{'_num_hits'}++;
-    $hits_found++;
-    # Delete this HTML element so that future searches go faster?
-    $oTDtitle->detach;
-    $oTDtitle->delete;
-    } # foreach TD
-
-  # Look for a NEXT link:
-  my @aoA = $tree->look_down('_tag', 'a');
- TRY_NEXT:
-  foreach my $oA (0, reverse @aoA)
-    {
-    next TRY_NEXT unless ref $oA;
-    print STDERR " DDD   try NEXT A ===", $oA->as_HTML, "===\n" if (1 < $self->{_debug});
-    my $href = $oA->attr('href');
-    next TRY_NEXT unless $href;
-    # Looking backwards from the bottom of the page, if we get all the
-    # way to the item list, there must be no next button:
-    last TRY_NEXT if ($href =~ m!ViewItem!);
-    if ($oA->as_text eq $self->_next_text)
-      {
-      print STDERR " DDD   got NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
-      $self->{_next_url} = $self->absurl($self->{_prev_url}, $href);
-      last TRY_NEXT;
-      } # if
-    } # foreach
-  # All done with this page.
-  $tree->delete;
-  return $hits_found;
-  } # parse_tree
-
-sub _next_text
-  {
-  # The text of the "Next" button, localized:
-  return 'Next';
-  } # _next_text
-
-sub _parse_category_list
-  {
-  my $self = shift;
-  my $oTree = shift;
-  my $ra = shift;
-  my $oUL = $oTree->look_down(_tag => 'ul');
-  my @aoLI = $oUL->look_down(_tag => 'li');
- CATLIST_LI:
-  foreach my $oLI (@aoLI)
-    {
-    my %hash;
-    next CATLIST_LI unless ref($oLI);
-    if ($oLI->parent->same_as($oUL))
-      {
-      my $oA = $oLI->look_down(_tag => 'a');
-      next CATLIST_LI unless ref($oA);
-      my $oSPAN = $oLI->look_down(_tag => 'span');
-      next CATLIST_LI unless ref($oSPAN);
-      $hash{'Name'} = $oA->as_text;
-      $hash{'ID'} = $oA->{'href'};
-      $hash{'ID'} =~ /sacatZ([0-9]+)/;
-      $hash{'ID'} = $1;
-      my $i = $oSPAN->as_text;
-      $i =~ tr/0-9//cd;
-      $hash{'Count'} = $i;
-      push @{$ra}, \%hash;
-      } # if
-    my @aoUL = $oLI->look_down(_tag => 'ul');
- CATLIST_UL:
-    foreach my $oUL (@aoUL)
-      {
-      next CATLIST_UL unless ref($oUL);
-      if($oUL->parent()->same_as($oLI))
-        {
-        $hash{'Subcategory'} = ();
-        $self->_parse_category_list($oLI, \@{$hash{'Subcategory'}});
-        } # if
-      } # foreach CATLIST_UL
-    } # foreach CATLIST_LI
-  } # _parse_category_list
-
-sub parse_price
+sub _parse_price
   {
   my $self = shift;
   my $oTDprice = shift;
@@ -632,7 +356,7 @@ sub parse_price
     {
     print STDERR " DDD   try TDprice ===$s===\n";
     } # if
-  if ($oTDprice->attr('class') eq 'ebcBid')
+  if ($oTDprice->attr('class') =~ m'\bebcBid\b')
     {
     # If we see this, we must have been searching for Stores items
     # but we ran off the bottom of the Stores item list and ran
@@ -642,7 +366,7 @@ sub parse_price
     # maybe just maybe we hit this because of a parsing glitch which
     # might correct itself on the next TD.
     } # if
-  if ($oTDprice->attr('class') !~ m'\A(ebcPr|prices)\z')
+  if ($oTDprice->attr('class') !~ m'\b(ebcPr|prices)\b')
     {
     # If we see this, we probably were searching for Store items
     # but we ran off the bottom of the Store item list and ran
@@ -664,14 +388,14 @@ sub parse_price
   # I don't know why there are sometimes weird characters in there:
   $iPrice =~ s!&Acirc;!!g;
   $iPrice =~ s!Â!!g;
-  my $currency = $self->currency_pattern;
+  my $currency = $self->_currency_pattern;
   my $W = $self->whitespace_pattern;
   $iPrice =~ s!($currency)$W*($currency)!$1 (Buy-It-Now for $2)!;
   $hit->bid_amount($iPrice);
   return 1;
-  } # parse_price
+  } # _parse_price
 
-sub parse_bids
+sub _parse_bids
   {
   my $self = shift;
   my $oTDbids = shift;
@@ -684,7 +408,7 @@ sub parse_bids
       {
       print STDERR " DDD   TDbids ===$s===\n";
       } # if
-    if ($oTDbids->attr('class') !~ m'\A(ebcBid|bids)\z')
+    if ($oTDbids->attr('class') !~ m'\b(ebcBid|bids)\b')
       {
       # If we see this, we probably were searching for Store items
       # but we ran off the bottom of the Store item list and ran
@@ -707,14 +431,14 @@ sub parse_bids
     } # if
   $hit->bid_count($iBids);
   return 1;
-  } # parse_bids
+  } # _parse_bids
 
-sub parse_shipping
+sub _parse_shipping
   {
   my $self = shift;
   my $oTD = shift;
   my $hit = shift;
-  if ($oTD->attr('class') =~ m'ebcCty')
+  if ($oTD->attr('class') =~ m'\bebcCty\b')
     {
     # If we see this, we probably were searching for UK auctions
     # but we ran off the bottom of the UK item list and ran
@@ -730,17 +454,17 @@ sub parse_shipping
   $iPrice =~ s!&pound;!GBP!;
   $hit->shipping($iPrice);
   return 1;
-  } # parse_shipping
+  } # _parse_shipping
 
-sub parse_skip
+sub _parse_skip
   {
   my $self = shift;
   my $oTD = shift;
   my $hit = shift;
   return 1;
-  } # parse_skip
+  } # _parse_skip
 
-sub parse_enddate
+sub _parse_enddate
   {
   my $self = shift;
   my $oTDdate = shift;
@@ -757,7 +481,7 @@ sub parse_enddate
     $sDateTemp = $s = $oTDdate;
     }
   print STDERR " DDD   TDdate ===$s===\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
-  if (ref($oTDdate) && ($oTDdate->attr('class') !~ m'\A(ebcTim|time)\z'))
+  if (ref($oTDdate) && ($oTDdate->attr('class') !~ m'\b(ebcTim|time)\b'))
     {
     # If we see this, we probably were searching for Buy-It-Now items
     # but we ran off the bottom of the item list and ran into the list
@@ -783,17 +507,7 @@ sub parse_enddate
   # For backward-compatibility:
   $hit->change_date($sDate);
   return 1;
-  } # parse_enddate
-
-sub _process_date_abbrevs
-  {
-  my $self = shift;
-  my $s = shift;
-  $s =~ s!d! days!;
-  $s =~ s!h! hours!;
-  $s =~ s!m! minutes!;
-  return $s;
-  } # _process_date_abbrevs
+  } # _parse_enddate
 
 
 =item result_as_HTML
@@ -853,7 +567,341 @@ sub result_as_HTML
 
 =head1 METHODS TO BE OVERRIDDEN IN SUBCLASSING
 
+You only need to read about these if you are subclassing this module
+(i.e. making a backend for another flavor of eBay search).
+
 =over
+
+=cut
+
+sub _parse_tree
+  {
+  my $self = shift;
+  my $tree = shift;
+  print STDERR " FFF Ebay::_parse_tree\n" if (1 < $self->{_debug});
+  my $sTitle = $self->{response}->header('title') || '';
+  my $qrTitle = $self->_title_pattern;
+  # print STDERR " DDD trying to match ==$sTitle== against ==$qrTitle==\n";
+  if ($sTitle =~ m!$qrTitle!)
+    {
+    my ($sTitle, $iItem, $sDateRaw) = ($1, $2, $3);
+    my $sDateCooked = $self->_format_date($sDateRaw);
+    my $hit = new WWW::Search::Result;
+    $hit->item_number($iItem);
+    $hit->end_date($sDateCooked);
+    # For backward-compatibility:
+    $hit->change_date($sDateCooked);
+    $hit->title($sTitle);
+    $hit->add_url($self->{response}->request->uri);
+    $hit->description($self->_create_description($hit));
+    # print Dumper($hit);
+    push(@{$self->{cache}}, $hit);
+    $self->{'_num_hits'}++;
+    $self->approximate_result_count(1);
+    return 1;
+    } # if
+  my $hits_found = 0;
+  # The hit count is in a FONT tag:
+  my @aoFONT = $tree->look_down($self->_result_count_element_specs);
+ FONT:
+  foreach my $oFONT (@aoFONT)
+    {
+    my $qr = $self->_result_count_pattern;
+    print STDERR (" DDD   result_count try ==",
+                  $oFONT->as_text, "== against qr=$qr=\n") if (1 < $self->{_debug});
+    if ($oFONT->as_text =~ m!$qr!)
+      {
+      print STDERR " DDD     matched ($1)\n" if (1 < $self->{_debug});
+      $self->approximate_result_count($1);
+      last FONT;
+      } # if
+    } # foreach
+
+  # Recursively parse the stats telling how many items were found in
+  # each category:
+  my $oUL = $tree->look_down(_tag => 'ul',
+                             class => 'categories');
+  $self->{categories} ||= [];
+  $self->_parse_category_list($oUL, $self->{categories}) if ref($oUL);
+
+  # See if our query was completely replaced by a similar-spelling query:
+  my $oLI = $tree->look_down(_tag => 'li',
+                             class => 'ebInf',
+                            );
+  if (ref $oLI)
+    {
+    if ($oLI->as_text =~ m! keyword has been replaced !)
+      {
+      $self->approximate_result_count(0);
+      return 0;
+      } # if
+    } # if
+  # First, delete all the results that came from spelling variations:
+  my $oDiv = $tree->look_down(_tag => 'div',
+                              id => 'expSplChk',
+                             );
+  if (ref $oDiv)
+    {
+    # print STDERR " DDD found a spell-check ===", $oDiv->as_text, "===\n";
+    $oDiv->detach;
+    $oDiv->delete;
+    } # if
+  # By default, use the hard-coded order of columns:
+  my @asColumns = $self->_columns;
+  if (ref($self) !~ m!::Completed!)
+    {
+    # See if we can glean the actual order of columns from the page itself:
+    my @aoCOL = $tree->look_down(_tag => 'col');
+    my @asId;
+    foreach my $oCOL (@aoCOL)
+      {
+      # Sanity check:
+      next unless ref($oCOL);
+      my $sId = $oCOL->attr('id') || '';
+      # Sanity check:
+      next unless ($sId ne '');
+      $sId =~ s!\Aebc!!;
+      # Try not to go past the first table:
+      last if ($sId eq 'bdrRt');
+      push @asId, $sId;
+      } # foreach
+    print STDERR " DDD raw    asId is (@asId)\n" if (1 < $self->{_debug});
+    1 while (@asId && (shift(@asId) ne 'title'));
+    local $" = ',';
+    print STDERR " DDD cooked asId is (@asId)\n" if (1 < $self->{_debug});
+    @asColumns = @asId if @asId;
+    } # if
+  print STDERR " DDD   asColumns is (@asColumns)\n" if (1 < $self->{_debug});
+  # The list of matching items is in a table.  The first column of the
+  # table is nothing but icons; the second column is the good stuff.
+  my @a = $self->_title_element_specs;
+  print STDERR Dumper(\@a) if (1 < $self->{_debug});
+  # exit 88;
+  my @aoTD = $tree->look_down(@a);
+  unless (@aoTD)
+    {
+    print STDERR " --- did not find table of results\n" if $self->{_debug};
+    } # unless
+  my $qrItemNum = qr{[;Q]item[=Z](\d+)[;Q]};
+ TD:
+  foreach my $oTDtitle (@aoTD)
+    {
+    # Sanity check:
+    next TD unless ref $oTDtitle;
+    my $sTDtitle = $oTDtitle->as_HTML;
+    print STDERR " DDD try TDtitle ===$sTDtitle===\n" if (1 < $self->{_debug});
+    # First A tag contains the url & title:
+    my $oA = $oTDtitle->look_down('_tag', 'a');
+    next TD unless ref $oA;
+    # This is needed for Ebay::UK to make sure we're looking at the right TD:
+    my $sTitle = $oA->as_text || '';
+    next TD if ($sTitle eq '');
+    print STDERR " DDD   sTitle ===$sTitle===\n" if (1 < $self->{_debug});
+    my $oURI = URI->new($oA->attr('href'));
+    next TD unless ($oURI =~ m!ViewItem!);
+    next TD unless ($oURI =~ m!$qrItemNum!);
+    my $iItemNum = $1;
+    my $iCategory = 'unknown';
+    $iCategory = $1 if ($oURI =~ m!QQcategoryZ(\d+)QQ!);
+    print STDERR " DDD   iItemNum ===$iItemNum===\n" if (1 < $self->{_debug});
+    if ($oURI->as_string =~ m!QQitemZ(\d+)QQ!)
+      {
+      # Convert new eBay links to old reliable ones:
+      # $oURI->path('');
+      $oURI->path('/ws/eBayISAPI.dll');
+      $oURI->query("ViewItem&item=$1");
+      } # if
+    my $sURL = $oURI->as_string;
+    my $hit = new WWW::Search::Result;
+    $hit->add_url($self->_cleanup_url($sURL));
+    $hit->title($sTitle);
+    $hit->category($iCategory);
+    $hit->item_number($iItemNum);
+    # The rest of the info about this item is in sister TD elements to
+    # the right:
+    my @aoSibs = $oTDtitle->right;
+    # But in the Completed auctions list, the rest of the info is in
+    # the next row of the table:
+    if (ref($self) =~ m!::Completed!)
+      {
+      @aoSibs = ();
+      my $oTRparent = $oTDtitle->look_up(_tag => 'tr');
+      if (ref $oTRparent)
+        {
+        my $sTRparent = $oTRparent->as_HTML;
+        # print STDERR " DDD oTRparent ==$sTRparent==\n";
+        my $oTRaunt = $oTRparent->right;
+        if (ref $oTRaunt)
+          {
+          my $sTRaunt = $oTRaunt->as_HTML;
+          # print STDERR " DDD oTRaunt ==$sTRaunt==\n";
+          @aoSibs = $oTRaunt->look_down(_tag => 'td');
+          # Throw out one empty cell:
+          shift @aoSibs;
+          } # if
+        } # if
+      } # if
+    my $iCol = 0;
+ SIBLING_TD:
+    while ((my $oTDsib = shift(@aoSibs))
+           &&
+           (my $sColumn = $asColumns[$iCol++])
+          )
+      {
+      next unless ref($oTDsib);
+      my $s = $oTDsib->as_HTML;
+      print STDERR " DDD   try TD'$sColumn' ===$s===\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
+      if ($sColumn eq 'price')
+        {
+        next TD unless $self->_parse_price($oTDsib, $hit);
+        }
+      elsif ($sColumn eq 'bids')
+        {
+        next TD unless $self->_parse_bids($oTDsib, $hit);
+        }
+      elsif ($sColumn eq 'shipping')
+        {
+        next TD unless $self->_parse_shipping($oTDsib, $hit);
+        }
+      elsif ($sColumn eq 'enddate')
+        {
+        next TD unless $self->_parse_enddate($oTDsib, $hit);
+        }
+      elsif ($sColumn eq 'time')
+        {
+        next TD unless $self->_parse_enddate($oTDsib, $hit);
+        }
+      elsif ($sColumn eq 'country')
+        {
+        # This listing is from a country other than the base site
+        # we're searching against.  Throw it out:
+        next TD;
+        }
+      else
+        {
+        print STDERR " DDD     do not know how to handle column named $sColumn\n" if (1 < $self->{_debug});
+        next SIBLING_TD;
+        }
+      } # while
+    my $sDesc = $self->_create_description($hit);
+    $hit->description($sDesc);
+    push(@{$self->{cache}}, $hit);
+    $self->{'_num_hits'}++;
+    $hits_found++;
+    # Delete this HTML element so that future searches go faster?
+    $oTDtitle->detach;
+    $oTDtitle->delete;
+    } # foreach TD
+
+  # Look for a NEXT link:
+  my @aoA = $tree->look_down('_tag', 'a');
+ TRY_NEXT:
+  foreach my $oA (0, reverse @aoA)
+    {
+    next TRY_NEXT unless ref $oA;
+    print STDERR " DDD   try NEXT A ===", $oA->as_HTML, "===\n" if (1 < $self->{_debug});
+    my $href = $oA->attr('href');
+    next TRY_NEXT unless $href;
+    # Looking backwards from the bottom of the page, if we get all the
+    # way to the item list, there must be no next button:
+    last TRY_NEXT if ($href =~ m!ViewItem!);
+    if ($oA->as_text eq $self->_next_text)
+      {
+      print STDERR " DDD   got NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
+      $self->{_next_url} = $self->absurl($self->{_prev_url}, $href);
+      last TRY_NEXT;
+      } # if
+    } # foreach
+  # All done with this page.
+  $tree->delete;
+  return $hits_found;
+  } # _parse_tree
+
+
+=item _parse_category_list
+
+Parses the Category list from the right side of the results page.
+So far,
+this method can handle every type of eBay search currently implemented.
+If you find that it doesn't suit your needs,
+please contact the author because it's probably just a tiny tweak that's needed.
+
+=cut
+
+sub _parse_category_list
+  {
+  my $self = shift;
+  my $oTree = shift;
+  my $ra = shift;
+  my $oUL = $oTree->look_down(_tag => 'ul');
+  my @aoLI = $oUL->look_down(_tag => 'li');
+ CATLIST_LI:
+  foreach my $oLI (@aoLI)
+    {
+    my %hash;
+    next CATLIST_LI unless ref($oLI);
+    if ($oLI->parent->same_as($oUL))
+      {
+      my $oA = $oLI->look_down(_tag => 'a');
+      next CATLIST_LI unless ref($oA);
+      my $oSPAN = $oLI->look_down(_tag => 'span');
+      next CATLIST_LI unless ref($oSPAN);
+      $hash{'Name'} = $oA->as_text;
+      $hash{'ID'} = $oA->{'href'};
+      $hash{'ID'} =~ /sacatZ([0-9]+)/;
+      $hash{'ID'} = $1;
+      my $i = $oSPAN->as_text;
+      $i =~ tr/0-9//cd;
+      $hash{'Count'} = $i;
+      push @{$ra}, \%hash;
+      } # if
+    my @aoUL = $oLI->look_down(_tag => 'ul');
+ CATLIST_UL:
+    foreach my $oUL (@aoUL)
+      {
+      next CATLIST_UL unless ref($oUL);
+      if($oUL->parent()->same_as($oLI))
+        {
+        $hash{'Subcategory'} = ();
+        $self->_parse_category_list($oLI, \@{$hash{'Subcategory'}});
+        } # if
+      } # foreach CATLIST_UL
+    } # foreach CATLIST_LI
+  } # _parse_category_list
+
+
+=item _process_date_abbrevs
+
+Given a date string,
+converts common abbreviations to their full words
+(so that the string can be unambiguously parsed by Date::Manip).
+For example,
+in the default English, 'd' becomes 'days'.
+
+=cut
+
+sub _process_date_abbrevs
+  {
+  my $self = shift;
+  my $s = shift;
+  $s =~ s!d! days!;
+  $s =~ s!h! hours!;
+  $s =~ s!m! minutes!;
+  return $s;
+  } # _process_date_abbrevs
+
+
+=item _next_text
+
+The text of the "Next" button, localized.
+
+=cut
+
+sub _next_text
+  {
+  return 'Next';
+  } # _next_text
+
 
 =item whitespace_pattern
 
@@ -867,23 +915,23 @@ sub whitespace_pattern
   return qr{[\ \t\r\n\240]};
   } # whitespace_pattern
 
-=item currency_pattern
+=item _currency_pattern
 
 Return a qr// pattern to match mentions of money in your webpage's language.
 Include the digits in the pattern.
 
 =cut
 
-sub currency_pattern
+sub _currency_pattern
   {
   my $self = shift;
   # A pattern to match all possible currencies found in USA eBay
   # listings:
   my $W = $self->whitespace_pattern;
   return qr/(?:\$|C|EUR|GBP)$W*[0-9.,]+/;
-  } # currency_pattern
+  } # _currency_pattern
 
-=item title_pattern
+=item _title_pattern
 
 Return a qr// pattern to match the webpage title in your webpage's language.
 Add grouping parenthesis so that
@@ -893,50 +941,68 @@ $3 becomes the end date.
 
 =cut
 
-sub title_pattern
+sub _title_pattern
   {
   return qr{\A(.+?)\s+-\s+EBAY\s+\(ITEM\s+(\d+)\s+END\s+TIME\s+([^)]+)\)\Z}i; #
-  } # title_pattern
+  } # _title_pattern
 
-=item result_count_pattern
+=item _result_count_element_specs
+
+This is what we look_down() for to find the HTML element that contains
+the result count.
+
+=cut
+
+sub _result_count_element_specs
+  {
+  return (
+          '_tag' => 'div',
+          class => 'count'
+         );
+  } # _result_count_element_specs
+
+
+=item _result_count_pattern
 
 Return a qr// pattern to match the result count in your webpage's language.
 Include parentheses so that $1 becomes the number (with commas is OK).
 
 =cut
 
-sub result_count_pattern
+sub _result_count_pattern
   {
   return qr'(\d+) items? found ';
-  } # result_count_pattern
+  } # _result_count_pattern
 
-# This is what we look_down for to find the HTML element that contains
-# the result count:
-sub result_count_element_specs
-  {
-  return (
-          '_tag' => 'div',
-          class => 'count'
-         );
-  } # result_count_element_specs
 
-# This is what we look_down for to find the <TD> that contain auction
-# titles:
-sub title_element_specs
+=item _title_element_specs
+
+This is what we look_down() for to find the HTML element that contains
+the title of the result.
+
+=cut
+
+sub _title_element_specs
   {
   return (
           '_tag' => 'td',
           'class' => 'ebcTtl',
          );
-  } # title_element_specs
+  } # _title_element_specs
 
 
-sub columns
+=item _columns
+
+Specify the order in which data columns appear in the search results table.
+
+=cut
+
+sub _columns
   {
   my $self = shift;
   # This is for basic USA eBay:
   return qw( paypal bids price shipping enddate );
-  } # columns
+  } # _columns
 
 =back
 

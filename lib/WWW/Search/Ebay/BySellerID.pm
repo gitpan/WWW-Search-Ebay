@@ -1,5 +1,5 @@
 
-# $Id: BySellerID.pm,v 2.5 2008/02/24 21:16:21 Daddy Exp $
+# $Id: BySellerID.pm,v 2.6 2008/04/06 03:39:17 Martin Exp $
 
 =head1 NAME
 
@@ -54,9 +54,9 @@ use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 2.5 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.6 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
-sub native_setup_search
+sub _native_setup_search
   {
   my ($self, $sQuery, $rh) = @_;
   $rh->{'MfcISAPICommand'} = 'MemberSearchResult';
@@ -78,8 +78,8 @@ sub native_setup_search
   $rh->{'catref'} = 'C5';
   $rh->{'from'} = 'R7';
   $rh->{'pfid'} = '0';
-  return $self->SUPER::native_setup_search('', $rh);
-  } # native_setup_search
+  return $self->SUPER::_native_setup_search('', $rh);
+  } # _native_setup_search
 
 1;
 

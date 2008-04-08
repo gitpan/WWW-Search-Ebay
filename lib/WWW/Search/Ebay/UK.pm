@@ -1,5 +1,5 @@
 
-# $Id: UK.pm,v 1.15 2008/04/05 15:30:34 Martin Exp $
+# $Id: UK.pm,v 1.16 2008/04/06 03:39:17 Martin Exp $
 
 =head1 NAME
 
@@ -24,48 +24,39 @@ use warnings;
 use Carp;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.15 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.16 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
-sub native_setup_search
+sub _native_setup_search
   {
   my ($self, $native_query, $rhOptsArg) = @_;
   $rhOptsArg ||= {};
   unless (ref($rhOptsArg) eq 'HASH')
     {
-    carp " --- second argument to native_setup_search should be hashref, not arrayref";
+    carp " --- second argument to _native_setup_search should be hashref, not arrayref";
     return undef;
     } # unless
   $rhOptsArg->{search_host} = 'http://search.ebay.co.uk';
-  return $self->SUPER::native_setup_search($native_query, $rhOptsArg);
-  } # native_setup_search
+  return $self->SUPER::_native_setup_search($native_query, $rhOptsArg);
+  } # _native_setup_search
 
 # This is what we look_down for to find the HTML element that contains
 # the result count:
-sub result_count_element_specs_USE_DEFAULT
+sub _result_count_element_specs_USE_DEFAULT
   {
   return (
           '_tag' => 'p',
           id => 'count'
          );
-  } # result_count_element_specs
+  } # _result_count_element_specs
 
-# This is what we look_down for to find the <TD> that contain auction
-# titles:
-sub title_element_specs
-  {
-  return (
-          '_tag' => 'td',
-          'class' => 'ebcTtl',
-         );
-  } # title_element_specs
 
-sub currency_pattern
+sub _currency_pattern
   {
   # A pattern to match all possible currencies found in eBay listings
   # (if one character looks weird, it's really a British Pound symbol
   # but Emacs shows it wrong):
   return qr{(?:US\s?\$|£)}; # } } # Emacs indentation bugfix
-  } # currency_pattern
+  } # _currency_pattern
 
 sub _preprocess_results_page
   {
@@ -77,12 +68,12 @@ sub _preprocess_results_page
   exit 88;
   } # preprocess_results_page
 
-sub columns
+sub _columns
   {
   my $self = shift;
   # This is for UK:
   return qw( bids price postage paypal enddate );
-  } # columns
+  } # _columns
 
 1;
 

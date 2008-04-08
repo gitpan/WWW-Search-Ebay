@@ -1,5 +1,5 @@
 
-# $Id: Motors.pm,v 1.8 2008/02/25 01:24:46 Daddy Exp $
+# $Id: Motors.pm,v 1.10 2008/04/06 03:51:24 Martin Exp $
 
 =head1 NAME
 
@@ -65,48 +65,48 @@ use Carp;
 use Data::Dumper;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.10 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
-sub native_setup_search
+sub _native_setup_search
   {
   my ($self, $native_query, $rhOptsArg) = @_;
   $rhOptsArg ||= {};
   unless (ref($rhOptsArg) eq 'HASH')
     {
-    carp " --- second argument to native_setup_search should be hashref, not arrayref";
+    carp " --- second argument to _native_setup_search should be hashref, not arrayref";
     return undef;
     } # unless
   $rhOptsArg->{search_host} = 'http://motors.search.ebay.com';
-  return $self->SUPER::native_setup_search($native_query, $rhOptsArg);
-  } # native_setup_search
+  return $self->SUPER::_native_setup_search($native_query, $rhOptsArg);
+  } # _native_setup_search
 
-sub result_count_element_specs
+sub _result_count_element_specs
   {
   return (
           '_tag' => 'div',
           id => 'matchesFound'
          );
-  } # result_count_element_specs
+  } # _result_count_element_specs
 
-sub result_count_pattern
+sub _result_count_pattern
   {
   return qr'(\d+)\s+match(es)?\s+found';
-  } # result_count_pattern
+  } # _result_count_pattern
 
-sub title_element_specs
+sub _title_element_specs
   {
   return (
           '_tag' => 'td',
           'class' => 'details',
          );
-  } # title_element_specs
+  } # _title_element_specs
 
-sub columns
+sub _columns
   {
   my $self = shift;
   return qw( bids price shipping enddate );
-  } # columns
+  } # _columns
 
 1;
 

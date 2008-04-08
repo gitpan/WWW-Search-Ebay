@@ -1,5 +1,5 @@
 
-# $Id: BuyItNow.pm,v 1.8 2008/02/24 21:16:21 Daddy Exp $
+# $Id: BuyItNow.pm,v 1.9 2008/04/06 03:39:16 Martin Exp $
 
 =head1 NAME
 
@@ -57,20 +57,20 @@ use warnings;
 use WWW::Search::Ebay;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.9 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
-sub native_setup_search
+sub _native_setup_search
   {
   my ($self, $sQuery, $rh) = @_;
   $rh->{'sasaleclass'} = 2;
-  return $self->SUPER::native_setup_search($sQuery, $rh);
-  } # native_setup_search
+  return $self->SUPER::_native_setup_search($sQuery, $rh);
+  } # _native_setup_search
 
-sub columns
+sub _columns
   {
   my $self = shift;
   return qw( paypal buyitnowlogo price enddate );
-  } # columns
+  } # _columns
 
 1;
 

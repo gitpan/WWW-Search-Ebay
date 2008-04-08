@@ -1,5 +1,5 @@
 
-# $Id: Stores.pm,v 1.12 2008/02/24 21:16:21 Daddy Exp $
+# $Id: Stores.pm,v 1.14 2008/04/06 03:51:24 Martin Exp $
 
 =head1 NAME
 
@@ -55,9 +55,9 @@ use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.12 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.14 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
-sub native_setup_search
+sub _native_setup_search
   {
   my ($self, $sQuery, $rh) = @_;
   # As of 2004-10-20:
@@ -70,10 +70,10 @@ sub native_setup_search
   $rh->{'satitle'} = $sQuery;
   # Turn off default W::S::Ebay options:
   $self->{_options} = {};
-  return $self->SUPER::native_setup_search($sQuery, $rh);
-  } # native_setup_search
+  return $self->SUPER::_native_setup_search($sQuery, $rh);
+  } # _native_setup_search
 
-sub preprocess_results_page_OFF
+sub _preprocess_results_page_OFF
   {
   my $self = shift;
   my $sPage = shift;
@@ -81,14 +81,14 @@ sub preprocess_results_page_OFF
   # For debugging:
   print STDERR $sPage;
   exit 88;
-  } # preprocess_results_page
+  } # _preprocess_results_page
 
-sub columns
+sub _columns
   {
   my $self = shift;
   # This is for Stores:
   return qw( paypal bids price shipping store enddate );
-  } # columns
+  } # _columns
 
 
 1;

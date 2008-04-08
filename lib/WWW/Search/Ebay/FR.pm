@@ -1,5 +1,5 @@
 
-# $Id: FR.pm,v 2.8 2008/04/05 14:50:57 Martin Exp $
+# $Id: FR.pm,v 2.10 2008/04/06 03:51:23 Martin Exp $
 
 =head1 NAME
 
@@ -24,45 +24,36 @@ use warnings;
 use Carp;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 2.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.10 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
-sub native_setup_search
+sub _native_setup_search
   {
   my ($self, $native_query, $rhOptsArg) = @_;
   $rhOptsArg ||= {};
   unless (ref($rhOptsArg) eq 'HASH')
     {
-    carp " --- second argument to native_setup_search should be hashref, not arrayref";
+    carp " --- second argument to _native_setup_search should be hashref, not arrayref";
     return undef;
     } # unless
   $rhOptsArg->{search_host} = 'http://search.ebay.fr';
-  return $self->SUPER::native_setup_search($native_query, $rhOptsArg);
-  } # native_setup_search
+  return $self->SUPER::_native_setup_search($native_query, $rhOptsArg);
+  } # _native_setup_search
 
 # This is what we look_down for to find the HTML element that contains
 # the result count:
-sub result_count_element_specs_USE_DEFAULT
+sub _result_count_element_specs_USE_DEFAULT
   {
   return (
           '_tag' => 'p',
           id => 'count'
          );
-  } # result_count_element_specs
+  } # _result_count_element_specs
 
-sub result_count_pattern
+sub _result_count_pattern
   {
   return qr'(\d+) objets? trouv';
-  } # result_count_pattern
+  } # _result_count_pattern
 
-# This is what we look_down for to find the <TD> that contain auction
-# titles:
-sub title_element_specs
-  {
-  return (
-          '_tag' => 'td',
-          'class' => 'ebcTtl',
-         );
-  } # title_element_specs
 
 sub _next_text
   {
@@ -70,21 +61,21 @@ sub _next_text
   return 'Suivante';
   } # _next_text
 
-sub title_pattern
+sub _title_pattern
   {
   my $self = shift;
   return qr{\A(.+?)\s+EN\s+VENTE\s+SUR\s+EBAY\.FR\s+()\(FIN\s+LE\s+([^)]+)\)}i;
-  } # title_pattern
+  } # _title_pattern
 
-sub currency_pattern
+sub _currency_pattern
   {
   my $self = shift;
   # A pattern to match all possible currencies found in eBay listings
   my $W = $self->whitespace_pattern;
   return qr{[\d.,]+$W+EUR}; # } } # Emacs indentation bugfix
-  } # currency_pattern
+  } # _currency_pattern
 
-sub preprocess_results_page_OFF
+sub _preprocess_results_page_OFF
   {
   my $self = shift;
   my $sPage = shift;
@@ -92,14 +83,14 @@ sub preprocess_results_page_OFF
   # For debugging:
   print STDERR $sPage;
   exit 88;
-  } # preprocess_results_page
+  } # _preprocess_results_page
 
-sub columns
+sub _columns
   {
   my $self = shift;
   # This is for FR:
   return qw( paypal price shipping bids enddate );
-  } # columns
+  } # _columns
 
 sub _process_date_abbrevs
   {

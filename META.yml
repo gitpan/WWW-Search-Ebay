@@ -23,7 +23,7 @@ requires:
   Date::Manip: 0
   HTML::TreeBuilder: 0
   LWP::Simple: 0
-  WWW::Search: 2.529
+  WWW::Search: 2.556
   WWW::SearchResult: 2.067
   perl: 5.005
-version: 2.236
+version: 2.237

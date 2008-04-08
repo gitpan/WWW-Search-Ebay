@@ -1,6 +1,6 @@
 # Ebay/ByEndDate.pm
 # by Martin Thurn
-# $Id: ByEndDate.pm,v 2.27 2008/02/24 21:16:21 Daddy Exp $
+# $Id: ByEndDate.pm,v 2.29 2008/04/06 03:47:05 Martin Exp $
 
 =head1 NAME
 
@@ -93,7 +93,7 @@ use Date::Manip;
 use base 'WWW::Search::Ebay';
 
 our
-$VERSION = do { my @r = (q$Revision: 2.27 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.29 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 # Damn it's hard to get a timezone:
@@ -103,13 +103,13 @@ my $EBAY_TZ = 'PST';
 substr($EBAY_TZ, 1, 1) = 'D' if $isdst;
 
 # private
-sub native_setup_search
+sub _native_setup_search
   {
   my ($self, $native_query, $rhOptsArg) = @_;
   $rhOptsArg ||= {};
   unless (ref($rhOptsArg) eq 'HASH')
     {
-    carp " --- second argument to native_setup_search should be hashref, not arrayref";
+    carp " --- second argument to _native_setup_search should be hashref, not arrayref";
     return undef;
     } # unless
   $rhOptsArg->{'SortProperty'} = 'MetaEndSort';
@@ -127,26 +127,26 @@ sub native_setup_search
   $self->{_today_} = &Date_ConvTZ($dateToday, $tz, $EBAY_TZ);
   # print STDERR " today == ", $self->{_today_}, "\n";
   # exit;
-  return $self->SUPER::native_setup_search($native_query, $rhOptsArg);
-  } # native_setup_search
+  return $self->SUPER::_native_setup_search($native_query, $rhOptsArg);
+  } # _native_setup_search
 
 # Enforce sorting by end date, even if Ebay is returning it in a
 # different order.  (They will be out of order if there are "Featured
-# Items" at the top of the page.)  Calls parse_tree() of the base
+# Items" at the top of the page.)  Calls _parse_tree() of the base
 # class, and then reshuffles its 'cache' results.  Code contributed by
 # Mike Schilli.
 
-sub parse_tree
+sub _parse_tree
   {
   my ($self, @args) = @_;
-  my $hits = $self->SUPER::parse_tree(@args);
+  my $hits = $self->SUPER::_parse_tree(@args);
   $self->{cache} ||= [];
   if (0)
     {
     # Convert all eBay relative times to absolute times:
     $self->{cache} = [
                       map {
-                        my $iMin = minutes($_->change_date) || minutes(date_to_rel($_->change_date,
+                        my $iMin = _minutes($_->change_date) || _minutes(_date_to_rel($_->change_date,
                                                                                    $self->{_today_}));
                         $_->change_date(&UnixDate(&DateCalc($self->{_today_}, " + $iMin minutes"),
                                                   '%Y-%m-%dT%H:%M:%S'));
@@ -164,27 +164,27 @@ sub parse_tree
                     @{$self->{cache}}
                    ];
   return $hits;
-  } # parse_tree
+  } # _parse_tree
 
 use constant DEBUG_MINUTES => 0;
 
-sub minutes
+sub _minutes
   {
   my $s = shift;
-  DEBUG_MINUTES && print STDERR " III minutes($s)...\n";
+  DEBUG_MINUTES && print STDERR " III _minutes($s)...\n";
   my $min = 0;
   $min += 60*24*$1 if $s =~ /(\d+)\s?[dT]/;
   $min += 60*$1 if $s =~ /(\d+)\s?[hS]/;
   $min += $1 if $s =~ /(\d+)\s?[mM]/;
   DEBUG_MINUTES && print STDERR "     min=$min=\n";
   return $min;
-  } # minutes
+  } # _minutes
 
-sub date_to_rel
+sub _date_to_rel
   {
   my $string = shift;
   my $today = shift;
-  DEBUG_MINUTES && print STDERR " III date_to_rel($string)...\n";
+  DEBUG_MINUTES && print STDERR " III _date_to_rel($string)...\n";
   my $date = ParseDate($string) || '';
   DEBUG_MINUTES && print STDERR "     raw date =$date=...\n";
   my $delta = DateCalc($today, $date) || 0;
@@ -194,7 +194,7 @@ sub date_to_rel
   my $result = "$iMin min";
   DEBUG_MINUTES && print STDERR "     result =$result=...\n";
   return $result;
-  } # date_to_rel
+  } # _date_to_rel
 
 1;
 

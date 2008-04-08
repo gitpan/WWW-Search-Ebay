@@ -1,5 +1,5 @@
 
-# $Id: it.t,v 1.2 2007/12/05 19:06:06 Daddy Exp $
+# $Id: it.t,v 1.3 2008/04/06 03:44:49 Martin Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -47,7 +47,7 @@ cmp_ok(0, '<', scalar(@ao), 'got some results');
 # We perform this many tests on each result object:
 my $iAnyFailed = my $iResult = 0;
 my ($iVall, %hash);
-my $sBidPattern = 'bid\s'. $WWW::Search::Test::oSearch->currency_pattern;
+my $sBidPattern = 'bid\s'. $WWW::Search::Test::oSearch->_currency_pattern;
 my $qrBid = qr{\b$sBidPattern};
 # print STDERR " DDD qrBid ==$qrBid==\n";
 foreach my $oResult (@ao)
