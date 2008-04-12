@@ -1,5 +1,5 @@
 
-# $Id: enddate.t,v 1.8 2007/05/20 13:33:19 Daddy Exp $
+# $Id: enddate.t,v 1.9 2008/04/11 21:37:09 Martin Exp $
 
 use Data::Dumper;
 use ExtUtils::testlib;
@@ -36,7 +36,7 @@ $iDump = 0;
 TODO:
   {
   $TODO = 'We only need one page of results in order to test the end-date sort';
-  &tm_run_test('normal', 'zeppelin', 55, 99, $iDebug, $iDump);
+  &tm_run_test('normal', 'zeppelin', 45, 49, $iDebug, $iDump);
   }
 $TODO = '';
 # goto ALL_DONE;  # for debugging
@@ -48,7 +48,7 @@ my $sDatePrev = 'yesterday';
 foreach my $oResult (@ao)
   {
   like($oResult->url, qr{\Ahttp://cgi\d*\.ebay\.com},
-       'result URL is really from ebay.com');
+       'result URL really is from ebay.com');
   cmp_ok($oResult->title, 'ne', '',
          'result Title is not empty');
   like($oResult->description, qr{([0-9]+|no)\s+bids?},

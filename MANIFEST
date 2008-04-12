@@ -23,10 +23,10 @@ Makefile.PL
 MANIFEST			This list of files
 META.yml
 README
-t/basic.t
 t/buyitnow.t
 t/bysellerid.t
 t/de.t
+t/ebay.t
 t/enddate.t
 t/es.t
 t/fr.t
