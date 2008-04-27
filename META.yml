@@ -9,7 +9,7 @@ build_requires:
   Test::Pod: 0
   WWW::Search::Test: 2.265
 distribution_type: module
-generated_by: 'Module::Install version 0.71'
+generated_by: 'Module::Install version 0.72'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.3.html
@@ -23,7 +23,7 @@ requires:
   Date::Manip: 0
   HTML::TreeBuilder: 0
   LWP::Simple: 0
-  WWW::Search: 2.556
+  WWW::Search: 2.557
   WWW::SearchResult: 2.067
   perl: 5.005
-version: 2.239
+version: 2.242

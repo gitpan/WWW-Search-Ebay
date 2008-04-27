@@ -1,5 +1,5 @@
 
-# $Id: fr.t,v 1.5 2008/04/06 03:44:49 Martin Exp $
+# $Id: fr.t,v 1.6 2008/04/27 13:48:35 Martin Exp $
 
 use Bit::Vector;
 use Data::Dumper;
@@ -26,21 +26,21 @@ $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
 &tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 
-;
+pass;
 MULTI_RESULT:
 diag("Sending multi-page query...");
 $iDebug = 0;
 $iDump = 0;
 # This query returns many of pages of results:
-&tm_run_test('normal', 'vue', 101, undef, $iDebug);
+&tm_run_test('normal', 'vue', 51, undef, $iDebug);
 
 DEBUG_NOW:
-;
+pass;
 CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
-&tm_run_test('normal', 'trinidad', 1, 99, $iDebug, $iDump);
+&tm_run_test('normal', 'trinidad', 1, 49, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');

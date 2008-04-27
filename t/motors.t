@@ -1,5 +1,5 @@
 
-# $Id: motors.t,v 1.10 2008/02/25 01:19:49 Daddy Exp $
+# $Id: motors.t,v 1.11 2008/04/27 13:53:18 Martin Exp $
 
 use ExtUtils::testlib;
 use Test::More no_plan;
@@ -20,20 +20,22 @@ $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
 &tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 
+pass;
 MULTI_RESULT:
 diag("Sending multi-page query...");
 $iDebug = 0;
 $iDump = 0;
 # This query returns hundreds of pages of results:
-&tm_run_test('normal', 'Chevrolet', 101, undef, $iDebug);
+&tm_run_test('normal', 'Chevrolet', 51, undef, $iDebug);
 # goto SKIP_CONTENTS;
+
 DEBUG_NOW:
-;
+pass;
 CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
-&tm_run_test('normal', 'Bugatti', 1, 99, $iDebug, $iDump);
+&tm_run_test('normal', 'Bugatti', 1, 49, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');

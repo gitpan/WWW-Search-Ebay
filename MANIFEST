@@ -25,6 +25,7 @@ META.yml
 README
 t/buyitnow.t
 t/bysellerid.t
+t/coverage.t
 t/de.t
 t/ebay.t
 t/enddate.t
@@ -34,6 +35,7 @@ t/html.t
 t/it.t
 t/itemnumber.t
 t/motors.t
+t/pod-coverage.t
 t/pod.t
 t/stores.t
 t/uk.t

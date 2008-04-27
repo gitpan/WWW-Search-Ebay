@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.219 2008/04/06 03:51:23 Martin Exp $
+# $Id: Ebay.pm,v 2.220 2008/04/27 14:24:35 Martin Exp $
 
 =head1 NAME
 
@@ -149,7 +149,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.219 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.220 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -232,6 +232,18 @@ sub user_agent_delay
   print STDERR " DDD sleeping $iSecs seconds...\n" if (0 < $self->{_debug});
   sleep($iSecs);
   } # user_agent_delay
+
+
+=item need_to_delay
+
+Ditto.
+
+=cut
+
+sub need_to_delay
+  {
+  1;
+  } # need_to_delay
 
 
 =item preprocess_results_page
@@ -820,7 +832,7 @@ sub _parse_tree
 
 =item _parse_category_list
 
-Parses the Category list from the right side of the results page.
+Parses the Category list from the left side of the results page.
 So far,
 this method can handle every type of eBay search currently implemented.
 If you find that it doesn't suit your needs,
@@ -931,6 +943,7 @@ sub _currency_pattern
   return qr/(?:\$|C|EUR|GBP)$W*[0-9.,]+/;
   } # _currency_pattern
 
+
 =item _title_pattern
 
 Return a qr// pattern to match the webpage title in your webpage's language.
@@ -945,6 +958,7 @@ sub _title_pattern
   {
   return qr{\A(.+?)\s+-\s+EBAY\s+\(ITEM\s+(\d+)\s+END\s+TIME\s+([^)]+)\)\Z}i; #
   } # _title_pattern
+
 
 =item _result_count_element_specs
 
@@ -1004,6 +1018,10 @@ sub _columns
   return qw( paypal bids price shipping enddate );
   } # _columns
 
+1;
+
+__END__
+
 =back
 
 =head1 SEE ALSO
@@ -1029,6 +1047,3 @@ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 =cut
 
-1;
-
-__END__

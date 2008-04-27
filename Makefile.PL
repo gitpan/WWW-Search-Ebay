@@ -1,12 +1,12 @@
 
-# $rcs = ' $Id: Makefile.PL,v 1.57 2008/04/08 02:43:29 Martin Exp $ ';
+# $rcs = ' $Id: Makefile.PL,v 1.59 2008/04/27 14:23:56 Martin Exp $ ';
 
 use inc::Module::Install;
 
 name('WWW-Search-Ebay');
 author('Martin Thurn <mthurn@cpan.org>');
 license('perl');
-version(2.239);
+version(2.242);
 
 requires(perl => 5.005);
 build_requires('Bit::Vector');
@@ -18,8 +18,8 @@ requires('LWP::Simple');
 # Test::More is needed for `make test`:
 build_requires('Test::More');
 build_recommends('Test::Pod');
-# We need the version that has method agent_name():
-requires('WWW::Search' => 2.556);
+# We need the version that has methods named with leading underscore:
+requires('WWW::Search' => 2.557);
 # We need the version that has the bidder and seller methods:
 requires('WWW::SearchResult' => 2.067);
 # We need the version of WWW::Search::Test that exports its tm_

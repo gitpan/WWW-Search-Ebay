@@ -1,6 +1,6 @@
 # Ebay/ByEndDate.pm
 # by Martin Thurn
-# $Id: ByEndDate.pm,v 2.29 2008/04/06 03:47:05 Martin Exp $
+# $Id: ByEndDate.pm,v 2.30 2008/04/27 14:24:11 Martin Exp $
 
 =head1 NAME
 
@@ -68,16 +68,6 @@ THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
-=head1 VERSION HISTORY
-
-=head2 2.02
-
-Fixed hash vs. array bug?
-
-=head2 2.01
-
-First publicly-released version.
-
 =cut
 
 #####################################################################
@@ -93,7 +83,7 @@ use Date::Manip;
 use base 'WWW::Search::Ebay';
 
 our
-$VERSION = do { my @r = (q$Revision: 2.29 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.30 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 # Damn it's hard to get a timezone:
@@ -199,4 +189,3 @@ sub _date_to_rel
 1;
 
 __END__
-
