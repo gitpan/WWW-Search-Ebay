@@ -12,13 +12,9 @@ lib/WWW/Search/Ebay/Auctions.pm
 lib/WWW/Search/Ebay/BuyItNow.pm
 lib/WWW/Search/Ebay/ByEndDate.pm
 lib/WWW/Search/Ebay/BySellerID.pm
-lib/WWW/Search/Ebay/DE.pm
-lib/WWW/Search/Ebay/ES.pm
-lib/WWW/Search/Ebay/FR.pm
-lib/WWW/Search/Ebay/IT.pm
 lib/WWW/Search/Ebay/Motors.pm
 lib/WWW/Search/Ebay/Stores.pm
-lib/WWW/Search/Ebay/UK.pm
+LICENSE
 Makefile.PL
 MANIFEST			This list of files
 META.yml
@@ -26,16 +22,11 @@ README
 t/buyitnow.t
 t/bysellerid.t
 t/coverage.t
-t/de.t
 t/ebay.t
 t/enddate.t
-t/es.t
-t/fr.t
 t/html.t
-t/it.t
 t/itemnumber.t
 t/motors.t
 t/pod-coverage.t
 t/pod.t
 t/stores.t
-t/uk.t

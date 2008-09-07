@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.220 2008/04/27 14:24:35 Martin Exp $
+# $Id: Ebay.pm,v 2.226 2008/09/06 15:42:44 Martin Exp $
 
 =head1 NAME
 
@@ -149,7 +149,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.220 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.226 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -228,7 +228,8 @@ so I'm trying a little delay in case ebay's servers are mad at me...
 sub user_agent_delay
   {
   my $self = shift;
-  my $iSecs = 2;
+  # return;
+  my $iSecs = int(3 + rand(3));
   print STDERR " DDD sleeping $iSecs seconds...\n" if (0 < $self->{_debug});
   sleep($iSecs);
   } # user_agent_delay
@@ -274,12 +275,15 @@ sub preprocess_results_page
     } # if
   else
     {
-    # Fetch the official ebay.com time:
+    # Use the UserAgent object in $self to fetch the official ebay.com time:
     $self->{_ebay_official_time} = 'now';
     # my $sPageDate = get('http://cgi1.ebay.com/aw-cgi/eBayISAPI.dll?TimeShow') || '';
-    my $sPageDate = get('http://viv.ebay.com/ws/eBayISAPI.dll?EbayTime') || '';
-
-    if ($sPageDate ne '')
+    my $sPageDate = $self->http_request(GET => 'http://viv.ebay.com/ws/eBayISAPI.dll?EbayTime')->content || '';
+    if ($sPageDate eq '')
+      {
+      die " EEE could not fetch official eBay time";
+      }
+    else
       {
       my $tree = HTML::TreeBuilder->new;
       $tree->utf8_mode('true');
@@ -296,11 +300,7 @@ sub preprocess_results_page
         DEBUG_DATES && print STDERR " DDD official time cooked  ==$date==\n";
         $self->{_ebay_official_time} = $date;
         } # if
-      } # if
-    else
-      {
-      die " EEE could not fetch official eBay time";
-      }
+      } # else
     } # else
   return $sPage;
   # Ebay used to send malformed HTML:
@@ -586,6 +586,58 @@ You only need to read about these if you are subclassing this module
 
 =cut
 
+
+=item _get_result_count_elements
+
+Given an HTML::TreeBuilder object,
+return a list of HTML::Element objects therein
+which could possibly contain the approximate result count verbiage.
+
+=cut
+
+sub _get_result_count_elements
+  {
+  my $self = shift;
+  my $tree = shift;
+  my @ao = $tree->look_down(
+                            '_tag' => 'div',
+                            class => 'fpcc'
+                           );
+  push @ao, $tree->look_down(
+                            '_tag' => 'div',
+                            class => 'count'
+                           );
+  push @ao, $tree->look_down(
+                            '_tag' => 'div',
+                            class => 'pageCaptionDiv'
+                           );
+  return @ao;
+  } # _get_result_count_elements
+
+
+=item _get_itemtitle_tds
+
+Given an HTML::TreeBuilder object,
+return a list of HTML::Element objects therein
+representing <TD> elements
+which could possibly contain the HTML for result title and hotlink.
+
+=cut
+
+sub _get_itemtitle_tds
+  {
+  my $self = shift;
+  my $tree = shift;
+  my @ao = $tree->look_down(_tag => 'td',
+                            class => 'details',
+                           );
+  push @ao, $tree->look_down(_tag => 'td',
+                            class => 'ebcTtl',
+                            );
+  return @ao;
+  } # _get_itemtitle_tds
+
+
 sub _parse_tree
   {
   my $self = shift;
@@ -614,7 +666,7 @@ sub _parse_tree
     } # if
   my $hits_found = 0;
   # The hit count is in a FONT tag:
-  my @aoFONT = $tree->look_down($self->_result_count_element_specs);
+  my @aoFONT = $self->_get_result_count_elements($tree);
  FONT:
   foreach my $oFONT (@aoFONT)
     {
@@ -623,8 +675,11 @@ sub _parse_tree
                   $oFONT->as_text, "== against qr=$qr=\n") if (1 < $self->{_debug});
     if ($oFONT->as_text =~ m!$qr!)
       {
-      print STDERR " DDD     matched ($1)\n" if (1 < $self->{_debug});
-      $self->approximate_result_count($1);
+      my $sCount = $1;
+      print STDERR " DDD     matched ($sCount)\n" if (1 < $self->{_debug});
+      # Make sure it's an integer:
+      $sCount =~ s!,!!g;
+      $self->approximate_result_count($sCount);
       last FONT;
       } # if
     } # foreach
@@ -686,13 +741,12 @@ sub _parse_tree
   print STDERR " DDD   asColumns is (@asColumns)\n" if (1 < $self->{_debug});
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
-  my @a = $self->_title_element_specs;
-  print STDERR Dumper(\@a) if (1 < $self->{_debug});
-  # exit 88;
-  my @aoTD = $tree->look_down(@a);
+  my @aoTD = $self->_get_itemtitle_tds($tree);
   unless (@aoTD)
     {
-    print STDERR " --- did not find table of results\n" if $self->{_debug};
+    print STDERR " EEE did not find table of results\n" if $self->{_debug};
+    # use File::Slurp;
+    # write_file('no-results.html', $self->{response}->content);
     } # unless
   my $qrItemNum = qr{[;Q]item[=Z](\d+)[;Q]};
  TD:
@@ -713,7 +767,7 @@ sub _parse_tree
     next TD unless ($oURI =~ m!ViewItem!);
     next TD unless ($oURI =~ m!$qrItemNum!);
     my $iItemNum = $1;
-    my $iCategory = 'unknown';
+    my $iCategory = -1;
     $iCategory = $1 if ($oURI =~ m!QQcategoryZ(\d+)QQ!);
     print STDERR " DDD   iItemNum ===$iItemNum===\n" if (1 < $self->{_debug});
     if ($oURI->as_string =~ m!QQitemZ(\d+)QQ!)
@@ -824,6 +878,12 @@ sub _parse_tree
       last TRY_NEXT;
       } # if
     } # foreach
+  if (0 && ($hits_found == 0))
+    {
+    use File::Slurp;
+    write_file('no-results.html', $self->{response}->content);
+    exit;
+    } # if
   # All done with this page.
   $tree->delete;
   return $hits_found;
@@ -960,22 +1020,6 @@ sub _title_pattern
   } # _title_pattern
 
 
-=item _result_count_element_specs
-
-This is what we look_down() for to find the HTML element that contains
-the result count.
-
-=cut
-
-sub _result_count_element_specs
-  {
-  return (
-          '_tag' => 'div',
-          class => 'count'
-         );
-  } # _result_count_element_specs
-
-
 =item _result_count_pattern
 
 Return a qr// pattern to match the result count in your webpage's language.
@@ -985,24 +1029,8 @@ Include parentheses so that $1 becomes the number (with commas is OK).
 
 sub _result_count_pattern
   {
-  return qr'(\d+) items? found ';
+  return qr'([0-9,]+) (item|match|result)e?s? found ';
   } # _result_count_pattern
-
-
-=item _title_element_specs
-
-This is what we look_down() for to find the HTML element that contains
-the title of the result.
-
-=cut
-
-sub _title_element_specs
-  {
-  return (
-          '_tag' => 'td',
-          'class' => 'ebcTtl',
-         );
-  } # _title_element_specs
 
 
 =item _columns
@@ -1044,6 +1072,10 @@ Some fixes along the way contributed by Troy Davis.
 THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+head1 LICENSE
+
+This software is released under the same license as Perl itself.
 
 =cut
 

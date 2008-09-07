@@ -1,3 +1,17 @@
+2008-09-06  Kingpin  <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay.pm (_get_result_count_elements): added pattern for new motors layout
+	(_result_count_pattern): match commas in result count!
+	(_parse_tree): delete commas from result_count
+
+2008-08-10  Kingpin  <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay/Stores.pm (_columns): fixed for new page layout?
+
+2008-06-28  Kingpin  <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay.pm (preprocess_results_page): use our own UserAgent to fetch the official eBay time (not a generic LWP::UserAgent)
+
 2008-04-05    <Martin@BLUEMAX>
 
 	* lib/WWW/Search/Ebay/ES.pm (result_count_pattern): fixed

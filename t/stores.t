@@ -1,75 +1,92 @@
 
-# $Id: stores.t,v 1.13 2007/05/20 13:33:20 Daddy Exp $
+# $Id: stores.t,v 1.17 2008/09/07 03:26:11 Martin Exp $
 
+use blib;
 use Bit::Vector;
 use Data::Dumper;
-use ExtUtils::testlib;
 use Test::More no_plan;
 
-BEGIN { use_ok('Date::Manip') };
-&Date_Init('TZ=-0500');
-BEGIN { use_ok('WWW::Search') };
-BEGIN { use_ok('WWW::Search::Test') };
-BEGIN { use_ok('WWW::Search::Ebay::Stores') };
+use Date::Manip;
+Date_Init('TZ=-0500');
+use WWW::Search;
+use WWW::Search::Test;
+BEGIN
+  {
+  use_ok('WWW::Search::Ebay::Stores');
+  }
 
 my $iDebug = 0;
 my $iDump = 0;
 
-&tm_new_engine('Ebay::Stores');
+tm_new_engine('Ebay::Stores');
 # goto DEBUG_NOW;
 # goto CONTENTS;
 
-diag("Sending 0-page query...");
+diag("Sending 0-page stores query...");
 $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
-&tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
+tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 
 # DEBUG_NOW:
-;
+pass;
 MULTI_RESULT:
-diag("Sending multi-page query...");
+pass;
+diag("Sending multi-page stores query...");
 $iDebug = 0;
 $iDump = 0;
 # This query returns hundreds of pages of results:
-&tm_run_test('normal', 'LEGO', 101, undef, $iDebug);
+tm_run_test('normal', 'LEGO', 101, undef, $iDebug);
+cmp_ok(1, '<', $WWW::Search::Test::oSearch->{requests_made}, 'got multiple pages');
 
+pass;
 DEBUG_NOW:
-;
-diag("Sending 1-page query for 12-digit UPC...");
-$iDebug = 0;
-$iDump = 0;
-&tm_run_test('normal', '093624-69602-5', # '0-77778-60672-7',
-             1, 99, $iDebug, $iDump);
+pass;
 TODO:
   {
   $TODO = 'sometimes there are none of this item listed';
-  diag("Sending 1-page query for 13-digit EAN...");
+  diag("Sending 1-page stores query for 12-digit UPC...");
   $iDebug = 0;
   $iDump = 0;
-  &tm_run_test('normal', '00-77778-60672-7' , 1, 99, $iDebug, $iDump);
+  tm_run_test('normal', '093624-69602-5',
+              1, 99, $iDebug, $iDump);
   $TODO = '';
   }
-diag("Sending query for 10-digit ISBN...");
-$iDebug = 0;
-$iDump = 0;
-&tm_run_test('normal', '0-553-09606-0' , 1, undef, $iDebug, $iDump);
+TODO:
+  {
+  $TODO = 'sometimes there are none of this item listed';
+  diag("Sending 1-page stores query for 13-digit EAN...");
+  $iDebug = 0;
+  $iDump = 0;
+  tm_run_test('normal', '00-77778-60672-7' , 1, 99, $iDebug, $iDump);
+  $TODO = '';
+  }
+TODO:
+  {
+  $TODO = 'sometimes there are none of this item listed';
+  diag("Sending stores query for 10-digit ISBN...");
+  $iDebug = 0;
+  $iDump = 0;
+  tm_run_test('normal', '0-553-09606-0' , 1, undef, $iDebug, $iDump);
+  $TODO = '';
+  }
 # goto SKIP_CONTENTS;
 
+pass;
 CONTENTS:
-diag("Sending 1-page query to check contents...");
+pass;
+diag("Sending 1-page stores query to check contents...");
 $iDebug = 0;
 $iDump = 0;
-&tm_run_test('normal', 'shmi', 1, 99, $iDebug, $iDump);
+tm_run_test('normal', 'shmi ccg', 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
 # We perform this many tests on each result object:
 my $iTests = 5;
-my $iAnyFailed = my $iResult = 0;
+my $iAnyFailed = 0;
 my ($iVall, %hash);
 foreach my $oResult (@ao)
   {
-  $iResult++;
   my $oV = new Bit::Vector($iTests);
   $oV->Fill;
   $iVall = $oV->to_Dec;
@@ -78,7 +95,7 @@ foreach my $oResult (@ao)
                               'result URL is really from ebay.com');
   $oV->Bit_Off(2) unless cmp_ok($oResult->title, 'ne', '',
                                 'result Title is not empty');
-  $oV->Bit_Off(3) unless cmp_ok(&ParseDate($oResult->change_date) || '', 'ne', '',
+  $oV->Bit_Off(3) unless cmp_ok(ParseDate($oResult->change_date) || '', 'ne', '',
                                 'change_date is really a date');
   $oV->Bit_Off(4) unless like($oResult->description, qr{([0-9]+|no)\s+bids?},
                               'result bidcount is ok');
@@ -100,8 +117,9 @@ if ($iAnyFailed)
     } # while
   } # if
 
+pass;
 SKIP_CONTENTS:
-;
+pass;
 
 __END__
 

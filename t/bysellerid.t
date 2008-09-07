@@ -1,5 +1,5 @@
 
-# $Id: bysellerid.t,v 1.8 2008/02/24 15:30:40 Daddy Exp $
+# $Id: bysellerid.t,v 1.9 2008/09/07 00:28:17 Martin Exp $
 
 use Bit::Vector;
 use Date::Manip;
@@ -13,14 +13,14 @@ BEGIN { use_ok('WWW::Search::Ebay::BySellerID') };
 my $iDebug;
 my $iDump = 0;
 
-&tm_new_engine('Ebay::BySellerID');
+tm_new_engine('Ebay::BySellerID');
 goto DEBUG_NOW;
 # goto CONTENTS;
 
 diag("Sending 0-page query...");
 $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
-&tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
+tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 
 # goto SKIP_MULTI;
 # DEBUG_NOW:
@@ -30,7 +30,8 @@ diag("Sending multi-page query...");
 $iDebug = 0;
 $iDump = 0;
 # This query returns many pages of results:
-&tm_run_test('normal', 'toymom21957', 201, undef, $iDebug);
+tm_run_test('normal', 'toymom21957', 201, undef, $iDebug);
+cmp_ok(1, '<', $WWW::Search::Test::oSearch->{requests_made}, 'got multiple pages');
 
 DEBUG_NOW:
 ;
@@ -41,7 +42,7 @@ diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
 # local $TODO = 'Too hard to find a seller with consistently one page of auctions';
-&tm_run_test('normal', 'snappyauctions37', 1, 99, $iDebug, $iDump);
+tm_run_test('normal', 'snappyauctions', 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
@@ -57,7 +58,7 @@ foreach my $oResult (@ao)
                               'result URL is really from ebay.com');
   $oV->Bit_Off(2) unless cmp_ok($oResult->title, 'ne', '',
                                 'result Title is not empty');
-  $oV->Bit_Off(3) unless cmp_ok(&ParseDate($oResult->change_date) || '',
+  $oV->Bit_Off(3) unless cmp_ok(ParseDate($oResult->change_date) || '',
                                 'ne', '',
                                 'change_date is really a date');
   $oV->Bit_Off(4) unless like($oResult->description,

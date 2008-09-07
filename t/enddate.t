@@ -1,5 +1,5 @@
 
-# $Id: enddate.t,v 1.9 2008/04/11 21:37:09 Martin Exp $
+# $Id: enddate.t,v 1.10 2008/06/30 02:23:50 Martin Exp $
 
 use Data::Dumper;
 use ExtUtils::testlib;
@@ -22,16 +22,16 @@ my $iDump = 0;
 &tm_new_engine('Ebay::ByEndDate');
 # goto TEST_NOW;
 
-diag("Sending 0-page query...");
+diag("Sending 0-page end-date query...");
 $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
 &tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 TEST_NOW:
-diag("Sending query...");
+diag("Sending end-date query...");
 $iDebug = 0;
 $iDump = 0;
 # We need a query that returns "Featured Items" _and_ items that end
-# in a few minutes.  This one attracts Rock'n'roll fans and
+# in a few minutes.  This one attracts Rock'n'Roll fans and
 # philatelists:
 TODO:
   {

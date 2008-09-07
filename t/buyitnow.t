@@ -1,9 +1,9 @@
 
-# $Id: buyitnow.t,v 1.10 2007/05/20 13:33:19 Daddy Exp $
+# $Id: buyitnow.t,v 1.12 2008/09/07 00:28:00 Martin Exp $
 
+use blib;
 use Bit::Vector;
 use Data::Dumper;
-use ExtUtils::testlib;
 use Test::More no_plan;
 
 BEGIN { use_ok('WWW::Search') };
@@ -13,62 +13,64 @@ BEGIN { use_ok('WWW::Search::Ebay::BuyItNow') };
 my $iDebug;
 my $iDump = 0;
 
-&tm_new_engine('Ebay::BuyItNow');
+tm_new_engine('Ebay::BuyItNow');
+# goto MULTI_RESULT;
 # goto DEBUG_NOW;
 # goto CONTENTS;
 
-diag("Sending 0-page query...");
+diag("Sending 0-page buy-it-now query...");
 $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
-&tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
+tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 
 # DEBUG_NOW:
-;
+pass;
 MULTI_RESULT:
-diag("Sending multi-page query...");
+diag("Sending multi-page buy-it-now query...");
 $iDebug = 0;
 $iDump = 0;
 # This query returns hundreds of pages of results:
-&tm_run_test('normal', 'LEGO', 101, undef, $iDebug);
+tm_run_test('normal', 'LEGO', 101, undef, $iDebug);
+cmp_ok(1, '<', $WWW::Search::Test::oSearch->{requests_made}, 'got multiple pages');
 
 # DEBUG_NOW:
-;
+pass;
 TODO:
   {
   $TODO = 'sometimes there are too many of this book for sale';
-  diag("Sending 1-page query for 12-digit UPC...");
+  diag("Sending 1-page buy-it-now query for 12-digit UPC...");
   $iDebug = 0;
   $iDump = 0;
-  &tm_run_test('normal', '0-77778-60672-7' , 1, 99, $iDebug, $iDump);
+  tm_run_test('normal', '0-77778-60672-7' , 1, 99, $iDebug, $iDump);
   $TODO = '';
   } # end of TODO
-;
+pass;
 TODO:
   {
   $TODO = 'sometimes there are zero of this item';
-  diag("Sending 1-page query for 13-digit EAN...");
+  diag("Sending 1-page buy-it-now query for 13-digit EAN...");
   $iDebug = 0;
   $iDump = 0;
-  &tm_run_test('normal', '00-75678-26382-8' , 1, 99, $iDebug, $iDump);
+  tm_run_test('normal', '00-75678-26382-8' , 1, 99, $iDebug, $iDump);
   $TODO = '';
   }
 DEBUG_NOW:
-diag("Sending 1-page query for 10-digit ISBN...");
+diag("Sending 1-page buy-it-now query for 10-digit ISBN...");
 TODO:
   {
   $TODO = 'sometimes there are none of this book for sale';
   $iDebug = 0;
   $iDump = 0;
-  &tm_run_test('normal', '0-395-52021-5' , 1, 99, $iDebug, $iDump);
+  tm_run_test('normal', '0-395-52021-5' , 1, 99, $iDebug, $iDump);
   $TODO = '';
   } # end of TODO block
 # goto SKIP_CONTENTS;
 
 CONTENTS:
-diag("Sending 1-page query to check contents...");
+diag("Sending 1-page buy-it-now query to check contents...");
 $iDebug = 0;
 $iDump = 0;
-&tm_run_test('normal', 'Burkina Faso flag', 1, 99, $iDebug, $iDump);
+tm_run_test('normal', 'Burkina Faso flag', 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
