@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.226 2008/09/06 15:42:44 Martin Exp $
+# $Id: Ebay.pm,v 2.229 2008/09/28 02:42:11 Martin Exp $
 
 =head1 NAME
 
@@ -149,7 +149,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.226 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.229 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -220,8 +220,7 @@ sub _native_setup_search
 
 =item user_agent_delay
 
-I get sporadic test failures,
-so I'm trying a little delay in case ebay's servers are mad at me...
+Introduce a few-seconds delay to avoid overwhelming the server.
 
 =cut
 
@@ -237,7 +236,7 @@ sub user_agent_delay
 
 =item need_to_delay
 
-Ditto.
+Controls whether we do the delay or not.
 
 =cut
 
@@ -249,8 +248,8 @@ sub need_to_delay
 
 =item preprocess_results_page
 
-Grab the eBay Official Time so that when we parse the DTG from the HTML,
-we can convert / return exactly what eBay means for each one.
+Grabs the eBay Official Time so that when we parse the DTG from the
+HTML, we can convert / return exactly what eBay means for each one.
 
 =cut
 
@@ -632,7 +631,11 @@ sub _get_itemtitle_tds
                             class => 'details',
                            );
   push @ao, $tree->look_down(_tag => 'td',
-                            class => 'ebcTtl',
+                             class => 'ebcTtl',
+                            );
+  # This is for BuyItNow (thanks to Brian Wilson):
+  push @ao, $tree->look_down(_tag => 'td',
+                             class => 'details ttl',
                             );
   return @ao;
   } # _get_itemtitle_tds
@@ -843,6 +846,16 @@ sub _parse_tree
         # we're searching against.  Throw it out:
         next TD;
         }
+      elsif ($sColumn eq 'paypal')
+        {
+        # We always ignore the Paypal logo.
+        next SIBLING_TD;
+        }
+      elsif ($sColumn eq 'buyitnowlogo')
+        {
+        # We always ignore the Buy-It-Now logo.
+        next SIBLING_TD;
+        }
       else
         {
         print STDERR " DDD     do not know how to handle column named $sColumn\n" if (1 < $self->{_debug});
@@ -965,7 +978,7 @@ sub _process_date_abbrevs
 
 =item _next_text
 
-The text of the "Next" button, localized.
+The text of the "Next" button, localized for a specific type of eBay backend.
 
 =cut
 
@@ -1073,7 +1086,7 @@ THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
-head1 LICENSE
+=head1 LICENSE
 
 This software is released under the same license as Perl itself.
 

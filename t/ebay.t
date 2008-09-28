@@ -1,5 +1,5 @@
 
-# $Id: ebay.t,v 1.6 2008/09/07 00:28:34 Martin Exp $
+# $Id: ebay.t,v 1.7 2008/09/28 03:15:46 Martin Exp $
 
 use strict;
 use warnings;
@@ -61,10 +61,15 @@ if (0)
   $TODO = '';
   } # if
 
-diag("Sending 1-page ebay query for 12-digit UPC...");
-$iDebug = 0;
-$iDump = 0;
-tm_run_test('normal', '0-77778-60672-7' , 1, 99, $iDebug, $iDump);
+UPC:
+  {
+  $TODO = 'too hard to find a consistent EAN';
+  diag("Sending 1-page ebay query for 12-digit UPC...");
+  $iDebug = 0;
+  $iDump = 0;
+  tm_run_test('normal', '0-77778-60672-7' , 1, 99, $iDebug, $iDump);
+  $TODO = '';
+  } # end of UPC block
 EAN:
   {
   $TODO = 'too hard to find a consistent EAN';
@@ -73,7 +78,7 @@ EAN:
   $iDump = 0;
   tm_run_test('normal', '00-77778-60672-7' , 1, 99, $iDebug, $iDump);
   $TODO = '';
-  }
+  } # end of EAN block
 ISBN:
   {
   $TODO = q{I don't know why, but this test has more false negatives than almost any other};
@@ -82,13 +87,14 @@ ISBN:
   $iDump = 0;
   tm_run_test('normal', '0-553-09606-0' , 1, 99, $iDebug, $iDump);
   $TODO = q{};
-  }
+  } # end of ISBN block
 # goto SKIP_CONTENTS;
 
 CONTENTS:
 diag("Sending 1-page ebay query to check contents...");
 $iDebug = 0;
 $iDump = 0;
+$WWW::Search::Test::sSaveOnError = q{ebay-1-failed.html};
 my $sQuery = 'trinidad tobago flag';
 # $sQuery = 'church spread wings';  # Special debugging
 tm_run_test('normal', $sQuery, 1, 99, $iDebug, $iDump);

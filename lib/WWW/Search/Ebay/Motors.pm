@@ -1,5 +1,5 @@
 
-# $Id: Motors.pm,v 1.12 2008/09/07 00:27:41 Martin Exp $
+# $Id: Motors.pm,v 1.13 2008/09/28 03:15:27 Martin Exp $
 
 =head1 NAME
 
@@ -65,7 +65,7 @@ use Carp;
 use Data::Dumper;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.12 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.13 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub _native_setup_search
@@ -84,7 +84,7 @@ sub _native_setup_search
 sub _columns
   {
   my $self = shift;
-  return qw( bids price enddate );
+  return qw( paypal bids price enddate );
   } # _columns
 
 1;

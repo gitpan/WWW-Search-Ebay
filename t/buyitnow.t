@@ -1,5 +1,5 @@
 
-# $Id: buyitnow.t,v 1.12 2008/09/07 00:28:00 Martin Exp $
+# $Id: buyitnow.t,v 1.13 2008/09/28 02:42:50 Martin Exp $
 
 use blib;
 use Bit::Vector;
@@ -70,6 +70,7 @@ CONTENTS:
 diag("Sending 1-page buy-it-now query to check contents...");
 $iDebug = 0;
 $iDump = 0;
+$WWW::Search::Test::sSaveOnError = q{buyitnow-failed.html};
 tm_run_test('normal', 'Burkina Faso flag', 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
@@ -87,8 +88,6 @@ foreach my $oResult (@ao)
                               'result URL is really from ebay.com');
   $oV->Bit_Off(1) unless cmp_ok($oResult->title, 'ne', '',
                                 'result Title is not empty');
-  $oV->Bit_Off(2) unless cmp_ok($oResult->change_date, 'ne', '',
-                                'result date is not empty');
   $oV->Bit_Off(3) unless like($oResult->description, qr{no\s+bids;},
                               'result bid count is ok');
   $oV->Bit_Off(4) unless like($oResult->description, qr{starting\sbid},

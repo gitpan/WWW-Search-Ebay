@@ -1,5 +1,5 @@
 
-# $Id: enddate.t,v 1.10 2008/06/30 02:23:50 Martin Exp $
+# $Id: enddate.t,v 1.11 2008/09/28 03:15:56 Martin Exp $
 
 use Data::Dumper;
 use ExtUtils::testlib;
@@ -9,7 +9,7 @@ use constant DEBUG_DATE => 0;
 
 BEGIN { use_ok('Date::Manip') };
 $ENV{TZ} = 'EST5EDT';
-&Date_Init('TZ=EST5EDT');
+Date_Init('TZ=EST5EDT');
 BEGIN { use_ok('WWW::Search') };
 BEGIN { use_ok('WWW::Search::Test') };
 BEGIN { use_ok('WWW::Search::Ebay') };
@@ -19,14 +19,12 @@ use strict;
 my $iDebug = 0;
 my $iDump = 0;
 
-&tm_new_engine('Ebay::ByEndDate');
+tm_new_engine('Ebay::ByEndDate');
 # goto TEST_NOW;
 
-diag("Sending 0-page end-date query...");
-$iDebug = 0;
-# This test returns no results (but we should not get an HTTP error):
-&tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
+pass;
 TEST_NOW:
+pass;
 diag("Sending end-date query...");
 $iDebug = 0;
 $iDump = 0;
@@ -36,7 +34,7 @@ $iDump = 0;
 TODO:
   {
   $TODO = 'We only need one page of results in order to test the end-date sort';
-  &tm_run_test('normal', 'zeppelin', 45, 49, $iDebug, $iDump);
+  tm_run_test('normal', 'zeppelin', 45, 49, $iDebug, $iDump);
   }
 $TODO = '';
 # goto ALL_DONE;  # for debugging
@@ -56,11 +54,13 @@ foreach my $oResult (@ao)
   my $sDate = $oResult->change_date || '';
   DEBUG_DATE && diag(qq{raw result date is '$sDate'});
   diag(Dumper($oResult)) unless isnt($sDate, '');
-  my $iCmp = &Date_Cmp($sDatePrev, $sDate);
+  my $iCmp = Date_Cmp($sDatePrev, $sDate);
   cmp_ok($iCmp, '<=', 0, 'result is in order by end date');
   $sDatePrev = $sDate;
   } # foreach
+pass;
 ALL_DONE:
+pass;
 exit 0;
 
 __END__
