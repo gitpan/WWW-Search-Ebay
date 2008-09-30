@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.229 2008/09/28 02:42:11 Martin Exp $
+# $Id: Ebay.pm,v 2.230 2008/09/30 03:26:52 Martin Exp $
 
 =head1 NAME
 
@@ -149,7 +149,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.229 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.230 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -891,12 +891,6 @@ sub _parse_tree
       last TRY_NEXT;
       } # if
     } # foreach
-  if (0 && ($hits_found == 0))
-    {
-    use File::Slurp;
-    write_file('no-results.html', $self->{response}->content);
-    exit;
-    } # if
   # All done with this page.
   $tree->delete;
   return $hits_found;
