@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.230 2008/09/30 03:26:52 Martin Exp $
+# $Id: Ebay.pm,v 2.231 2008/10/22 02:56:39 Martin Exp $
 
 =head1 NAME
 
@@ -149,7 +149,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.230 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.231 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -791,7 +791,7 @@ sub _parse_tree
     my @aoSibs = $oTDtitle->right;
     # But in the Completed auctions list, the rest of the info is in
     # the next row of the table:
-    if (ref($self) =~ m!::Completed!)
+    if (0 && ref($self) =~ m!::Completed!)
       {
       @aoSibs = ();
       my $oTRparent = $oTDtitle->look_up(_tag => 'tr');
