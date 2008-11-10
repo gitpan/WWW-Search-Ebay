@@ -1,5 +1,5 @@
 
-# $Id: BuyItNow.pm,v 1.10 2008/09/28 02:42:22 Martin Exp $
+# $Id: BuyItNow.pm,v 1.11 2008/11/10 19:51:00 Martin Exp $
 
 =head1 NAME
 
@@ -57,12 +57,18 @@ use warnings;
 use WWW::Search::Ebay;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.10 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.11 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub _native_setup_search
   {
   my ($self, $sQuery, $rh) = @_;
-  $rh->{'sasaleclass'} = 2;
+  # http://shop.ebay.com/items/_W0QQLHQ5fBINZ1QQLHQ5fIncludeSIFZ1?_nkw=Burkina+Faso+flag&_sacat=0&_fromfsb=&_trksid=m270.l1313&_odkw=Burkina+Faso&_osacat=0
+  # http://shop.ebay.com/items/_W0QQLHQ5fBINZ1QQLHQ5fIncludeSIFZ1?_nkw=Burkina+Faso+flag
+  $self->{search_host} = q{http://shop.ebay.com};
+  $self->{search_path} = q{/items/_W0QQLHQ5fBINZ1};
+  $self->{'_options'} = {
+                         '_nkw' => $sQuery,
+                        };
   return $self->SUPER::_native_setup_search($sQuery, $rh);
   } # _native_setup_search
 

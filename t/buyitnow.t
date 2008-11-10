@@ -1,14 +1,16 @@
 
-# $Id: buyitnow.t,v 1.13 2008/09/28 02:42:50 Martin Exp $
+# $Id: buyitnow.t,v 1.14 2008/11/10 19:51:10 Martin Exp $
 
 use blib;
 use Bit::Vector;
 use Data::Dumper;
 use Test::More no_plan;
 
-BEGIN { use_ok('WWW::Search') };
-BEGIN { use_ok('WWW::Search::Test') };
-BEGIN { use_ok('WWW::Search::Ebay::BuyItNow') };
+use WWW::Search::Test;
+BEGIN
+  {
+  use_ok('WWW::Search::Ebay::BuyItNow');
+  }
 
 my $iDebug;
 my $iDump = 0;
@@ -26,12 +28,16 @@ tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 # DEBUG_NOW:
 pass;
 MULTI_RESULT:
-diag("Sending multi-page buy-it-now query...");
-$iDebug = 0;
-$iDump = 0;
-# This query returns hundreds of pages of results:
-tm_run_test('normal', 'LEGO', 101, undef, $iDebug);
-cmp_ok(1, '<', $WWW::Search::Test::oSearch->{requests_made}, 'got multiple pages');
+  {
+  $TODO = 'WWW::Search::Ebay can not fetch multiple pages';
+  diag("Sending multi-page buy-it-now query...");
+  $iDebug = 0;
+  $iDump = 0;
+  # This query returns hundreds of pages of results:
+  tm_run_test('normal', 'LEGO', 200, undef, $iDebug);
+  cmp_ok(1, '<', $WWW::Search::Test::oSearch->{requests_made}, 'got multiple pages');
+  $TODO = '';
+  }
 
 # DEBUG_NOW:
 pass;
@@ -71,7 +77,7 @@ diag("Sending 1-page buy-it-now query to check contents...");
 $iDebug = 0;
 $iDump = 0;
 $WWW::Search::Test::sSaveOnError = q{buyitnow-failed.html};
-tm_run_test('normal', 'Burkina Faso flag', 1, 99, $iDebug, $iDump);
+tm_run_test('normal', 'Burkina Faso flag', 1, 199, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');

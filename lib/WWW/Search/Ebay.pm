@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.231 2008/10/22 02:56:39 Martin Exp $
+# $Id: Ebay.pm,v 2.233 2008/11/10 19:50:33 Martin Exp $
 
 =head1 NAME
 
@@ -149,7 +149,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.231 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.233 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -162,7 +162,7 @@ sub _native_setup_search
   $self->{_debug} = 2 if ($rhOptsArg->{'search_parse_debug'});
   $self->{_debug} ||= 0;
 
-  my $DEFAULT_HITS_PER_PAGE = 100;
+  my $DEFAULT_HITS_PER_PAGE = 200;
   $self->{'_hits_per_page'} = $DEFAULT_HITS_PER_PAGE;
 
   $self->user_agent('non-robot');
@@ -175,21 +175,23 @@ sub _native_setup_search
   $self->{search_path} ||= '/ws/search/SaleSearch';
   if (!defined($self->{_options}))
     {
+    # http://shop.ebay.com/items/_W0QQLHQ5fBINZ1?_nkw=trinidad+flag&_sacat=0&_fromfsb=&_trksid=m270.l1313&_odkw=burkina+faso+flag&_osacat=0
     $self->{_options} = {
-                         'satitle' => $native_query,
+                         satitle => $native_query,
                          # Search AUCTIONS ONLY:
-                         'sasaleclass' => 1,
+                         sasaleclass => 1,
                          # Display item number explicitly:
-                         'socolumnlayout' => 2,
+                         socolumnlayout => 2,
                          # Do not convert everything to US$:
-                         'socurrencydisplay' => 1,
-                         'sorecordsperpage' => $self->{_hits_per_page},
+                         socurrencydisplay => 1,
+                         sorecordsperpage => $self->{_hits_per_page},
+                         _ipg => $self->{_hits_per_page},
                          # Display absolute times, NOT relative times:
-                         'sotimedisplay' => 0,
+                         sotimedisplay => 0,
                          # Use the default columns, NOT anything the
                          # user may have customized (which would come
                          # through via cookies):
-                         'socustoverride' => 1,
+                         socustoverride => 1,
                         };
     } # if
   if (defined($rhOptsArg))
@@ -872,25 +874,37 @@ sub _parse_tree
     $oTDtitle->delete;
     } # foreach TD
 
-  # Look for a NEXT link:
-  my @aoA = $tree->look_down('_tag', 'a');
- TRY_NEXT:
-  foreach my $oA (0, reverse @aoA)
+  undef $self->{_next_url};
+  if (0)
     {
-    next TRY_NEXT unless ref $oA;
-    print STDERR " DDD   try NEXT A ===", $oA->as_HTML, "===\n" if (1 < $self->{_debug});
-    my $href = $oA->attr('href');
-    next TRY_NEXT unless $href;
-    # Looking backwards from the bottom of the page, if we get all the
-    # way to the item list, there must be no next button:
-    last TRY_NEXT if ($href =~ m!ViewItem!);
-    if ($oA->as_text eq $self->_next_text)
+    # AS OF 2008-11 THE NEXT LINK CAN NOT BE FOLLOWED FROM PERL CODE
+
+    # Look for a NEXT link:
+    my @aoA = $tree->look_down('_tag', 'a');
+ TRY_NEXT:
+    foreach my $oA (0, reverse @aoA)
       {
-      print STDERR " DDD   got NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
-      $self->{_next_url} = $self->absurl($self->{_prev_url}, $href);
-      last TRY_NEXT;
-      } # if
-    } # foreach
+      next TRY_NEXT unless ref $oA;
+      print STDERR " DDD   try NEXT A ===", $oA->as_HTML, "===\n" if (1 < $self->{_debug});
+      my $href = $oA->attr('href');
+      next TRY_NEXT unless $href;
+      # Looking backwards from the bottom of the page, if we get all the
+      # way to the item list, there must be no next button:
+      last TRY_NEXT if ($href =~ m!ViewItem!);
+      if ($oA->as_text eq $self->_next_text)
+        {
+        print STDERR " DDD   got NEXT A ===", $oA->as_HTML, "===\n" if 1 < $self->{_debug};
+        my $sClass = $oA->attr('class') || '';
+        if ($sClass =~ m/disabled/i)
+          {
+          last TRY_NEXT;
+          } # if
+        $self->{_next_url} = $self->absurl($self->{_prev_url}, $href);
+        last TRY_NEXT;
+        } # if
+      } # foreach
+    } # if 0
+
   # All done with this page.
   $tree->delete;
   return $hits_found;

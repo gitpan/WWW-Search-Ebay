@@ -6,7 +6,7 @@ use inc::Module::Install;
 name('WWW-Search-Ebay');
 author('Martin Thurn <mthurn@cpan.org>');
 license('perl');
-version(2.248);
+version(3.001);
 
 requires(perl => 5.005);
 test_requires('Bit::Vector');
