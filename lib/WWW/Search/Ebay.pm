@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.233 2008/11/10 19:50:33 Martin Exp $
+# $Id: Ebay.pm,v 2.234 2008/11/11 11:44:22 Martin Exp $
 
 =head1 NAME
 
@@ -149,7 +149,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.233 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.234 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -670,6 +670,33 @@ sub _parse_tree
     return 1;
     } # if
   my $hits_found = 0;
+  # First, see if there were zero results and eBay automatically did a
+  # spell-check and search for other words:
+  my $oDIV = $tree->look_down(
+                              _tag => 'div',
+                              class => 'messages',
+                             );
+  if (ref $oDIV)
+    {
+    my $sText = $oDIV->as_text;
+    if (($sText =~ m/0 results found for /) && ($sText =~ m/ so we searched for /))
+      {
+      $self->approximate_result_count(0);
+      return 0;
+      } # if
+    } # if
+  # See if our query was completely replaced by a similar-spelling query:
+  my $oLI = $tree->look_down(_tag => 'li',
+                             class => 'ebInf',
+                            );
+  if (ref $oLI)
+    {
+    if ($oLI->as_text =~ m! keyword has been replaced !)
+      {
+      $self->approximate_result_count(0);
+      return 0;
+      } # if
+    } # if
   # The hit count is in a FONT tag:
   my @aoFONT = $self->_get_result_count_elements($tree);
  FONT:
@@ -696,18 +723,6 @@ sub _parse_tree
   $self->{categories} ||= [];
   $self->_parse_category_list($oUL, $self->{categories}) if ref($oUL);
 
-  # See if our query was completely replaced by a similar-spelling query:
-  my $oLI = $tree->look_down(_tag => 'li',
-                             class => 'ebInf',
-                            );
-  if (ref $oLI)
-    {
-    if ($oLI->as_text =~ m! keyword has been replaced !)
-      {
-      $self->approximate_result_count(0);
-      return 0;
-      } # if
-    } # if
   # First, delete all the results that came from spelling variations:
   my $oDiv = $tree->look_down(_tag => 'div',
                               id => 'expSplChk',

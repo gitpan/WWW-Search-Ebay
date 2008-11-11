@@ -1,12 +1,12 @@
 
-# $rcs = ' $Id: Makefile.PL,v 1.66 2008/10/22 03:12:44 Martin Exp $ ';
+# $rcs = ' $Id: Makefile.PL,v 1.67 2008/11/10 21:31:12 Martin Exp $ ';
 
 use inc::Module::Install;
 
 name('WWW-Search-Ebay');
 author('Martin Thurn <mthurn@cpan.org>');
 license('perl');
-version(3.001);
+version(3.002);
 
 requires(perl => 5.005);
 test_requires('Bit::Vector');

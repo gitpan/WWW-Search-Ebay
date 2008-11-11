@@ -1,5 +1,5 @@
 
-# $Id: ebay.t,v 1.8 2008/11/10 19:51:10 Martin Exp $
+# $Id: ebay.t,v 1.9 2008/11/11 11:46:37 Martin Exp $
 
 use strict;
 use warnings;
@@ -25,11 +25,19 @@ tm_new_engine('Ebay');
 # goto ISBN;
 # goto DEBUG_NOW;
 # goto CONTENTS;
+# goto SPELL_TEST;
 
 diag("Sending 0-page ebay queries...");
 $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
 tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
+SPELL_TEST:
+pass;
+# There are no hits for "laavar", but eBay gives us all the "lavar"
+# hits:
+$iDebug = 0;
+tm_run_test('normal', 'laavar', 0, 0, $iDebug);
+goto ALL_DONE;
 
 DEBUG_NOW:
 pass;
@@ -147,7 +155,10 @@ if ($iAnyFailed)
   } # if
 # Sanity check for new category list parsing:
 # print STDERR Dumper($WWW::Search::Test::oSearch->{categories});
+
 SKIP_CONTENTS:
+pass;
+ALL_DONE:
 pass;
 
 __END__
