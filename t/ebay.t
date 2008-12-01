@@ -1,5 +1,5 @@
 
-# $Id: ebay.t,v 1.9 2008/11/11 11:46:37 Martin Exp $
+# $Id: ebay.t,v 1.10 2008/12/01 02:17:37 Martin Exp $
 
 use strict;
 use warnings;
@@ -33,10 +33,12 @@ $iDebug = 0;
 tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 SPELL_TEST:
 pass;
-# There are no hits for "laavar", but eBay gives us all the "lavar"
-# hits:
+# There are no hits for "laavar", make sure Ebay.pm does not return
+# the "lavar" hits:
 $iDebug = 0;
-tm_run_test('normal', 'laavar', 0, 0, $iDebug);
+tm_run_test('normal', 'laavar', 0, 0, $iDebug, 'dump');
+$iDebug = 0;
+tm_run_test('normal', 'no products match this entire phrase', 0, 0, $iDebug, 'dump');
 goto ALL_DONE;
 
 DEBUG_NOW:

@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.234 2008/11/11 11:44:22 Martin Exp $
+# $Id: Ebay.pm,v 2.236 2008/12/01 02:19:05 Martin Exp $
 
 =head1 NAME
 
@@ -32,8 +32,7 @@ The search is done against CURRENT running AUCTIONS only.
 
 The query is applied to TITLES only.
 
-The results are ordered youngest auctions first (reverse order of
-auction listing date).
+This module can return only the first 200 results matching your query.
 
 In the resulting L<WWW::Search::Result> objects, the description()
 field consists of a human-readable combination (joined with
@@ -118,6 +117,14 @@ add 'sacategory'=>123 to the query options:
 If you send a single asterisk or a single space as the query string,
 the results will be ALL the auctions in that category.
 
+=item Limit search by price range
+
+Contributed by Brian Wilson:
+
+  $oSearch->native_query($sQuery, {
+    _mPrRngCbx=>'1', _udlo=>$minPrice, _udhi=>$maxPrice,
+    } );
+
 =back
 
 =head1 PUBLIC METHODS OF NOTE
@@ -149,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.234 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.236 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -669,9 +676,10 @@ sub _parse_tree
     $self->approximate_result_count(1);
     return 1;
     } # if
-  my $hits_found = 0;
-  # First, see if there were zero results and eBay automatically did a
-  # spell-check and search for other words:
+  my $iHits = 0;
+  # First, see if: there were zero results and eBay automatically did
+  # a spell-check and searched for other words (or searched for a
+  # subset of query terms):
   my $oDIV = $tree->look_down(
                               _tag => 'div',
                               class => 'messages',
@@ -679,7 +687,15 @@ sub _parse_tree
   if (ref $oDIV)
     {
     my $sText = $oDIV->as_text;
-    if (($sText =~ m/0 results found for /) && ($sText =~ m/ so we searched for /))
+    if (
+        ($sText =~ m/0 results found for /)
+        &&
+        (
+         ($sText =~ m/ so we searched for /)
+         ||
+         ($sText =~ m/ so we removed keywords /)
+        )
+       )
       {
       $self->approximate_result_count(0);
       return 0;
@@ -883,7 +899,7 @@ sub _parse_tree
     $hit->description($sDesc);
     push(@{$self->{cache}}, $hit);
     $self->{'_num_hits'}++;
-    $hits_found++;
+    $iHits++;
     # Delete this HTML element so that future searches go faster?
     $oTDtitle->detach;
     $oTDtitle->delete;
@@ -922,7 +938,7 @@ sub _parse_tree
 
   # All done with this page.
   $tree->delete;
-  return $hits_found;
+  return $iHits;
   } # _parse_tree
 
 
