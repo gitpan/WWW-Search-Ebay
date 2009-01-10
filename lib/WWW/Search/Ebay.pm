@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.236 2008/12/01 02:19:05 Martin Exp $
+# $Id: Ebay.pm,v 2.237 2009/01/10 15:49:00 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.236 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.237 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -1114,7 +1114,6 @@ Please tell the author if you find any!
 
 =head1 AUTHOR
 
-C<WWW::Search::Ebay> was written by and is maintained by
 Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
 Some fixes along the way contributed by Troy Davis.

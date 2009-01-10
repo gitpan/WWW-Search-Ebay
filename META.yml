@@ -1,6 +1,7 @@
 ---
+abstract: 'backend for searching www.ebay.com'
 author:
-  - 'Martin Thurn <mthurn@cpan.org>'
+  - 'Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.'
 build_requires:
   Bit::Vector: 0
   Date::Manip: 0
@@ -15,6 +16,7 @@ license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
+module_name: WWW::Search::Ebay
 name: WWW-Search-Ebay
 no_index:
   directory:
@@ -29,4 +31,4 @@ requires:
   perl: 5.005
 resources:
   license: http://dev.perl.org/licenses/
-version: 3.003
+version: 3.004
