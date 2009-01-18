@@ -1,5 +1,5 @@
 
-# $Id: buyitnow.t,v 1.14 2008/11/10 19:51:10 Martin Exp $
+# $Id: buyitnow.t,v 1.15 2009/01/18 21:44:18 Martin Exp $
 
 use blib;
 use Bit::Vector;

@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.240 2009/01/18 20:31:55 Martin Exp $
+# $Id: Ebay.pm,v 2.241 2009/01/18 21:43:05 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.240 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.241 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -904,7 +904,6 @@ sub _parse_tree
         (Date_Cmp($hit->end_date, 'now') < 0) # Item is ended
        )
       {
-print STDERR " DDD mark an item as sold\n";
       # Item must have been sold!?!
       $hit->sold(1);
       } # if

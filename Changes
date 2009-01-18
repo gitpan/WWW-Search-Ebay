@@ -1,3 +1,7 @@
+2009-01-18  Kingpin  <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay.pm (_parse_tree): mark item as "sold" if ended and bidded (fix for Ebay::Completed)
+
 2008-11-10  Kingpin  <Martin@BLUEMAX>
 
 	* lib/WWW/Search/Ebay.pm (_parse_tree): fixed patterns for detecting spell-checked query
