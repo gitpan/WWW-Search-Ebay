@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.237 2009/01/10 15:49:00 Martin Exp $
+# $Id: Ebay.pm,v 2.240 2009/01/18 20:31:55 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.237 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.240 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -304,7 +304,7 @@ sub preprocess_results_page
         my ($sDateRaw, $sTZ) = ($1, $2);
         DEBUG_DATES && print STDERR " DDD official time raw     ==$sDateRaw==\n";
         # Apparently, ParseDate() automatically converts to local timezone:
-        my $date = &ParseDate($sDateRaw);
+        my $date = ParseDate($sDateRaw);
         DEBUG_DATES && print STDERR " DDD official time cooked  ==$date==\n";
         $self->{_ebay_official_time} = $date;
         } # if
@@ -330,7 +330,7 @@ sub _cleanup_url
 sub _format_date
   {
   my $self = shift;
-  return &UnixDate(shift, '%Y-%m-%d %H:%M %Z');
+  return UnixDate(shift, '%Y-%m-%d %H:%M %Z');
   } # _format_date
 
 sub _bidcount_as_text
@@ -519,7 +519,7 @@ sub _parse_enddate
   $sDateTemp = $self->_process_date_abbrevs($sDateTemp);
   print STDERR " DDD   cooked sDateTemp ===$sDateTemp===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   print STDERR " DDD   official time =====$self->{_ebay_official_time}=====\n" if (DEBUG_DATES || (1 < $self->{_debug}));
-  my $date = &DateCalc($self->{_ebay_official_time}, " + $sDateTemp");
+  my $date = DateCalc($self->{_ebay_official_time}, " + $sDateTemp");
   print STDERR " DDD   date ===$date===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   $sDate = $self->_format_date($date);
   print STDERR " DDD   sDate ===$sDate===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
@@ -548,7 +548,7 @@ sub result_as_HTML
   my $self = shift;
   my $oSR = shift or return '';
   my $sDateFormat = shift || q'%Y-%m-%d %H:%M:%S';
-  my $dateEnd = &ParseDate($oSR->end_date);
+  my $dateEnd = ParseDate($oSR->end_date);
   my $iItemNum = $oSR->item_number;
   my $sSold = $oSR->sold
   ? $cgi->font({color=>'green'}, 'sold') .q{; }
@@ -557,16 +557,16 @@ sub result_as_HTML
   my $sPrice = $self->_bidamount_as_text($oSR);
   my $sEndedColor = 'green';
   my $sEndedWord = 'ends';
-  my $dateNow = &ParseDate('now');
+  my $dateNow = ParseDate('now');
   print STDERR " DDD compare end_date ==$dateEnd==\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   print STDERR " DDD compare date_now ==$dateNow==\n" if (DEBUG_DATES || (1 < $self->{_debug}));
-  if (&Date_Cmp($dateEnd, $dateNow) < 0)
+  if (Date_Cmp($dateEnd, $dateNow) < 0)
     {
     $sEndedColor = 'red';
     $sEndedWord = 'ended';
     } # if
   my $sEnded = $cgi->font({ color => $sEndedColor },
-                          &UnixDate($dateEnd,
+                          UnixDate($dateEnd,
                                     qq"$sEndedWord $sDateFormat"));
   my $s = $cgi->b(
                   $cgi->a({href => $oSR->url}, $oSR->title),
@@ -897,6 +897,17 @@ sub _parse_tree
       } # while
     my $sDesc = $self->_create_description($hit);
     $hit->description($sDesc);
+    # Clean up / sanity check hit info:
+    if (
+        (0 < $hit->bid_count) # Item got any bids
+        &&
+        (Date_Cmp($hit->end_date, 'now') < 0) # Item is ended
+       )
+      {
+print STDERR " DDD mark an item as sold\n";
+      # Item must have been sold!?!
+      $hit->sold(1);
+      } # if
     push(@{$self->{cache}}, $hit);
     $self->{'_num_hits'}++;
     $iHits++;

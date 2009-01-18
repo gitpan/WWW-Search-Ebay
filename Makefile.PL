@@ -4,7 +4,7 @@
 use inc::Module::Install;
 
 all_from('lib/WWW/Search/Ebay.pm');
-version(3.004);
+version(3.005);
 
 requires(perl => 5.005);
 test_requires('Bit::Vector');

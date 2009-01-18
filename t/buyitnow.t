@@ -34,7 +34,7 @@ MULTI_RESULT:
   $iDebug = 0;
   $iDump = 0;
   # This query returns hundreds of pages of results:
-  tm_run_test('normal', 'LEGO', 200, undef, $iDebug);
+  tm_run_test('normal', 'LEGO', 222, undef, $iDebug);
   cmp_ok(1, '<', $WWW::Search::Test::oSearch->{requests_made}, 'got multiple pages');
   $TODO = '';
   }
