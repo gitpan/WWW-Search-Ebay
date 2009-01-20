@@ -12,6 +12,7 @@ lib/WWW/Search/Ebay/Auctions.pm
 lib/WWW/Search/Ebay/BuyItNow.pm
 lib/WWW/Search/Ebay/ByEndDate.pm
 lib/WWW/Search/Ebay/BySellerID.pm
+lib/WWW/Search/Ebay/Category.pm
 lib/WWW/Search/Ebay/Motors.pm
 lib/WWW/Search/Ebay/Stores.pm
 LICENSE
@@ -22,6 +23,7 @@ no-results.html
 README
 t/buyitnow.t
 t/bysellerid.t
+t/category.t
 t/coverage.t
 t/ebay.t
 t/enddate.t
