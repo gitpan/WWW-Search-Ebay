@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.241 2009/01/18 21:43:05 Martin Exp $
+# $Id: Ebay.pm,v 2.243 2009/02/23 04:27:50 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.241 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.243 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -509,13 +509,13 @@ sub _parse_enddate
     return 0;
     # There is a separate backend for searching Store items!
     } # if
-  # Convert nbsp to regular space:
-  $sDateTemp =~ s!\240!\040!g;
   print STDERR " DDD   raw    sDateTemp ===$sDateTemp===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   # I don't know why there are sometimes weird characters in there:
   $sDateTemp =~ s!&Acirc;!!g;
   $sDateTemp =~ s!Â!!g;
   $sDateTemp =~ s!<!!;
+  # Convert nbsp to regular space:
+  $sDateTemp =~ s!\240!\040!g;
   $sDateTemp = $self->_process_date_abbrevs($sDateTemp);
   print STDERR " DDD   cooked sDateTemp ===$sDateTemp===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   print STDERR " DDD   official time =====$self->{_ebay_official_time}=====\n" if (DEBUG_DATES || (1 < $self->{_debug}));
@@ -611,6 +611,10 @@ sub _get_result_count_elements
                             '_tag' => 'div',
                             class => 'fpcc'
                            );
+  push @ao, $tree->look_down(
+                             '_tag' => 'div',
+                             class => 'fpc'
+                            );
   push @ao, $tree->look_down(
                             '_tag' => 'div',
                             class => 'count'
@@ -898,10 +902,15 @@ sub _parse_tree
     my $sDesc = $self->_create_description($hit);
     $hit->description($sDesc);
     # Clean up / sanity check hit info:
+    my ($enddate, $iBids);
     if (
-        (0 < $hit->bid_count) # Item got any bids
+        defined($enddate = $hit->end_date)
         &&
-        (Date_Cmp($hit->end_date, 'now') < 0) # Item is ended
+        defined($iBids = $hit->bid_count)
+        &&
+        (0 < $iBids) # Item got any bids
+        &&
+        (Date_Cmp($enddate, 'now') < 0) # Item is ended
        )
       {
       # Item must have been sold!?!

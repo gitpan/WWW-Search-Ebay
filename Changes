@@ -1,3 +1,12 @@
+2009-02-22  Kingpin  <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay.pm (_parse_tree): fixed undef warning
+	(_get_result_count_elements): added element for ::Category search
+
+2009-01-21  Kingpin  <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay/Completed/Category.pm: new module
+
 2009-01-19  Kingpin  <Martin@BLUEMAX>
 
 	* lib/WWW/Search/Ebay/Category.pm: new backend

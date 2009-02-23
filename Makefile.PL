@@ -1,10 +1,10 @@
 
-# $rcs = ' $Id: Makefile.PL,v 1.71 2009/01/20 01:58:10 Martin Exp $ ';
+# $rcs = ' $Id: Makefile.PL,v 1.72 2009/02/23 04:26:50 Martin Exp $ ';
 
 use inc::Module::Install;
 
 all_from('lib/WWW/Search/Ebay.pm');
-version(3.007);
+version(3.008);
 
 requires(perl => 5.005);
 test_requires('Bit::Vector');

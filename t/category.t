@@ -1,5 +1,5 @@
 
-# $Id: category.t,v 1.1 2009/01/20 01:58:28 Martin Exp $
+# $Id: category.t,v 1.2 2009/02/23 04:28:30 Martin Exp $
 
 use blib;
 use Bit::Vector;
@@ -63,6 +63,8 @@ foreach my $oResult (@ao)
                               'result URL is really from ebay.com');
   $oV->Bit_Off(1) unless cmp_ok($oResult->title, 'ne', '',
                                 'result Title is not empty');
+  $oV->Bit_Off(2) if ! cmp_ok($oResult->end_date, 'ne', '',
+                              'result end_date is not empty');
   $oV->Bit_Off(3) unless like($oResult->description, qr{(\d+|no)\sbids?;},
                               'result bid count is ok');
   $oV->Bit_Off(4) unless like($oResult->description, qr{(starting|current)\sbid\s},

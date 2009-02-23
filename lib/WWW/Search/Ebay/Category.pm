@@ -1,5 +1,5 @@
 
-# $Id: Category.pm,v 2.2 2009/01/20 01:59:15 Martin Exp $
+# $Id: Category.pm,v 2.3 2009/02/23 02:46:07 Martin Exp $
 
 =head1 NAME
 
@@ -9,7 +9,7 @@ WWW::Search::Ebay::Category - backend for returning entire categories on www.eba
 
   use WWW::Search;
   my $oSearch = new WWW::Search('Ebay::Category');
-  # Category 1381 is Disney Modern Bottles:
+  # Category 1381 is Disney Modern Premiums:
   $oSearch->native_query(1381);
   while (my $oResult = $oSearch->next_result())
     { print $oResult->url, "\n"; }
@@ -48,9 +48,9 @@ use Date::Manip;
 use base 'WWW::Search::Ebay';
 
 our
-$VERSION = do { my @r = (q$Revision: 2.2 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.3 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
-my $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
+our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 use constant DEBUG_FUNC => 0;
 
@@ -75,7 +75,7 @@ sub _native_setup_search
   } # _native_setup_search
 
 
-sub _preprocess_results_page
+sub _preprocess_results_page_OFF
   {
   my $self = shift;
   my $sPage = shift;
@@ -91,44 +91,6 @@ sub _columns_use_SUPER
   return qw( paypal bids price shipping enddate );
   } # _columns
 
-sub _title_element_specs
-  {
-  return (
-          '_tag' => 'td',
-          'class' => 'ebUpper ebcTtl',
-         );
-  } # _title_element_specs
-
-
-=head2 _parse_enddate
-
-Defines how to parse the auction ending date from the HTML.
-(See WWW::Search::Ebay for more information.)
-
-=cut
-
-sub _parse_enddate
-  {
-  my $self = shift;
-  my $oTDdate = shift;
-  my $hit = shift;
-  if (! ref $oTDdate)
-    {
-    return 0;
-    }
-  my $s = $oTDdate->as_text;
-  print STDERR " DDD   TDdate ===$s===\n" if 1 < $self->{_debug};
-  # I don't know why there are sometimes weird characters in there:
-  $s =~ s!&Acirc;!!g;
-  $s =~ s!Â!!g;
-  # Convert nbsp to regular space:
-  $s =~ s!\240!\040!g;
-  my $date = &ParseDate($s);
-  print STDERR " DDD     date ===$date===\n" if 1 < $self->{_debug};
-  my $sDate = $self->_format_date($date);
-  $hit->end_date($sDate);
-  return 1;
-  } # _parse_enddate
 
 1;
 
