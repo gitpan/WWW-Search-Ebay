@@ -1,5 +1,5 @@
 
-# $Id: BySellerID.pm,v 2.6 2008/04/06 03:39:17 Martin Exp $
+# $Id: BySellerID.pm,v 2.7 2009/05/02 13:28:09 Martin Exp $
 
 =head1 NAME
 
@@ -45,6 +45,10 @@ Please tell the author if you find any!
 C<WWW::Search::Ebay::BySellerID> was written by and is maintained by
 Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
+=head1 LICENSE
+
+Copyright (C) 1998-2009 Martin 'Kingpin' Thurn
+
 =cut
 
 package WWW::Search::Ebay::BySellerID;
@@ -54,7 +58,7 @@ use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 2.6 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.7 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub _native_setup_search
   {

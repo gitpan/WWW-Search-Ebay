@@ -1,5 +1,5 @@
 
-# $Id: Auctions.pm,v 1.7 2008/02/24 21:16:21 Daddy Exp $
+# $Id: Auctions.pm,v 1.8 2009/05/02 13:28:08 Martin Exp $
 
 =head1 NAME
 
@@ -14,6 +14,10 @@ This module is just a synonym of WWW::Search::Ebay.
 C<WWW::Search::Ebay::Auctions> was written by and is maintained by
 Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
+=head1 LICENSE
+
+Copyright (C) 1998-2009 Martin 'Kingpin' Thurn
+
 =cut
 
 package WWW::Search::Ebay::Auctions;
@@ -23,7 +27,7 @@ use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.7 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 1;
 

@@ -1,5 +1,5 @@
 
-# $Id: Category.pm,v 2.3 2009/02/23 02:46:07 Martin Exp $
+# $Id: Category.pm,v 2.4 2009/05/02 13:28:09 Martin Exp $
 
 =head1 NAME
 
@@ -48,7 +48,7 @@ use Date::Manip;
 use base 'WWW::Search::Ebay';
 
 our
-$VERSION = do { my @r = (q$Revision: 2.3 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.4 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
@@ -109,6 +109,8 @@ Please tell the author if you find any!
 Maintained by Martin Thurn, C<mthurn@cpan.org>, L<http://www.sandcrawler.com/SWB/cpan-modules.html>.
 
 =head1 LEGALESE
+
+Copyright (C) 1998-2009 Martin 'Kingpin' Thurn
 
 THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF

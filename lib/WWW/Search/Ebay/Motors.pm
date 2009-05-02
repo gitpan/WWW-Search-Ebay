@@ -1,5 +1,5 @@
 
-# $Id: Motors.pm,v 1.13 2008/09/28 03:15:27 Martin Exp $
+# $Id: Motors.pm,v 1.14 2009/05/02 13:28:09 Martin Exp $
 
 =head1 NAME
 
@@ -48,6 +48,8 @@ Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
 =head1 LEGALESE
 
+Copyright (C) 1998-2009 Martin 'Kingpin' Thurn
+
 THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
@@ -65,7 +67,7 @@ use Carp;
 use Data::Dumper;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.13 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.14 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub _native_setup_search

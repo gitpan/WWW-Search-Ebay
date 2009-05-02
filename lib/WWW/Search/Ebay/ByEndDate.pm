@@ -1,6 +1,6 @@
 # Ebay/ByEndDate.pm
 # by Martin Thurn
-# $Id: ByEndDate.pm,v 2.30 2008/04/27 14:24:11 Martin Exp $
+# $Id: ByEndDate.pm,v 2.31 2009/05/02 13:28:09 Martin Exp $
 
 =head1 NAME
 
@@ -64,6 +64,8 @@ Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
 =head1 LEGALESE
 
+Copyright (C) 1998-2009 Martin 'Kingpin' Thurn
+
 THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
@@ -83,7 +85,7 @@ use Date::Manip;
 use base 'WWW::Search::Ebay';
 
 our
-$VERSION = do { my @r = (q$Revision: 2.30 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.31 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 # Damn it's hard to get a timezone:

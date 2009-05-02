@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.243 2009/02/23 04:27:50 Martin Exp $
+# $Id: Ebay.pm,v 2.244 2009/05/02 13:28:08 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.243 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.244 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -1144,6 +1144,8 @@ WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 =head1 LICENSE
+
+Copyright (C) 1998-2009 Martin 'Kingpin' Thurn
 
 This software is released under the same license as Perl itself.
 

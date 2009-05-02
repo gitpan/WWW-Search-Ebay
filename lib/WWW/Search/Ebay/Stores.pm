@@ -1,5 +1,5 @@
 
-# $Id: Stores.pm,v 1.15 2008/08/10 17:37:35 Martin Exp $
+# $Id: Stores.pm,v 1.16 2009/05/02 13:28:09 Martin Exp $
 
 =head1 NAME
 
@@ -46,6 +46,10 @@ Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
 
 Some fixes along the way contributed by Troy Davis.
 
+=head1 LICENSE
+
+Copyright (C) 1998-2009 Martin 'Kingpin' Thurn
+
 =cut
 
 package WWW::Search::Ebay::Stores;
@@ -55,7 +59,7 @@ use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.15 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.16 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub _native_setup_search
   {
