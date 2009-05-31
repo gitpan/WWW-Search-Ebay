@@ -1,18 +1,22 @@
 
-# $Id: motors.t,v 1.15 2008/11/10 19:51:11 Martin Exp $
+# $Id: motors.t,v 1.16 2009/05/31 14:58:58 Martin Exp $
 
 use ExtUtils::testlib;
 use Test::More no_plan;
+use WWW::Search::Test;
 
-BEGIN { use_ok('WWW::Search') };
-BEGIN { use_ok('WWW::Search::Test') };
-BEGIN { use_ok('WWW::Search::Ebay::Motors') };
+use constant DEBUG_ONE => 0;
+
+BEGIN
+  {
+  use_ok('WWW::Search::Ebay::Motors');
+  }
 
 my $iDebug;
 my $iDump = 0;
 
 tm_new_engine('Ebay::Motors');
-# goto DEBUG_NOW;
+DEBUG_ONE && goto TEST_ONE;
 # goto CONTENTS;
 
 if (0)
@@ -40,6 +44,8 @@ DEBUG_NOW:
 pass;
 CONTENTS:
 pass;
+TEST_ONE:
+pass('start 1-page test');
 diag("Sending 1-page motors query to check contents...");
 $iDebug = 0;
 $iDump = 0;

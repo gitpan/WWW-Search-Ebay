@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.244 2009/05/02 13:28:08 Martin Exp $
+# $Id: Ebay.pm,v 2.245 2009/05/31 14:58:50 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.244 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.245 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -436,6 +436,7 @@ sub _parse_bids
       return 0;
       # There is a separate backend for searching Auction items!
       } # if
+    $iBids =  1 if ($oTDbids->as_text =~ m/SOLD/i);
     $iBids = $1 if ($oTDbids->as_text =~ m/(\d+)/);
     my $W = $self->whitespace_pattern;
     if (

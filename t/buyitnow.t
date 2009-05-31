@@ -1,5 +1,5 @@
 
-# $Id: buyitnow.t,v 1.15 2009/01/18 21:44:18 Martin Exp $
+# $Id: buyitnow.t,v 1.16 2009/05/31 14:58:58 Martin Exp $
 
 use blib;
 use Bit::Vector;
@@ -86,10 +86,10 @@ my $iTests = 5;
 my $iAnyFailed = 0;
 my ($iVall, %hash);
 my $oV = new Bit::Vector($iTests);
-$oV->Fill;
-$iVall = $oV->to_Dec;
 foreach my $oResult (@ao)
   {
+  $oV->Fill;
+  $iVall = $oV->to_Dec;
   $oV->Bit_Off(0) unless like($oResult->url, qr{\Ahttp://cgi\d*\.ebay\.com},
                               'result URL is really from ebay.com');
   $oV->Bit_Off(1) unless cmp_ok($oResult->title, 'ne', '',
