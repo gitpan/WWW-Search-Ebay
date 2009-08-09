@@ -1,5 +1,5 @@
 
-# $Id: ebay.t,v 1.10 2008/12/01 02:17:37 Martin Exp $
+# $Id: ebay.t,v 1.11 2009-08-09 01:52:29 Martin Exp $
 
 use strict;
 use warnings;
@@ -32,17 +32,17 @@ $iDebug = 0;
 # This test returns no results (but we should not get an HTTP error):
 tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
 SPELL_TEST:
-pass;
+pass('no-op');
 # There are no hits for "laavar", make sure Ebay.pm does not return
 # the "lavar" hits:
 $iDebug = 0;
 tm_run_test('normal', 'laavar', 0, 0, $iDebug, 'dump');
 $iDebug = 0;
 tm_run_test('normal', 'no products match this entire phrase', 0, 0, $iDebug, 'dump');
-goto ALL_DONE;
+# goto ALL_DONE;
 
 DEBUG_NOW:
-pass;
+pass('no-op');
 MULTI_RESULT:
   {
   $TODO = 'WWW::Search::Ebay can not fetch multiple pages';
@@ -120,15 +120,16 @@ $oV->Fill;
 $iVall = $oV->to_Dec;
 foreach my $oResult (@ao)
   {
-  $oV->Empty;
+  $oV->Fill;
   # Create a vector of which tests passed:
   $oV->Bit_Off(1) unless like($oResult->url,
                               qr{\Ahttp://cgi\d*\.ebay\.com},
                               'result URL is really from ebay.com');
   $oV->Bit_Off(2) unless cmp_ok($oResult->title, 'ne', '',
                                 'result Title is not empty');
-  $oV->Bit_Off(3) unless cmp_ok(ParseDate($oResult->change_date) || '',
-                                'ne', '',
+  my $sDateChange = ParseDate($oResult->change_date) || '';
+  diag($sDateChange);
+  $oV->Bit_Off(3) unless cmp_ok($sDateChange, 'ne', '',
                                 'change_date is really a date');
   $oV->Bit_Off(4) unless like($oResult->description,
                               qr{Item #\d+;},
@@ -159,9 +160,9 @@ if ($iAnyFailed)
 # print STDERR Dumper($WWW::Search::Test::oSearch->{categories});
 
 SKIP_CONTENTS:
-pass;
+pass('no-op');
 ALL_DONE:
-pass;
+pass('all done');
 
 __END__
 

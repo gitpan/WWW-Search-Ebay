@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.245 2009/05/31 14:58:50 Martin Exp $
+# $Id: Ebay.pm,v 2.246 2009-08-09 01:51:00 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.245 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.246 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -266,7 +266,7 @@ sub preprocess_results_page
   {
   my $self = shift;
   my $sPage = shift;
-  if (0)
+  if (25 < $self->{_debug})
     {
     # print STDERR Dumper($self->{response});
     # For debugging:
@@ -502,13 +502,17 @@ sub _parse_enddate
     $sDateTemp = $s = $oTDdate;
     }
   print STDERR " DDD   TDdate ===$s===\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
-  if (ref($oTDdate) && ($oTDdate->attr('class') !~ m'\b(ebcTim|time)\b'))
+  if (ref($oTDdate))
     {
-    # If we see this, we probably were searching for Buy-It-Now items
-    # but we ran off the bottom of the item list and ran into the list
-    # of Store items.
-    return 0;
-    # There is a separate backend for searching Store items!
+    if ($oTDdate->attr('class') !~ m/\b(ebcTim|time)\b/)
+      {
+      print STDERR " DDD parse_enddate: oTDdate wrong class\n";
+      # If we see this, we probably were searching for Buy-It-Now items
+      # but we ran off the bottom of the item list and ran into the list
+      # of Store items.
+      return 0;
+      # There is a separate backend for searching Store items!
+      } # if
     } # if
   print STDERR " DDD   raw    sDateTemp ===$sDateTemp===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   # I don't know why there are sometimes weird characters in there:
@@ -1115,7 +1119,7 @@ sub _columns
   {
   my $self = shift;
   # This is for basic USA eBay:
-  return qw( paypal bids price shipping enddate );
+  return qw( paypal bids price enddate );
   } # _columns
 
 1;

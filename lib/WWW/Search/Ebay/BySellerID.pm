@@ -1,5 +1,5 @@
 
-# $Id: BySellerID.pm,v 2.7 2009/05/02 13:28:09 Martin Exp $
+# $Id: BySellerID.pm,v 2.8 2009-08-09 01:50:05 Martin Exp $
 
 =head1 NAME
 
@@ -58,7 +58,7 @@ use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 2.7 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub _native_setup_search
   {
@@ -84,6 +84,13 @@ sub _native_setup_search
   $rh->{'pfid'} = '0';
   return $self->SUPER::_native_setup_search('', $rh);
   } # _native_setup_search
+
+sub _columns
+  {
+  my $self = shift;
+  # This is for basic USA eBay:
+  return qw( paypal bids price shipping enddate );
+  } # _columns
 
 1;
 

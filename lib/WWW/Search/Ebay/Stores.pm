@@ -1,5 +1,5 @@
 
-# $Id: Stores.pm,v 1.16 2009/05/02 13:28:09 Martin Exp $
+# $Id: Stores.pm,v 1.17 2009-08-09 01:50:43 Martin Exp $
 
 =head1 NAME
 
@@ -59,7 +59,7 @@ use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.16 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.17 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub _native_setup_search
   {
@@ -87,11 +87,11 @@ sub _preprocess_results_page_OFF
   exit 88;
   } # _preprocess_results_page
 
-sub _columns
+sub _columns_same_as_base_ebay
   {
   my $self = shift;
   # This is for Stores:
-  return qw( paypal bids price shipping enddate );
+  return qw( paypal bids price enddate );
   } # _columns
 
 

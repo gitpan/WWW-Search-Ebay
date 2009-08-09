@@ -1,3 +1,11 @@
+2009-08-08  Kingpin  <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay/Stores.pm: fixed for new HTML format
+
+	* lib/WWW/Search/Ebay.pm (_columns): fixed for new HTML format
+
+	* lib/WWW/Search/Ebay/BySellerID.pm (_columns): fixed for new HTML format
+
 2009-02-22  Kingpin  <Martin@BLUEMAX>
 
 	* lib/WWW/Search/Ebay.pm (_parse_tree): fixed undef warning

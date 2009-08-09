@@ -1,30 +1,35 @@
 
-# $Id: bysellerid.t,v 1.10 2008/11/10 19:51:10 Martin Exp $
+# $Id: bysellerid.t,v 1.11 2009-08-09 01:52:29 Martin Exp $
 
 use Bit::Vector;
 use Date::Manip;
 use ExtUtils::testlib;
 use Test::More no_plan;
 
-BEGIN { use_ok('WWW::Search') };
-BEGIN { use_ok('WWW::Search::Test') };
-BEGIN { use_ok('WWW::Search::Ebay::BySellerID') };
+use WWW::Search;
+use WWW::Search::Test;
+BEGIN
+  {
+  use_ok('WWW::Search::Ebay::BySellerID');
+  }
 
 my $iDebug;
-my $iDump = 0;
+my $iDump;
 
 tm_new_engine('Ebay::BySellerID');
-goto DEBUG_NOW;
+# goto DEBUG_NOW;
 # goto CONTENTS;
 
 diag("Sending 0-page query...");
 $iDebug = 0;
+$iDump = 0;
 # This test returns no results (but we should not get an HTTP error):
-tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
+tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug, $iDump);
 
 goto SKIP_MULTI;
+pass('no-op');
 # DEBUG_NOW:
-pass;
+pass('no-op');
 MULTI_RESULT:
   {
   $TODO = 'WWW::Search::Ebay can not fetch multiple pages';
@@ -38,15 +43,15 @@ MULTI_RESULT:
   }
 
 DEBUG_NOW:
-pass;
+pass('no-op');
 SKIP_MULTI:
-pass;
+pass('no-op');
 CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
 # local $TODO = 'Too hard to find a seller with consistently one page of auctions';
-tm_run_test('normal', 'snappyauctions', 1, 199, $iDebug, $iDump);
+tm_run_test('normal', 'shystieone', 1, 199, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
