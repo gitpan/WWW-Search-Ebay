@@ -1,3 +1,7 @@
+2009-08-10  Kingpin  <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay.pm (_parse_price): fixed for "Free Shipping" in the bid column
+
 2009-08-08  Kingpin  <Martin@BLUEMAX>
 
 	* lib/WWW/Search/Ebay/Stores.pm: fixed for new HTML format

@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.246 2009-08-09 01:51:00 Martin Exp $
+# $Id: Ebay.pm,v 2.247 2009-08-11 01:37:29 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.246 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.247 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -411,6 +411,10 @@ sub _parse_price
   my $currency = $self->_currency_pattern;
   my $W = $self->whitespace_pattern;
   $iPrice =~ s!($currency)$W*($currency)!$1 (Buy-It-Now for $2)!;
+  if ($iPrice =~ s/Free\s+Shipping//)
+    {
+    $hit->shipping('free');
+    } # if
   $hit->bid_amount($iPrice);
   return 1;
   } # _parse_price
