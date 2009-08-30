@@ -1,9 +1,10 @@
 
-# $Id: buyitnow.t,v 1.16 2009/05/31 14:58:58 Martin Exp $
+# $Id: buyitnow.t,v 1.17 2009-08-30 23:45:04 Martin Exp $
 
 use blib;
 use Bit::Vector;
 use Data::Dumper;
+use Date::Manip;
 use Test::More no_plan;
 
 use WWW::Search::Test;
@@ -94,6 +95,10 @@ foreach my $oResult (@ao)
                               'result URL is really from ebay.com');
   $oV->Bit_Off(1) unless cmp_ok($oResult->title, 'ne', '',
                                 'result Title is not empty');
+  my $sDate = ParseDate($oResult->end_date) || '';
+  # diag($sDate);
+  $oV->Bit_Off(2) unless cmp_ok($sDate, 'ne', '',
+                                'end_date is really a date');
   $oV->Bit_Off(3) unless like($oResult->description, qr{no\s+bids;},
                               'result bid count is ok');
   $oV->Bit_Off(4) unless like($oResult->description, qr{starting\sbid},

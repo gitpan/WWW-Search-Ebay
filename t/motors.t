@@ -1,5 +1,5 @@
 
-# $Id: motors.t,v 1.16 2009/05/31 14:58:58 Martin Exp $
+# $Id: motors.t,v 1.17 2009-08-30 23:45:05 Martin Exp $
 
 use ExtUtils::testlib;
 use Test::More no_plan;
@@ -60,8 +60,8 @@ foreach my $oResult (@ao)
        'result URL is really from ebaymotors');
   cmp_ok($oResult->title, 'ne', '',
          'result Title is not empty');
-  cmp_ok($oResult->change_date, 'ne', '',
-         'result date is not empty');
+  cmp_ok($oResult->end_date, 'ne', '',
+         'end_date is not empty');
   like($oResult->description, qr{([0-9]+|no)\s+bids?},
        'result bidcount is ok');
   } # foreach

@@ -1,5 +1,5 @@
 
-# $Id: ebay.t,v 1.11 2009-08-09 01:52:29 Martin Exp $
+# $Id: ebay.t,v 1.13 2009-08-30 23:45:05 Martin Exp $
 
 use strict;
 use warnings;
@@ -128,7 +128,7 @@ foreach my $oResult (@ao)
   $oV->Bit_Off(2) unless cmp_ok($oResult->title, 'ne', '',
                                 'result Title is not empty');
   my $sDateChange = ParseDate($oResult->change_date) || '';
-  diag($sDateChange);
+  # diag($sDateChange);
   $oV->Bit_Off(3) unless cmp_ok($sDateChange, 'ne', '',
                                 'change_date is really a date');
   $oV->Bit_Off(4) unless like($oResult->description,
@@ -139,7 +139,12 @@ foreach my $oResult (@ao)
                               'result bidcount is ok');
   $oV->Bit_Off(6) unless like($oResult->bid_count, qr{\A\d+\Z},
                               'bid_count is a number');
-  $oV->Bit_Off(7) unless like($oResult->category, qr{\A-?\d+\Z},
+  if (defined $oResult->shipping)
+    {
+    $oV->Bit_Off(7) if (! like($oResult->shipping, qr{\A(free|[0-9\$\.]+)\Z}i,
+                               'shipping looks like a money value'));
+    } # if
+  $oV->Bit_Off(0) unless like($oResult->category, qr{\A-?\d+\Z},
                               'category is a number');
   my $iV = $oV->to_Dec;
   if ($iV < $iVall)

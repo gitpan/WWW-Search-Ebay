@@ -1,3 +1,9 @@
+2009-08-30  Kingpin  <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay/BuyItNow.pm (_columns): updated for new eBay output
+
+	* lib/WWW/Search/Ebay.pm (_parse_enddate): fixed for Buy-It-Now auctions
+
 2009-08-10  Kingpin  <Martin@BLUEMAX>
 
 	* lib/WWW/Search/Ebay.pm (_parse_price): fixed for "Free Shipping" in the bid column

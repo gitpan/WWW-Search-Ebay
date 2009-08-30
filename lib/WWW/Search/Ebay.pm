@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.248 2009-08-11 01:45:17 Martin Exp $
+# $Id: Ebay.pm,v 2.249 2009-08-30 23:43:44 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.248 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.249 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -519,6 +519,15 @@ sub _parse_enddate
       } # if
     } # if
   print STDERR " DDD   raw    sDateTemp ===$sDateTemp===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
+  if ($sDateTemp =~ m/---/)
+    {
+    print STDERR qq{ DDD parse_enddate: oTDdate is "---"\n};
+    # If we see this, we probably were searching for Buy-It-Now items
+    # but we ran off the bottom of the item list and ran into the list
+    # of Store items.
+    return 0;
+    # There is a separate backend for searching Store items!
+    } # if
   # I don't know why there are sometimes weird characters in there:
   $sDateTemp =~ s!&Acirc;!!g;
   $sDateTemp =~ s!Â!!g;
