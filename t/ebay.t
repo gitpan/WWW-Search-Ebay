@@ -1,5 +1,5 @@
 
-# $Id: ebay.t,v 1.13 2009-08-30 23:45:05 Martin Exp $
+# $Id: ebay.t,v 1.14 2010-04-24 03:35:50 Martin Exp $
 
 use strict;
 use warnings;
@@ -104,63 +104,29 @@ CONTENTS:
 diag("Sending 1-page ebay query to check contents...");
 $iDebug = 0;
 $iDump = 0;
-$WWW::Search::Test::sSaveOnError = q{ebay-1-failed.html};
+$WWW::Search::Test::sSaveOnError = q{ebay-1-failed.html}; # }; # Emacs bug
 my $sQuery = 'trinidad tobago flag';
 # $sQuery = 'church spread wings';  # Special debugging
 tm_run_test('normal', $sQuery, 1, 99, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
-# We perform this many tests on each result object:
-my $iTests = 8;  # Numbered zero thru 7
-my $iAnyFailed = 0;
-my ($iVall, %hash);
-my $oV = new Bit::Vector($iTests);
-$oV->Fill;
-$iVall = $oV->to_Dec;
-foreach my $oResult (@ao)
-  {
-  $oV->Fill;
-  # Create a vector of which tests passed:
-  $oV->Bit_Off(1) unless like($oResult->url,
-                              qr{\Ahttp://cgi\d*\.ebay\.com},
-                              'result URL is really from ebay.com');
-  $oV->Bit_Off(2) unless cmp_ok($oResult->title, 'ne', '',
-                                'result Title is not empty');
-  my $sDateChange = ParseDate($oResult->change_date) || '';
-  # diag($sDateChange);
-  $oV->Bit_Off(3) unless cmp_ok($sDateChange, 'ne', '',
-                                'change_date is really a date');
-  $oV->Bit_Off(4) unless like($oResult->description,
-                              qr{Item #\d+;},
-                              'result item number is ok');
-  $oV->Bit_Off(5) unless like($oResult->description,
-                              qr{\s(\d+|no)\s+bids?;}, # }, # Ebay bug
-                              'result bidcount is ok');
-  $oV->Bit_Off(6) unless like($oResult->bid_count, qr{\A\d+\Z},
-                              'bid_count is a number');
-  if (defined $oResult->shipping)
-    {
-    $oV->Bit_Off(7) if (! like($oResult->shipping, qr{\A(free|[0-9\$\.]+)\Z}i,
-                               'shipping looks like a money value'));
-    } # if
-  $oV->Bit_Off(0) unless like($oResult->category, qr{\A-?\d+\Z},
-                              'category is a number');
-  my $iV = $oV->to_Dec;
-  if ($iV < $iVall)
-    {
-    $hash{$iV} = $oResult;
-    $iAnyFailed++;
-    } # if
-  } # foreach
-if ($iAnyFailed)
-  {
-  diag(" Here are results that exemplify the failures:");
-  while (my ($sKey, $sVal) = each %hash)
-    {
-    diag(Dumper($sVal));
-    } # while
-  } # if
+my $sBidPattern = 'bid\s'. $WWW::Search::Test::oSearch->_currency_pattern .'\s?[,.0-9]+';
+my $qrBid = qr{\b$sBidPattern};
+my @ara = (
+           ['description', 'like', $qrBid, 'description contains bid amount'],
+           ['description', 'like', qr{Item #\d+;}, 'description contains item #'],
+           ['url', 'like', qr(\Ahttp://cgi\d*\.ebay\.com), # ), # Emacs bug
+            q'URL is from ebay.com'], # '], # Emacs bug
+           ['title', 'ne', q{}, 'result Title is not empty'],
+           ['change_date', 'date', 'change_date is really a date'],
+           ['description', 'like', qr{\b(\d+|no)\s+bids?}, # }, # Emacs bug
+            'result bidcount is ok'],
+           ['bid_count', 'like', qr{\A\d+\Z}, 'bid_count is a number'],
+           # ['shipping', 'like', qr{\A(free|[0-9\$\.]+)\Z}i, 'shipping looks like a money value'],
+           ['category', 'like', qr{\A-?\d+\Z}, 'category is a number'],
+          );
+WWW::Search::Test::test_most_results(\@ara, 1.00);
 # Sanity check for new category list parsing:
 # print STDERR Dumper($WWW::Search::Test::oSearch->{categories});
 

@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.249 2009-08-30 23:43:44 Martin Exp $
+# $Id: Ebay.pm,v 2.251 2010-04-25 00:06:52 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.249 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.251 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -411,7 +411,7 @@ sub _parse_price
   my $currency = $self->_currency_pattern;
   my $W = $self->whitespace_pattern;
   $iPrice =~ s!($currency)$W*($currency)!$1 (Buy-It-Now for $2)!;
-  if ($iPrice =~ s/Free\s+Shipping//i)
+  if ($iPrice =~ s/FREE\s+SHIPPING//i)
     {
     $hit->shipping('free');
     } # if
@@ -510,7 +510,6 @@ sub _parse_enddate
     {
     if ($oTDdate->attr('class') !~ m/\b(ebcTim|time)\b/)
       {
-      print STDERR " DDD parse_enddate: oTDdate wrong class\n";
       # If we see this, we probably were searching for Buy-It-Now items
       # but we ran off the bottom of the item list and ran into the list
       # of Store items.
@@ -521,7 +520,6 @@ sub _parse_enddate
   print STDERR " DDD   raw    sDateTemp ===$sDateTemp===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   if ($sDateTemp =~ m/---/)
     {
-    print STDERR qq{ DDD parse_enddate: oTDdate is "---"\n};
     # If we see this, we probably were searching for Buy-It-Now items
     # but we ran off the bottom of the item list and ran into the list
     # of Store items.
@@ -806,7 +804,7 @@ sub _parse_tree
     # use File::Slurp;
     # write_file('no-results.html', $self->{response}->content);
     } # unless
-  my $qrItemNum = qr{[;Q]item[=Z](\d+)[;Q]};
+  my $qrItemNum = qr{(?:[;Q]item[=Z]|/)(\d{12})(?:[;Q]|\?cmd)};
  TD:
   foreach my $oTDtitle (@aoTD)
     {
@@ -1151,7 +1149,7 @@ Please tell the author if you find any!
 
 =head1 AUTHOR
 
-Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
+Martin 'Kingpin' Thurn, C<mthurn at cpan.org>, L<http://tinyurl.com/nn67z>.
 
 Some fixes along the way contributed by Troy Davis.
 

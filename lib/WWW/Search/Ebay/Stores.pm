@@ -1,5 +1,5 @@
 
-# $Id: Stores.pm,v 1.17 2009-08-09 01:50:43 Martin Exp $
+# $Id: Stores.pm,v 1.18 2010-04-25 00:03:52 Martin Exp $
 
 =head1 NAME
 
@@ -41,8 +41,7 @@ Please tell the author if you find any!
 
 =head1 AUTHOR
 
-C<WWW::Search::Ebay::Stores> was written by and is maintained by
-Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
+Martin 'Kingpin' Thurn, C<mthurn at cpan.org>, L<http://tinyurl.com/nn67z>.
 
 Some fixes along the way contributed by Troy Davis.
 
@@ -59,7 +58,7 @@ use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.17 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.18 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub _native_setup_search
   {

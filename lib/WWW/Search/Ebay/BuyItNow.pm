@@ -1,5 +1,5 @@
 
-# $Id: BuyItNow.pm,v 1.13 2009-08-30 23:44:34 Martin Exp $
+# $Id: BuyItNow.pm,v 1.14 2010-04-25 00:03:25 Martin Exp $
 
 =head1 NAME
 
@@ -44,8 +44,7 @@ Please tell the author if you find any!
 
 =head1 AUTHOR
 
-C<WWW::Search::Ebay::BuyItNow> was written by and is maintained by
-Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
+Martin 'Kingpin' Thurn, C<mthurn at cpan.org>, L<http://tinyurl.com/nn67z>.
 
 =head1 LICENSE
 
@@ -61,7 +60,7 @@ use warnings;
 use WWW::Search::Ebay;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.13 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.14 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub _native_setup_search
   {

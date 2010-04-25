@@ -1,5 +1,5 @@
 
-# $Id: Motors.pm,v 1.15 2009/05/31 14:57:28 Martin Exp $
+# $Id: Motors.pm,v 1.16 2010-04-25 00:00:47 Martin Exp $
 
 =head1 NAME
 
@@ -43,8 +43,7 @@ Please tell the author if you find any!
 
 =head1 AUTHOR
 
-C<WWW::Search::Ebay::Motors> was written by and is maintained by
-Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
+Martin 'Kingpin' Thurn, C<mthurn at cpan.org>, L<http://tinyurl.com/nn67z>.
 
 =head1 LEGALESE
 
@@ -67,7 +66,7 @@ use Carp;
 use Data::Dumper;
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 1.15 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.16 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 
 sub _native_setup_search
@@ -86,7 +85,7 @@ sub _native_setup_search
 sub _columns
   {
   my $self = shift;
-  return qw( paypal bids price shipping enddate );
+  return qw( paypal bids price enddate );
   } # _columns
 
 1;

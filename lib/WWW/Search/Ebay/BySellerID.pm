@@ -1,5 +1,5 @@
 
-# $Id: BySellerID.pm,v 2.8 2009-08-09 01:50:05 Martin Exp $
+# $Id: BySellerID.pm,v 2.11 2010-04-25 00:05:56 Martin Exp $
 
 =head1 NAME
 
@@ -42,8 +42,7 @@ Please tell the author if you find any!
 
 =head1 AUTHOR
 
-C<WWW::Search::Ebay::BySellerID> was written by and is maintained by
-Martin Thurn C<mthurn@cpan.org>, L<http://tinyurl.com/nn67z>.
+Martin 'Kingpin' Thurn, C<mthurn at cpan.org>, L<http://tinyurl.com/nn67z>.
 
 =head1 LICENSE
 
@@ -58,7 +57,7 @@ use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 2.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.11 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub _native_setup_search
   {
@@ -85,11 +84,11 @@ sub _native_setup_search
   return $self->SUPER::_native_setup_search('', $rh);
   } # _native_setup_search
 
-sub _columns
+sub _columns_SAME_AS_PARENT
   {
   my $self = shift;
   # This is for basic USA eBay:
-  return qw( paypal bids price shipping enddate );
+  return qw( paypal bids price enddate );
   } # _columns
 
 1;

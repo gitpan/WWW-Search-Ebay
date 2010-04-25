@@ -1,5 +1,5 @@
 
-# $Id: motors.t,v 1.17 2009-08-30 23:45:05 Martin Exp $
+# $Id: motors.t,v 1.18 2010-04-25 00:04:02 Martin Exp $
 
 use ExtUtils::testlib;
 use Test::More no_plan;
@@ -26,7 +26,7 @@ if (0)
   # This test returns no results (but we should not get an HTTP error):
   tm_run_test('normal', $WWW::Search::Test::bogus_query, 0, 0, $iDebug);
   } # if
-pass;
+pass(q{start multi-page test});
 MULTI_RESULT:
   {
   $TODO = 'WWW::Search::Ebay can not fetch multiple pages';
