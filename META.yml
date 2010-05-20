@@ -8,8 +8,6 @@ build_requires:
   ExtUtils::MakeMaker: 6.42
   IO::Capture::Stderr: 0
   Test::More: 0
-  Test::Pod: 0
-  Test::Pod::Coverage: 0
   WWW::Search::Test: 2.265
 configure_requires:
   ExtUtils::MakeMaker: 6.42
@@ -25,6 +23,9 @@ no_index:
   directory:
     - inc
     - t
+recommends:
+  Test::Pod: 0
+  Test::Pod::Coverage: 0
 requires:
   Date::Manip: 0
   HTML::TreeBuilder: 0
@@ -34,4 +35,4 @@ requires:
   perl: 5.005
 resources:
   license: http://dev.perl.org/licenses/
-version: 3.016
+version: 3.017

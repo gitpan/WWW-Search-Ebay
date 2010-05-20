@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.251 2010-04-25 00:06:52 Martin Exp $
+# $Id: Ebay.pm,v 2.252 2010-05-20 22:51:56 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.251 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.252 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -532,6 +532,7 @@ sub _parse_enddate
   $sDateTemp =~ s!<!!;
   # Convert nbsp to regular space:
   $sDateTemp =~ s!\240!\040!g;
+  $sDateTemp =~ s!Time\s+left:!!;
   $sDateTemp = $self->_process_date_abbrevs($sDateTemp);
   print STDERR " DDD   cooked sDateTemp ===$sDateTemp===\n" if (DEBUG_DATES || (1 < $self->{_debug}));
   print STDERR " DDD   official time =====$self->{_ebay_official_time}=====\n" if (DEBUG_DATES || (1 < $self->{_debug}));

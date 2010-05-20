@@ -1,10 +1,10 @@
 
-# $rcs = ' $Id: Makefile.PL,v 1.79 2010-04-24 03:36:37 Martin Exp $ ';
+# $rcs = ' $Id: Makefile.PL,v 1.80 2010-05-20 23:51:16 Martin Exp $ ';
 
 use inc::Module::Install;
 
+version(3.017);
 all_from('lib/WWW/Search/Ebay.pm');
-version(3.016);
 
 requires(perl => 5.005);
 test_requires('Bit::Vector');
@@ -15,8 +15,8 @@ test_requires('IO::Capture::Stderr');
 requires('LWP::Simple');
 # Test::More is needed for `make test`:
 test_requires('Test::More');
-test_recommends('Test::Pod');
-test_recommends('Test::Pod::Coverage');
+recommends('Test::Pod');
+recommends('Test::Pod::Coverage');
 # We need the version that has methods named with leading underscore:
 requires('WWW::Search' => 2.557);
 # We need the version that has the bidder and seller methods:
@@ -25,18 +25,15 @@ requires('WWW::SearchResult' => 2.067);
 # functions:
 test_requires('WWW::Search::Test' => 2.265);
 
-WriteAll;
-
-sub MY::postamble
-  {
-  my $ret = <<'PART0';
+my $ret = <<'PART0';
 coverage :
 	$(RM_RF) cover_db/*
 	$(MAKE) HARNESS_PERL_SWITCHES=-MDevel::Cover test
 	cover
 PART0
-  return $ret;
-  } # MY::postamble
+postamble $ret;
+
+WriteAll;
 
 __END__
 

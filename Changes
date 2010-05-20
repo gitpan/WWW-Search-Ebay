@@ -1,3 +1,7 @@
+2010-05-20  Kingpin  <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay.pm (_parse_enddate): fixed the time-remaining regex
+
 2009-08-30  Kingpin  <Martin@BLUEMAX>
 
 	* lib/WWW/Search/Ebay/BuyItNow.pm (_columns): updated for new eBay output
