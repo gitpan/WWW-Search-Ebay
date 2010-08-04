@@ -1,7 +1,6 @@
 
-# $Id: bysellerid.t,v 1.13 2010-04-25 00:07:10 Martin Exp $
+# $Id: bysellerid.t,v 1.14 2010-08-02 02:06:08 Martin Exp $
 
-use Bit::Vector;
 use Date::Manip;
 use ExtUtils::testlib;
 use Test::More no_plan;
@@ -11,7 +10,7 @@ use WWW::Search::Test;
 BEGIN
   {
   use_ok('WWW::Search::Ebay::BySellerID');
-  }
+  } # end of BEGIN block
 
 my $iDebug;
 my $iDump;
@@ -50,50 +49,22 @@ CONTENTS:
 diag("Sending 1-page query to check contents...");
 $iDebug = 0;
 $iDump = 0;
+$WWW::Search::Test::sSaveOnError = q{bysellerid-failed.html};
 # local $TODO = 'Too hard to find a seller with consistently one page of auctions';
-tm_run_test('normal', '1barnowl', 1, 199, $iDebug, $iDump);
+tm_run_test('normal', 'jensdaddio', 1, 199, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
-my $iTests = 7;
-foreach my $oResult (@ao)
-  {
-  my $oV = new Bit::Vector($iTests);
-  $oV->Fill;
-  $iVall = $oV->to_Dec;
-  # Create a vector of which tests passed:
-  $oV->Bit_Off(1) unless like($oResult->url,
-                              qr{\Ahttp://cgi\d*\.ebay\.com},
-                              'result URL is really from ebay.com');
-  $oV->Bit_Off(2) unless cmp_ok($oResult->title, 'ne', '',
-                                'result Title is not empty');
-  $oV->Bit_Off(3) unless cmp_ok(ParseDate($oResult->change_date) || '',
-                                'ne', '',
-                                'change_date is really a date');
-  $oV->Bit_Off(4) unless like($oResult->description,
-                              qr{Item #\d+;},
-                              'result item number is ok');
-  $oV->Bit_Off(5) unless like($oResult->description,
-                              qr{\s(\d+|no)\s+bids?;},
-                              'result bidcount is ok');
-  $oV->Bit_Off(6) unless like($oResult->bid_count, qr{\A\d+\Z},
-                              'bid_count is a number');
-  my $iV = $oV->to_Dec;
-  if ($iV < $iVall)
-    {
-    $hash{$iV} = $oResult;
-    $iAnyFailed++;
-    } # if
-  } # foreach
-if ($iAnyFailed)
-  {
-  diag(" Here are results that exemplify the failures:");
-  while (my ($sKey, $sVal) = each %hash)
-    {
-    diag(Dumper($sVal));
-    } # while
-  } # if
-
+my @ara = (
+           ['url', 'like', qr{\Ahttp://cgi\d*\.ebay\.com}, 'URL is really from ebay.com'],
+           ['title', 'ne', q{}, 'Title is not empty'],
+           ['change_date', 'date', 'change_date is really a date'],
+           ['description', 'like', qr{Item #\d+;}, 'description contains item #'],
+           ['description', 'like', qr{\b(\d+|no)\s+bids?}, # }, # Emacs bug
+            'result bidcount is ok'],
+           ['bid_count', 'like', qr{\A\d+\Z}, 'bid_count is a number'],
+          );
+WWW::Search::Test::test_most_results(\@ara, 1.00);
 
 __END__
 

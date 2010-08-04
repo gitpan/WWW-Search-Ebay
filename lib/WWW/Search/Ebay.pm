@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.252 2010-05-20 22:51:56 Martin Exp $
+# $Id: Ebay.pm,v 2.254 2010-08-02 01:20:06 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.252 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.254 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -386,7 +386,7 @@ sub _parse_price
     # maybe just maybe we hit this because of a parsing glitch which
     # might correct itself on the next TD.
     } # if
-  if ($oTDprice->attr('class') !~ m'\b(ebcPr|prices)\b')
+  if ($oTDprice->attr('class') !~ m'\b(ebcPr|prices|prc)\b')
     {
     # If we see this, we probably were searching for Store items
     # but we ran off the bottom of the Store item list and ran
@@ -508,7 +508,7 @@ sub _parse_enddate
   print STDERR " DDD   TDdate ===$s===\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
   if (ref($oTDdate))
     {
-    if ($oTDdate->attr('class') !~ m/\b(ebcTim|time)\b/)
+    if ($oTDdate->attr('class') !~ m/\b(ebcTim|ti?me)\b/)
       {
       # If we see this, we probably were searching for Buy-It-Now items
       # but we ran off the bottom of the item list and ran into the list
@@ -640,6 +640,10 @@ sub _get_result_count_elements
                             '_tag' => 'div',
                             class => 'pageCaptionDiv'
                            );
+  push @ao, $tree->look_down( # for BySellerID as of 2010-07
+                            '_tag' => 'div',
+                            id => 'rsc'
+                           );
   return @ao;
   } # _get_result_count_elements
 
@@ -662,6 +666,9 @@ sub _get_itemtitle_tds
                            );
   push @ao, $tree->look_down(_tag => 'td',
                              class => 'ebcTtl',
+                            );
+  push @ao, $tree->look_down(_tag => 'td',
+                             class => 'dtl', # This is for eBay auctions as of 2010-07
                             );
   # This is for BuyItNow (thanks to Brian Wilson):
   push @ao, $tree->look_down(_tag => 'td',
@@ -1117,7 +1124,7 @@ Include parentheses so that $1 becomes the number (with commas is OK).
 
 sub _result_count_pattern
   {
-  return qr'([0-9,]+) (item|match|result)e?s? found ';
+  return qr'([0-9,]+) (item|match|result)e?s? found\b';
   } # _result_count_pattern
 
 

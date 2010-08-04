@@ -1,20 +1,20 @@
 
-# $Id: enddate.t,v 1.11 2008/09/28 03:15:56 Martin Exp $
-
-use Data::Dumper;
-use ExtUtils::testlib;
-use Test::More no_plan;
-
-use constant DEBUG_DATE => 0;
-
-BEGIN { use_ok('Date::Manip') };
-$ENV{TZ} = 'EST5EDT';
-Date_Init('TZ=EST5EDT');
-BEGIN { use_ok('WWW::Search') };
-BEGIN { use_ok('WWW::Search::Test') };
-BEGIN { use_ok('WWW::Search::Ebay') };
+# $Id: enddate.t,v 1.12 2010-08-02 02:05:32 Martin Exp $
 
 use strict;
+use warnings;
+
+use blib;
+use Data::Dumper;
+use Date::Manip;
+$ENV{TZ} = 'EST5EDT';
+Date_Init('TZ=EST5EDT');
+use ExtUtils::testlib;
+use Test::More 'no_plan';
+use WWW::Search;
+use WWW::Search::Test;
+
+use constant DEBUG_DATE => 0;
 
 my $iDebug = 0;
 my $iDump = 0;
@@ -22,9 +22,9 @@ my $iDump = 0;
 tm_new_engine('Ebay::ByEndDate');
 # goto TEST_NOW;
 
-pass;
+pass('no-op');
 TEST_NOW:
-pass;
+pass('no-op');
 diag("Sending end-date query...");
 $iDebug = 0;
 $iDump = 0;
@@ -58,9 +58,9 @@ foreach my $oResult (@ao)
   cmp_ok($iCmp, '<=', 0, 'result is in order by end date');
   $sDatePrev = $sDate;
   } # foreach
-pass;
+pass('no-op');
 ALL_DONE:
-pass;
+pass('no-op');
 exit 0;
 
 __END__

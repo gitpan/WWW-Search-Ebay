@@ -35,4 +35,4 @@ requires:
   perl: 5.005
 resources:
   license: http://dev.perl.org/licenses/
-version: 3.018
+version: 3.019

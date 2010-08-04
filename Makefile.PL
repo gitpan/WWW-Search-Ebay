@@ -1,9 +1,9 @@
 
-# $rcs = ' $Id: Makefile.PL,v 1.80 2010-05-20 23:51:16 Martin Exp $ ';
+# $rcs = ' $Id: Makefile.PL,v 1.82 2010-08-02 02:06:32 Martin Exp $ ';
 
 use inc::Module::Install;
 
-version(3.018);
+version(3.019);
 all_from('lib/WWW/Search/Ebay.pm');
 
 requires(perl => 5.005);
