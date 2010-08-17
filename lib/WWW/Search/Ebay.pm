@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.254 2010-08-02 01:20:06 Martin Exp $
+# $Id: Ebay.pm,v 2.255 2010-08-17 21:59:25 Martin Exp $
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.254 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.255 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -812,7 +812,7 @@ sub _parse_tree
     # use File::Slurp;
     # write_file('no-results.html', $self->{response}->content);
     } # unless
-  my $qrItemNum = qr{(?:[;Q]item[=Z]|/)(\d{12})(?:[;Q]|\?cmd)};
+  my $qrItemNum = qr{(\d{11,13})};
  TD:
   foreach my $oTDtitle (@aoTD)
     {
@@ -828,7 +828,7 @@ sub _parse_tree
     next TD if ($sTitle eq '');
     print STDERR " DDD   sTitle ===$sTitle===\n" if (1 < $self->{_debug});
     my $oURI = URI->new($oA->attr('href'));
-    next TD unless ($oURI =~ m!ViewItem!);
+    # next TD unless ($oURI =~ m!ViewItem!);
     next TD unless ($oURI =~ m!$qrItemNum!);
     my $iItemNum = $1;
     my $iCategory = -1;

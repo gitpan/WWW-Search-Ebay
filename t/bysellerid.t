@@ -1,5 +1,5 @@
 
-# $Id: bysellerid.t,v 1.14 2010-08-02 02:06:08 Martin Exp $
+# $Id: bysellerid.t,v 1.15 2010-08-17 21:59:43 Martin Exp $
 
 use Date::Manip;
 use ExtUtils::testlib;
@@ -51,7 +51,7 @@ $iDebug = 0;
 $iDump = 0;
 $WWW::Search::Test::sSaveOnError = q{bysellerid-failed.html};
 # local $TODO = 'Too hard to find a seller with consistently one page of auctions';
-tm_run_test('normal', 'jensdaddio', 1, 199, $iDebug, $iDump);
+tm_run_test('normal', 'a_is_a', 1, 199, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');

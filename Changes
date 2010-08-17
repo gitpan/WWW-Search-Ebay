@@ -1,3 +1,7 @@
+2010-08-17  Kingpin  <Martin@BLUEMAX>
+
+	* lib/WWW/Search/Ebay.pm (_parse_tree): fixed regex for item number
+
 2010-08-01  Kingpin  <Martin@BLUEMAX>
 
 	* lib/WWW/Search/Ebay.pm (_result_count_pattern): fixed regexen for result count, price, date

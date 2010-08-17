@@ -19,7 +19,6 @@ LICENSE
 Makefile.PL
 MANIFEST			This list of files
 META.yml
-no-results.html
 README
 t/buyitnow.t
 t/bysellerid.t
