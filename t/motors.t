@@ -1,5 +1,5 @@
 
-# $Id: motors.t,v 1.19 2013/03/03 03:42:40 Martin Exp $
+# $Id: motors.t,v 1.21 2013/06/24 03:24:29 martin Exp $
 
 use ExtUtils::testlib;
 use Test::More no_plan;
@@ -50,19 +50,25 @@ diag("Sending 1-page motors query to check contents...");
 $iDebug = 0;
 $iDump = 0;
 $WWW::Search::Test::sSaveOnError = q{motors-1-failed.html};
-tm_run_test('normal', 'Bugatti headlight', 1, 49, $iDebug, $iDump);
+tm_run_test('normal', '2008 Bugatti Veyron', 1, 49, $iDebug, $iDump);
 # Now get the results and inspect them:
-my @ao = $WWW::Search::Test::oSearch->results();
-cmp_ok(0, '<', scalar(@ao), 'got some results');
-foreach my $oResult (@ao)
-  {
-  like($oResult->url, qr{\Ahttp://(cgi|www)\d*\.ebay\.com},
-       'result URL is really from ebaymotors');
-  cmp_ok($oResult->title, 'ne', '', 'result Title is not empty');
-  cmp_ok($oResult->end_date, 'ne', '', 'end_date is not empty');
-  like($oResult->description, qr{([0-9]+|no)\s+bids?},
-       'result bidcount is ok');
-  } # foreach
+my @ara;
+push @ara, [
+            url => like => qr{\Ahttp://(cgi|www)\d*\.ebay\.com}, 'result URL is really from ebay.com'
+           ];
+push @ara, [
+            title => ne => q{''}, 'result title is not empty',
+           ];
+push @ara, [
+            end_date => ne => q{''}, 'result end_date is not empty',
+           ];
+push @ara, [
+            description => like => qr{([0-9]+|no)\s+bids?}, 'bid count is ok',
+           ];
+push @ara, [
+            description => like => qr{starting\sbid}, 'result bid amount is ok'
+           ];
+WWW::Search::Test::test_most_results(\@ara);
 SKIP_CONTENTS:
 pass('all done');
 

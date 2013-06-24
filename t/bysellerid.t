@@ -1,5 +1,5 @@
 
-# $Id: bysellerid.t,v 1.16 2013/03/03 03:42:41 Martin Exp $
+# $Id: bysellerid.t,v 1.17 2013/06/24 03:23:18 martin Exp $
 
 use Date::Manip;
 use ExtUtils::testlib;
@@ -51,13 +51,13 @@ $iDebug = 0;
 $iDump = 0;
 $WWW::Search::Test::sSaveOnError = q{bysellerid-failed.html};
 # local $TODO = 'Too hard to find a seller with consistently one page of auctions';
-tm_run_test('normal', 'allhypedup82', 1, 199, $iDebug, $iDump);
+tm_run_test('normal', 'fatsax72', 1, 199, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
 my @ara = (
            ['url', 'like', qr{\Ahttp://(cgi|www)\d*\.ebay\.com}, 'URL is really from ebay.com'],
-           ['title', 'ne', q{}, 'Title is not empty'],
+           ['title', 'ne', 'q{}', 'Title is not empty'],
            ['change_date', 'date', 'change_date is really a date'],
            ['description', 'like', qr{Item #\d+;}, 'description contains item #'],
            ['description', 'like', qr{\b(\d+|no)\s+bids?}, # }, # Emacs bug

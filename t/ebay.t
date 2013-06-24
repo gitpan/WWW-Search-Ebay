@@ -1,5 +1,5 @@
 
-# $Id: ebay.t,v 1.16 2013/03/03 14:34:09 Martin Exp $
+# $Id: ebay.t,v 1.17 2013/06/24 03:33:49 martin Exp $
 
 use strict;
 use warnings;
@@ -120,7 +120,7 @@ my @ara = (
            ['description', 'like', qr{Item #\d+;}, 'description contains item #'],
            ['url', 'like', qr(\Ahttp://(cgi|www)\d*\.ebay\.com), # ), # Emacs bug
             q'URL is from ebay.com'], # '], # Emacs bug
-           ['title', 'ne', q{}, 'result Title is not empty'],
+           ['title', 'ne', 'q{}', 'result Title is not empty'],
            ['change_date', 'date', 'change_date is really a date'],
            ['description', 'like', qr{\b(\d+|no)\s+bids?}, # }, # Emacs bug
             'result bidcount is ok'],

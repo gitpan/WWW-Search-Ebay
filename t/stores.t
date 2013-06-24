@@ -1,5 +1,5 @@
 
-# $Id: stores.t,v 1.19 2013/03/03 03:42:40 Martin Exp $
+# $Id: stores.t,v 1.20 2013/06/24 03:24:19 martin Exp $
 
 use blib;
 use Bit::Vector;
@@ -80,43 +80,20 @@ diag("Sending 1-page stores query to check contents...");
 $iDebug = 0;
 $iDump = 0;
 tm_run_test('normal', 'shmi ccg', 1, 99, $iDebug, $iDump);
-# Now get the results and inspect them:
-my @ao = $WWW::Search::Test::oSearch->results();
-cmp_ok(0, '<', scalar(@ao), 'got some results');
-# We perform this many tests on each result object:
-my $iTests = 5;
-my $iAnyFailed = 0;
-my ($iVall, %hash);
-foreach my $oResult (@ao)
-  {
-  my $oV = new Bit::Vector($iTests);
-  $oV->Fill;
-  $iVall = $oV->to_Dec;
-  # Create a vector of which tests passed:
-  $oV->Bit_Off(1) unless like($oResult->url, qr{\Ahttp://(cgi|www)\d*\.ebay\.com},
-                              'result URL is really from ebay.com');
-  $oV->Bit_Off(2) unless cmp_ok($oResult->title, 'ne', '',
-                                'result Title is not empty');
-  $oV->Bit_Off(3) unless cmp_ok(ParseDate($oResult->change_date) || '', 'ne', '',
-                                'change_date is really a date');
-  $oV->Bit_Off(4) unless like($oResult->description, qr{([0-9]+|no)\s+bids?},
-                              'result bidcount is ok');
-  # $oV->Bit_Off(0) unless like($oResult->bid_count, qr{\A\d+\Z}, 'bid_count is a number');
-  my $iV = $oV->to_Dec;
-  if ($iV < $iVall)
-    {
-    $hash{$iV} = $oResult;
-    $iAnyFailed++;
-    } # if
-  } # foreach
-if ($iAnyFailed)
-  {
-  diag(" Here are results that exemplify the failures:");
-  while (my ($sKey, $sVal) = each %hash)
-    {
-    diag(Dumper($sVal));
-    } # while
-  } # if
+my @ara;
+push @ara, [
+            url => like => qr{\Ahttp://(cgi|www)\d*\.ebay\.com}, 'result URL is really from ebay.com'
+           ];
+push @ara, [
+            title => ne => q{''}, 'result title is not empty',
+           ];
+push @ara, [
+            description => like => qr{([0-9]+|no)\s+bids?}, 'bid count is ok',
+           ];
+# Don't bother checking the end_date or change_date, because eBay
+# stores are most likely to have only buy-it-now items (which do not
+# have dates)
+WWW::Search::Test::test_most_results(\@ara);
 
 pass;
 SKIP_CONTENTS:

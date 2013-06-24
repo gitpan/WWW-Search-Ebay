@@ -1,5 +1,5 @@
 
-# $Id: buyitnow.t,v 1.18 2013/03/03 03:42:41 Martin Exp $
+# $Id: buyitnow.t,v 1.19 2013/06/23 18:31:36 martin Exp $
 
 use blib;
 use Bit::Vector;
@@ -82,42 +82,21 @@ tm_run_test('normal', 'Kenya waterfall', 1, 199, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');
-# We perform this many tests on each result object:
-my $iTests = 5;
-my $iAnyFailed = 0;
-my ($iVall, %hash);
-my $oV = new Bit::Vector($iTests);
-foreach my $oResult (@ao)
-  {
-  $oV->Fill;
-  $iVall = $oV->to_Dec;
-  $oV->Bit_Off(0) unless like($oResult->url, qr{\Ahttp://(cgi|www)\d*\.ebay\.com},
-                              'result URL is really from ebay.com');
-  $oV->Bit_Off(1) unless cmp_ok($oResult->title, 'ne', '',
-                                'result Title is not empty');
-  my $sDate = ParseDate($oResult->end_date) || '';
-  # diag($sDate);
-  $oV->Bit_Off(2) unless cmp_ok($sDate, 'ne', '',
-                                'end_date is really a date');
-  $oV->Bit_Off(3) unless like($oResult->description, qr{no\s+bids;},
-                              'result bid count is ok');
-  $oV->Bit_Off(4) unless like($oResult->description, qr{starting\sbid},
-                              'result bid amount is ok');
-  my $iV = $oV->to_Dec;
-  if ($iV < $iVall)
-    {
-    $hash{$iV} = $oResult;
-    $iAnyFailed++;
-    } # if
-  } # foreach
-if ($iAnyFailed)
-  {
-  diag(" Here are results that exemplify the failures:");
-  while (my ($sKey, $sVal) = each %hash)
-    {
-    diag(Dumper($sVal));
-    } # while
-  } # if
+my @ara;
+push @ara, [
+            url => like => qr{\Ahttp://(cgi|www)\d*\.ebay\.com},
+            'result URL is really from ebay.com'
+           ];
+push @ara, [
+            title => ne => q{''}, 'result title is not empty',
+           ];
+push @ara, [
+            description => like => qr{no\s+bids;}, 'bid count is ok',
+           ];
+push @ara, [
+            description => like => qr{starting\sbid}, 'result bid amount is ok'
+           ];
+WWW::Search::Test::test_most_results(\@ara);
 SKIP_CONTENTS:
 ;
 

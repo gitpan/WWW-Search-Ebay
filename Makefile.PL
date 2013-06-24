@@ -1,9 +1,9 @@
 
-# $rcs = ' $Id: Makefile.PL,v 1.89 2013/03/17 01:09:35 martin Exp $ ';
+# $rcs = ' $Id: Makefile.PL,v 1.92 2013/06/24 03:17:04 martin Exp $ ';
 
 use inc::Module::Install;
 
-version(3.026);
+version(3.027);
 all_from('lib/WWW/Search/Ebay.pm');
 
 requires(perl => 5.005);
@@ -22,9 +22,8 @@ recommends('Test::Pod::Coverage');
 requires('WWW::Search' => 2.557);
 # We need the version that has the bidder and seller methods:
 requires('WWW::SearchResult' => 2.067);
-# We need the version of WWW::Search::Test that exports its tm_
-# functions:
-test_requires('WWW::Search::Test' => 2.265);
+# We need the bug-fixed version of WWW::Search::Test:
+test_requires('WWW::Search::Test' => 2.290);
 
 my $ret = <<'PART0';
 coverage :

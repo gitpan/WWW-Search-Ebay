@@ -1,3 +1,7 @@
+2013-06-23  Kingpin  <martin@localhost.localdomain>
+
+	* lib/WWW/Search/Ebay.pm (_get_itemtitle_tds): fixed for new eBay page layout
+
 2010-08-17  Kingpin  <Martin@BLUEMAX>
 
 	* lib/WWW/Search/Ebay.pm (_parse_tree): fixed regex for item number

@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.259 2013/03/17 01:01:06 martin Exp $
+# $Id: Ebay.pm,v 2.260 2013/06/24 03:12:21 martin Exp $
 
 =head1 NAME
 
@@ -139,7 +139,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.259 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.260 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -711,6 +711,15 @@ sub _get_itemtitle_tds
   push @ao, $tree->look_down(_tag => 'td',
                              class => 'details ttl',
                             );
+  my $oDiv = $tree->look_down(_tag => 'div',
+                              id => 'ResultSetItems',
+                             );
+  if (ref $oDiv)
+    {
+    push @ao, $oDiv->look_down(_tag => 'td',
+                               class => 'dtl dtlsp',
+                              );
+    } # if
   return @ao;
   } # _get_itemtitle_tds
 

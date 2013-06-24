@@ -1,5 +1,5 @@
 
-# $Id: BySellerID.pm,v 2.12 2013/03/02 20:21:24 Martin Exp $
+# $Id: BySellerID.pm,v 2.13 2013/06/24 03:22:50 martin Exp $
 
 =head1 NAME
 
@@ -57,7 +57,7 @@ use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 2.12 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.13 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub _native_setup_search
   {
@@ -99,7 +99,7 @@ sub _columns
   {
   my $self = shift;
   # This is for basic USA eBay:
-  return qw( junk bids price enddate );
+  return qw( enddate price repeat bids );
   } # _columns
 
 1;

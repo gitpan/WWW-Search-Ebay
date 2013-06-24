@@ -8,11 +8,11 @@ build_requires:
   ExtUtils::MakeMaker: 6.36
   IO::Capture::Stderr: 0
   Test::More: 0
-  WWW::Search::Test: 2.265
+  WWW::Search::Test: 2.29
 configure_requires:
   ExtUtils::MakeMaker: 6.36
 dynamic_config: 0
-generated_by: 'Module::Install version 1.06, CPAN::Meta::Converter version 2.120921'
+generated_by: 'Module::Install version 1.06, CPAN::Meta::Converter version 2.131560'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -33,5 +33,5 @@ requires:
   WWW::SearchResult: 2.067
 resources:
   license: http://dev.perl.org/licenses/
-version: 3.025
+version: 3.026
 x_module_name: WWW::Search::Ebay
