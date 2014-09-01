@@ -1,5 +1,7 @@
 
-# $Id: bysellerid.t,v 1.19 2013-11-29 02:44:05 Martin Exp $
+# $Id: bysellerid.t,v 1.20 2014-09-01 21:40:52 Martin Exp $
+
+use constant DEBUG_CONTENTS => 0;
 
 use Date::Manip;
 use ExtUtils::testlib;
@@ -9,6 +11,7 @@ use WWW::Search;
 use WWW::Search::Test;
 BEGIN
   {
+  use blib;
   use_ok('WWW::Search::Ebay::BySellerID');
   } # end of BEGIN block
 
@@ -17,6 +20,7 @@ my $iDump;
 
 tm_new_engine('Ebay::BySellerID');
 # goto DEBUG_NOW;
+goto CONTENTS if DEBUG_CONTENTS;
 # goto CONTENTS;
 
 diag("Sending 0-page seller ID query...");
@@ -47,11 +51,11 @@ SKIP_MULTI:
 pass('no-op');
 CONTENTS:
 diag("Sending 1-page seller ID query to check contents...");
-$iDebug = 0;
+$iDebug = DEBUG_CONTENTS ? 2 : 0;
 $iDump = 0;
 $WWW::Search::Test::sSaveOnError = q{bysellerid-failed.html};
 # local $TODO = 'Too hard to find a seller with consistently one page of auctions';
-tm_run_test('normal', 'icarus1737', 1, 199, $iDebug, $iDump);
+tm_run_test('normal', 'martinthurn', 1, 199, $iDebug, $iDump);
 # Now get the results and inspect them:
 my @ao = $WWW::Search::Test::oSearch->results();
 cmp_ok(0, '<', scalar(@ao), 'got some results');

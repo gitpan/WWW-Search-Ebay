@@ -1,9 +1,9 @@
 
-# $rcs = ' $Id: Makefile.PL,v 1.96 2013-11-29 00:22:09 Martin Exp $ ';
+# $rcs = ' $Id: Makefile.PL,v 1.100 2014-09-01 21:52:07 Martin Exp $ ';
 
 use inc::Module::Install;
 
-version(3.033);
+version(3.035);
 all_from('lib/WWW/Search/Ebay.pm');
 
 requires(perl => 5.005);
@@ -25,8 +25,6 @@ requires('WWW::SearchResult' => 2.067);
 # We need the bug-fixed version of WWW::Search::Test:
 test_requires('WWW::Search::Test' => 2.290);
 
-use_ptar() if $ENV{MTHURN_PERL_DEV};
-
 my $ret = <<'PART0';
 coverage :
 	$(RM_RF) cover_db/*
@@ -35,26 +33,31 @@ coverage :
 PART0
 postamble $ret;
 
-WriteAll;
-
 use Env;
 if ($ENV{MTHURN_PERL_DEV})
   {
-  print "DDD This is author's development environment\n";
+  warn "DDD This is author's development environment\n";
+  use_ptar();
+  } # if
+
+WriteAll;
+
+if (0 && $ENV{MTHURN_PERL_DEV})
+  {
   my $sFnameMakefile = q{Makefile};
   eval "use File::Slurp";
   my $s = read_file($sFnameMakefile);
   if ($s !~ s/(DIRFILESEP\s*=\s*).+$/$1\//m)
     {
-    print " EEE did not find DIRFILESEP in Makefile\n";
+    warn " EEE did not find DIRFILESEP in Makefile\n";
     } # if
   if ($s !~ s/(pm_to_blib\(){{\@ARGV}}/$1 . '{@ARGV}'/e)
     {
-    print " EEE did not find pm_to_blib@ARGV in Makefile\n";
+    warn " EEE did not find pm_to_blib@ARGV in Makefile\n";
     } # if
   if ($s !~ s/(from_to\s+=>\s+){{\@ARGV}}/$1 . '{@ARGV}'/e)
     {
-    print " EEE did not find from_to@ARGV in Makefile\n";
+    warn " EEE did not find from_to@ARGV in Makefile\n";
     } # if
   write_file($sFnameMakefile, $s);
   } # if

@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.263 2013-11-29 00:20:54 Martin Exp $
+# $Id: Ebay.pm,v 2.265 2014-09-01 21:52:56 Martin Exp $
 
 =head1 NAME
 
@@ -136,7 +136,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.263 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.265 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -543,7 +543,8 @@ sub _parse_enddate
     }
   if (ref($oTDdate))
     {
-    if ($oTDdate->attr('class') !~ m/\b(col3|ebcTim|ti?me)\b/)
+    my $sClass = $oTDdate->attr('class') || q{};
+    if ($sClass !~ m/\b(col3|ebcTim|ti?me)\b/)
       {
       # If we see this, we probably were searching for Buy-It-Now items
       # but we ran off the bottom of the item list and ran into the list
@@ -721,6 +722,9 @@ sub _get_itemtitle_tds
     {
     push @ao, $oDiv->look_down(_tag => 'td',
                                class => 'dtl dtlsp',
+                              );
+    push @ao, $oDiv->look_down(_tag => 'h3',
+                               class => 'lvtitle',
                               );
     } # if
   return @ao;
@@ -916,7 +920,9 @@ sub _parse_tree
     $hit->bid_count(0);
     # The rest of the info about this item is in sister TD elements to
     # the right:
-    my @aoSibs = $oTDtitle->right;
+    my @aoSibs = $oTDtitle->parent->look_down(_tag => q{li});
+    # The parent itself is an <LI> tag:
+    shift @aoSibs;
     # But in the Completed auctions list, the rest of the info is in
     # the next row of the table:
     if (0 && ref($self) =~ m!::Completed!)
@@ -1216,7 +1222,7 @@ sub _columns
   {
   my $self = shift;
   # This is for basic USA eBay:
-  return qw( enddate price repeat bids );
+  return qw( price bids junk enddate );
   } # _columns
 
 1;

@@ -1,5 +1,5 @@
 
-# $Id: BySellerID.pm,v 2.13 2013-06-24 03:22:50 martin Exp $
+# $Id: BySellerID.pm,v 2.14 2014-09-01 21:49:09 Martin Exp $
 
 =head1 NAME
 
@@ -57,7 +57,7 @@ use warnings;
 
 use base 'WWW::Search::Ebay';
 our
-$VERSION = do { my @r = (q$Revision: 2.13 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.14 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 sub _native_setup_search
   {
@@ -95,7 +95,7 @@ sub _native_setup_search
   return $self->SUPER::_native_setup_search('', $rh);
   } # _native_setup_search
 
-sub _columns
+sub _columns_NOT_NEEDED
   {
   my $self = shift;
   # This is for basic USA eBay:

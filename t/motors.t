@@ -1,14 +1,16 @@
 
-# $Id: motors.t,v 1.22 2013-11-29 02:44:05 Martin Exp $
+# $Id: motors.t,v 1.24 2014-09-01 21:50:32 Martin Exp $
 
 use ExtUtils::testlib;
 use Test::More no_plan;
 use WWW::Search::Test;
 
+use constant DEBUG_CONTENTS => 0;
 use constant DEBUG_ONE => 0;
 
 BEGIN
   {
+  use blib;
   use_ok('WWW::Search::Ebay::Motors');
   }
 
@@ -16,7 +18,8 @@ my $iDebug;
 my $iDump = 0;
 
 tm_new_engine('Ebay::Motors');
-DEBUG_ONE && goto TEST_ONE;
+goto CONTENTS if DEBUG_CONTENTS;
+goto TEST_ONE if DEBUG_ONE;
 # goto CONTENTS;
 
 if (0)
@@ -37,7 +40,7 @@ MULTI_RESULT:
   tm_run_test('normal', 'Chevrolet', 111, undef, $iDebug, $iDump);
   cmp_ok(1, '<', $WWW::Search::Test::oSearch->{requests_made}, 'got multiple pages');
   $TODO = q{};
-  }
+  } # end of MULTI_RESULT block
 # goto SKIP_CONTENTS;
 
 DEBUG_NOW:
@@ -47,7 +50,7 @@ pass;
 TEST_ONE:
 pass('start 1-page test');
 diag("Sending 1-page motors query to check contents...");
-$iDebug = 0;
+$iDebug = DEBUG_CONTENTS ? 2 : 0;
 $iDump = 0;
 $WWW::Search::Test::sSaveOnError = q{motors-1-failed.html};
 tm_run_test('normal', '2012 Bugatti Veyron', 1, 49, $iDebug, $iDump);

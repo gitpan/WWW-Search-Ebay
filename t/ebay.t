@@ -1,10 +1,12 @@
 
-# $Id: ebay.t,v 1.18 2013-08-29 02:21:27 martin Exp $
+# $Id: ebay.t,v 1.19 2014-09-01 21:49:29 Martin Exp $
 
 use strict;
 use warnings;
 
 use constant DEBUG_CONTENTS => 0;
+
+use blib;
 
 use Bit::Vector;
 use Data::Dumper;
