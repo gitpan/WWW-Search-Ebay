@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.265 2014-09-01 21:52:56 Martin Exp $
+# $Id: Ebay.pm,v 2.266 2014-09-02 01:50:20 Martin Exp $
 
 =head1 NAME
 
@@ -136,7 +136,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.265 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.266 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -601,7 +601,7 @@ sub result_as_HTML
   my $self = shift;
   my $oSR = shift or return '';
   my $sDateFormat = shift || q'%Y-%m-%d %H:%M:%S';
-  my $dateEnd = ParseDate($oSR->end_date);
+  my $dateEnd = ParseDate($oSR->end_date) || q{};
   my $iItemNum = $oSR->item_number;
   my $sSold = $oSR->sold
   ? $cgi->font({color=>'green'}, 'sold') .q{; }
@@ -920,7 +920,13 @@ sub _parse_tree
     $hit->bid_count(0);
     # The rest of the info about this item is in sister TD elements to
     # the right:
-    my @aoSibs = $oTDtitle->parent->look_down(_tag => q{li});
+    my @aoSibs = $oTDtitle->parent->look_down(_tag => q{li},
+                                              sub
+                                                {
+                                                my $sClass = $_[0]->attr('class') || q{};
+                                                return ($sClass ne 'lvextras');
+                                                },
+                                             );
     # The parent itself is an <LI> tag:
     shift @aoSibs;
     # But in the Completed auctions list, the rest of the info is in
@@ -1038,7 +1044,7 @@ sub _parse_tree
     # AS OF 2008-11 THE NEXT LINK CAN NOT BE FOLLOWED FROM PERL CODE
 
     # Look for a NEXT link:
-    my @aoA = $tree->look_down('_tag', 'a');
+    my @aoA = $tree->look_down('_tag' => 'a');
  TRY_NEXT:
     foreach my $oA (0, reverse @aoA)
       {
@@ -1222,7 +1228,7 @@ sub _columns
   {
   my $self = shift;
   # This is for basic USA eBay:
-  return qw( price bids junk enddate );
+  return qw( price bids enddate );
   } # _columns
 
 1;
