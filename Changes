@@ -1,3 +1,7 @@
+2014-09-01  Kingpin  <Martin@EV-9D9>
+
+	* lib/WWW/Search/Ebay.pm: updated for new eBay HTML page structure
+
 2013-11-28  Kingpin  <Martin@EV-9D9>
 
 	* lib/WWW/Search/Ebay.pm: removed pod about category in results

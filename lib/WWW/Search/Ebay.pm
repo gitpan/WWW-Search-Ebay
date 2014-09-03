@@ -1,5 +1,5 @@
 
-# $Id: Ebay.pm,v 2.266 2014-09-02 01:50:20 Martin Exp $
+# $Id: Ebay.pm,v 2.268 2014-09-02 02:45:24 Martin Exp $
 
 =head1 NAME
 
@@ -136,7 +136,7 @@ use WWW::SearchResult 2.072;
 use WWW::Search::Result;
 
 our
-$VERSION = do { my @r = (q$Revision: 2.266 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 2.268 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 our $MAINTAINER = 'Martin Thurn <mthurn@cpan.org>';
 my $cgi = new CGI;
 
@@ -500,6 +500,10 @@ sub _parse_shipping
   $iPrice =~ s!&Acirc;!!g;
   $iPrice =~ s!Â!!g;
   print STDERR " DDD   raw shipping ===$iPrice===\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
+  if ($iPrice =~ m/FREE/i)
+    {
+    $iPrice = 0.00;
+    } # if
   return 0 if ($iPrice !~ m/\d/);
   $iPrice =~ s!&pound;!GBP!;
   $hit->shipping($iPrice);
@@ -536,6 +540,7 @@ sub _parse_enddate
     {
     $sDate = $1;
     $sDate = $self->_format_date(ParseDate(q{epoch }. int($sDate/1000)));
+    print STDERR " DDD   sDate =$sDate=\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
     $hit->end_date($sDate);
     # For backward-compatibility:
     $hit->change_date($sDate);
@@ -845,32 +850,6 @@ sub _parse_tree
     $oDiv->detach;
     $oDiv->delete;
     } # if
-  # By default, use the hard-coded order of columns:
-  my @asColumns = $self->_columns;
-  if (ref($self) !~ m!::Completed!)
-    {
-    # See if we can glean the actual order of columns from the page itself:
-    my @aoCOL = $tree->look_down(_tag => 'col');
-    my @asId;
-    foreach my $oCOL (@aoCOL)
-      {
-      # Sanity check:
-      next unless ref($oCOL);
-      my $sId = $oCOL->attr('id') || '';
-      # Sanity check:
-      next unless ($sId ne '');
-      $sId =~ s!\Aebc!!;
-      # Try not to go past the first table:
-      last if ($sId eq 'bdrRt');
-      push @asId, $sId;
-      } # foreach
-    print STDERR " DDD raw    asId is (@asId)\n" if (1 < $self->{_debug});
-    1 while (@asId && (shift(@asId) ne 'title'));
-    local $" = ',';
-    print STDERR " DDD cooked asId is (@asId)\n" if (1 < $self->{_debug});
-    @asColumns = @asId if @asId;
-    } # if
-  print STDERR " DDD   asColumns is (@asColumns)\n" if (1 < $self->{_debug});
   # The list of matching items is in a table.  The first column of the
   # table is nothing but icons; the second column is the good stuff.
   my @aoTD = $self->_get_itemtitle_tds($tree);
@@ -918,99 +897,51 @@ sub _parse_tree
     $hit->item_number($iItemNum);
     # This is just to prevent undef warnings later on:
     $hit->bid_count(0);
-    # The rest of the info about this item is in sister TD elements to
-    # the right:
-    my @aoSibs = $oTDtitle->parent->look_down(_tag => q{li},
-                                              sub
-                                                {
-                                                my $sClass = $_[0]->attr('class') || q{};
-                                                return ($sClass ne 'lvextras');
-                                                },
-                                             );
+    # The rest of the info about this item is in sister <LI> elements
+    # to the right:
+    my @aoSibs = $oTDtitle->parent->look_down(_tag => q{li});
     # The parent itself is an <LI> tag:
     shift @aoSibs;
-    # But in the Completed auctions list, the rest of the info is in
-    # the next row of the table:
-    if (0 && ref($self) =~ m!::Completed!)
-      {
-      @aoSibs = ();
-      my $oTRparent = $oTDtitle->look_up(_tag => 'tr');
-      if (ref $oTRparent)
-        {
-        my $sTRparent = $oTRparent->as_HTML;
-        # print STDERR " DDD oTRparent ==$sTRparent==\n";
-        my $oTRaunt = $oTRparent->right;
-        if (ref $oTRaunt)
-          {
-          my $sTRaunt = $oTRaunt->as_HTML;
-          # print STDERR " DDD oTRaunt ==$sTRaunt==\n";
-          @aoSibs = $oTRaunt->look_down(_tag => 'td');
-          # Throw out one empty cell:
-          shift @aoSibs;
-          } # if
-        } # if
-      } # if
-    my $iCol = 0;
-    my $oTDprev;
     warn " DDD before loop, there are ", scalar(@aoSibs), " sibling TDs\n" if (1 < $self->{_debug});
  SIBLING_TD:
-    while (my $sColumn = $asColumns[$iCol++])
+    while (my $oTDsib = shift @aoSibs)
       {
-      warn " DDD just inside loop, there are ", scalar(@aoSibs), " sibling TDs\n" if (1 < $self->{_debug});
-      if ($sColumn =~ m/(repeat|stay|same)/i)
-        {
-        # Re-use the previous table cell for the (next) column of data:
-        unshift @aoSibs, $oTDprev;
-        warn " DDD after unshifting, there are ", scalar(@aoSibs), " sibling TDs\n" if (1 < $self->{_debug});
-        next SIBLING_TD;
-        } # if
-      my $oTDsib = shift(@aoSibs);
       next unless ref($oTDsib);
+      my $sColumn = $oTDsib->attr('class') || q{};
       my $s = $oTDsib->as_HTML;
-      print STDERR " DDD   try TD'$sColumn' ===$s===\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
+      if ($sColumn eq q{})
+        {
+        warn " EEE auction info sibling has no class ==$s==" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
+        } # if
+      print STDERR " DDD   looking at TD'$sColumn' ===$s===\n" if (DEBUG_COLUMNS || (1 < $self->{_debug}));
       if ($sColumn =~ m'price')
         {
         next TD unless $self->_parse_price($oTDsib, $hit);
         } # if
-      elsif ($sColumn =~ m'bids')
+      if ($sColumn =~ m'bids')
         {
         # It is not a fatal error if there are no bids (i.e. buy-it-now)
         $self->_parse_bids($oTDsib, $hit);
         }
-      elsif ($sColumn eq 'shipping')
+      if ($sColumn =~ m'shipping')
         {
-        next TD unless $self->_parse_shipping($oTDsib, $hit);
+        next TD if ! $self->_parse_shipping($oTDsib, $hit);
         }
-      elsif ($sColumn eq 'enddate')
+      if ($sColumn =~ m'end')
         {
-        next TD unless $self->_parse_enddate($oTDsib, $hit);
+        next TD if ! $self->_parse_enddate($oTDsib, $hit);
         }
-      elsif ($sColumn eq 'time')
+      if ($sColumn =~ 'time')
         {
-        next TD unless $self->_parse_enddate($oTDsib, $hit);
+        next TD if ! $self->_parse_enddate($oTDsib, $hit);
         }
-      elsif ($sColumn eq 'country')
+      if ($sColumn =~ m'country')
         {
         # This listing is from a country other than the base site
         # we're searching against.  Throw it out:
         next TD;
         }
-      elsif ($sColumn eq 'paypal')
-        {
-        # We always ignore the Paypal logo.
-        next SIBLING_TD;
-        }
-      elsif ($sColumn eq 'buyitnowlogo')
-        {
-        # We always ignore the Buy-It-Now logo.
-        next SIBLING_TD;
-        }
-      else
-        {
-        # print STDERR " DDD     do not know how to handle column named $sColumn\n" if (1 < $self->{_debug});
-        next SIBLING_TD;
-        }
-      $oTDprev = $oTDsib;
+      # Any other class="" value will cause the <LI> to be ignored.
       } # while
     my $sDesc = $self->_create_description($hit);
     $hit->description($sDesc);
@@ -1217,19 +1148,6 @@ sub _result_count_pattern
   return qr'([0-9,]+)\s+(active\s+)?(listing|item|matche?|result)s?(\s+found)?\b';
   } # _result_count_pattern
 
-
-=item _columns
-
-Specify the order in which data columns appear in the search results table.
-
-=cut
-
-sub _columns
-  {
-  my $self = shift;
-  # This is for basic USA eBay:
-  return qw( price bids enddate );
-  } # _columns
 
 1;
 

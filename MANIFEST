@@ -1,13 +1,4 @@
 Changes
-inc/Module/Install.pm
-inc/Module/Install/Base.pm
-inc/Module/Install/Can.pm
-inc/Module/Install/Fetch.pm
-inc/Module/Install/Makefile.pm
-inc/Module/Install/Metadata.pm
-inc/Module/Install/PerlTar.pm
-inc/Module/Install/Win32.pm
-inc/Module/Install/WriteAll.pm
 lib/WWW/Search/.#Ebay.pm.2.259
 lib/WWW/Search/Ebay.pm
 lib/WWW/Search/Ebay/Auctions.pm

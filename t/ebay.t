@@ -1,12 +1,10 @@
 
-# $Id: ebay.t,v 1.19 2014-09-01 21:49:29 Martin Exp $
+# $Id: ebay.t,v 1.20 2014-09-02 02:29:45 Martin Exp $
 
 use strict;
 use warnings;
 
 use constant DEBUG_CONTENTS => 0;
-
-use blib;
 
 use Bit::Vector;
 use Data::Dumper;
@@ -19,8 +17,9 @@ use WWW::Search::Test;
 
 BEGIN
   {
+  use blib;
   use_ok('WWW::Search::Ebay');
-  }
+  } # end of BEGIN block
 
 my $iDebug;
 my $iDump = 0;
